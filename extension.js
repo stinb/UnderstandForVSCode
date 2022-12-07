@@ -4,7 +4,14 @@ const { spawn } = require('node:child_process');
 const fs        = require('node:fs');
 const path      = require('node:path');
 
-class DepNodeProvider {
+
+
+let dbPath = null;
+let db = null;
+
+
+// TreeDataProvider
+class ReferenceChecklistProvider {
 
 	#workspaceRoot;
 	#_onDidChangeTreeData;
@@ -26,7 +33,7 @@ class DepNodeProvider {
 
 	getChildren(element) {
 		if (!this.workspaceRoot) {
-			vscode.window.showInformationMessage('No dependency in empty workspace');
+			info('No dependency in empty workspace');
 			return Promise.resolve([]);
 		}
 
@@ -37,7 +44,7 @@ class DepNodeProvider {
 			if (this.#pathExists(packageJsonPath)) {
 				return Promise.resolve(this.#getDepsInPackageJson(packageJsonPath));
 			} else {
-				vscode.window.showInformationMessage('Workspace has no package.json');
+				info('Workspace has no package.json');
 				return Promise.resolve([]);
 			}
 		}
@@ -97,6 +104,9 @@ class Dependency extends vscode.TreeItem {
 	) {
 		super(label, collapsibleState);
 
+		this.version = version;
+		this.command = command;
+
 		this.tooltip = `${this.label}-${this.version}`;
 		this.description = this.version;
 	}
@@ -108,13 +118,6 @@ class Dependency extends vscode.TreeItem {
 
 	contextValue = 'dependency';
 }
-
-
-
-
-
-let dbPath = null;
-let db = null;
 
 
 
@@ -162,7 +165,7 @@ async function openDatabase() {
 	// });
 }
 
-async function getReferences(query) {
+async function getReferences(query='') {
 	// // No references if the database isn't open
 	// if (!(await openDatabase()))
 	// 	return {};
@@ -249,8 +252,8 @@ function activate(context) {
 	// openDatabase();
 
 	// Tree view
-	const nodeDependenciesProvider = new DepNodeProvider(vscode.workspace.rootPath)
-	vscode.window.registerTreeDataProvider('referenceChecklist', nodeDependenciesProvider);
+	const referenceChecklistProvider = new ReferenceChecklistProvider(vscode.workspace.rootPath);
+	vscode.window.registerTreeDataProvider('referenceChecklist', referenceChecklistProvider);
 
 	// Register commands created in package.json
 	context.subscriptions.push(
