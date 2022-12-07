@@ -1,0 +1,68 @@
+{
+	"name": "understand",
+	"displayName": "Understand",
+	"description": "Navigate and select strings",
+	"version": "1.0.0",
+	"publisher": "scitools",
+	"repository": {
+		"type": "git",
+		"url": ""
+	},
+	"engines": {
+		"vscode": "^1.64.0"
+	},
+	"categories": [
+		"Keymaps",
+		"Other"
+	],
+	"keywords": [
+		"Select",
+		"Move",
+		"Cursor",
+		"String",
+		"Quote"
+	],
+	"icon": "icon.png",
+	"activationEvents": [
+        "onCommand:understand.selectDatabase",
+        "onCommand:understand.seeReferencesForFile",
+        "onCommand:understand.seeReferencesForSelected"
+	],
+	"main": "extension.js",
+	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "understand",
+					"title": "Understand",
+					"icon": "icon.svg"
+				}
+			]
+		},
+		"views": {
+			"understand": [
+				{
+					"id": "referenceChecklist",
+					"name": "Reference Checklist",
+					"contextualTitle": "Reference Explorer"
+				}
+			]
+		},
+		"commands": [
+			{
+				"command": "understand.selectDatabase",
+				"title": "Understand: Select Database"
+			},
+			{
+				"command": "understand.seeReferencesForFile",
+				"title": "Understand: See References for File",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "understand.seeReferencesForSelected",
+				"title": "Understand: See References for Selected",
+				"when": "editorTextFocus"
+			}
+		]
+	}
+}
