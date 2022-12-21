@@ -1,26 +1,30 @@
 const vscode = require('vscode');
 
-const { spawn } = require('node:child_process');
-const fs        = require('node:fs');
-const path      = require('node:path');
+const { spawn }    = require('node:child_process');
+const { basename } = require('node:path');
 
 
 
 let dbPath = null;
 let db = null;
+let referenceChecklist = null;
 
 
-// TreeDataProvider
+
+//
+// Tree Data
+//
+
 class ReferenceChecklistProvider {
 
-	#workspaceRoot;
+	#data;
 	#_onDidChangeTreeData;
 	onDidChangeTreeData;
 
-	constructor(workspaceRoot) {
+	constructor(data) {
+		this.#data = data;
 		this._onDidChangeTreeData = new vscode.EventEmitter()
 		this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-		this.workspaceRoot = workspaceRoot;
 	}
 
 	refresh() {
@@ -32,91 +36,62 @@ class ReferenceChecklistProvider {
 	}
 
 	getChildren(element) {
-		if (!this.workspaceRoot) {
-			info('No dependency in empty workspace');
+		if (!this.#data) {
 			return Promise.resolve([]);
 		}
 
-		if (element) {
-			return Promise.resolve(this.#getDepsInPackageJson(path.join(this.workspaceRoot, 'node_modules', element.label, 'package.json')));
-		} else {
-			const packageJsonPath = path.join(this.workspaceRoot, 'package.json');
-			if (this.#pathExists(packageJsonPath)) {
-				return Promise.resolve(this.#getDepsInPackageJson(packageJsonPath));
-			} else {
-				info('Workspace has no package.json');
-				return Promise.resolve([]);
-			}
+		// Ent
+		if (element && element.refs) {
+			return Promise.resolve(element.refs);
 		}
-
-	}
-
-	/**
-	 * Given the path to package.json, read all its dependencies and devDependencies.
-	 */
-	#getDepsInPackageJson(packageJsonPath) {
-		const workspaceRoot = this.workspaceRoot;
-		if (this.#pathExists(packageJsonPath) && workspaceRoot) {
-			const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-
-			const toDep = (moduleName, version) => {
-				if (this.#pathExists(path.join(workspaceRoot, 'node_modules', moduleName))) {
-					return new Dependency(moduleName, version, vscode.TreeItemCollapsibleState.Collapsed);
-				} else {
-					return new Dependency(moduleName, version, vscode.TreeItemCollapsibleState.None, {
-						command: 'extension.openPackageOnNpm',
-						title: '',
-						arguments: [moduleName]
-					});
-				}
-			};
-
-			const deps = packageJson.dependencies
-				? Object.keys(packageJson.dependencies).map(dep => toDep(dep, packageJson.dependencies[dep]))
-				: [];
-			const devDeps = packageJson.devDependencies
-				? Object.keys(packageJson.devDependencies).map(dep => toDep(dep, packageJson.devDependencies[dep]))
-				: [];
-			return deps.concat(devDeps);
-		} else {
-			return [];
+		// Ref
+		else if (element) {
+			return Promise.resolve([]);
+		}
+		// Ents
+		else {
+			return Promise.resolve(this.#data);
 		}
 	}
 
-	#pathExists(p) {
-		try {
-			fs.accessSync(p);
-		} catch (err) {
-			return false;
-		}
+	setData(data) {
+		this.#data = [];
 
-		return true;
+		for (const ent of data)
+			this.#data.push(new EntTreeItem(ent));
+
+		this.refresh();
 	}
 }
 
-class Dependency extends vscode.TreeItem {
-
+class EntTreeItem extends vscode.TreeItem {
 	constructor(
-		label,
-		version,
-		collapsibleState,
-		command
+		ent,
 	) {
-		super(label, collapsibleState);
-
-		this.version = version;
-		this.command = command;
-
-		this.tooltip = `${this.label}-${this.version}`;
-		this.description = this.version;
+		super(ent.name, vscode.TreeItemCollapsibleState.Expanded);
+		this.done = false;
+		this.refs = [];
+		for (const ref of ent.refs)
+			this.refs.push(new RefTreeItem(ref));
 	}
 
-	iconPath = {
-		light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
-		dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
-	};
+	contextValue = 'entity';
+}
 
-	contextValue = 'dependency';
+class RefTreeItem extends vscode.TreeItem {
+	constructor(
+		ref,
+	) {
+		super(ref.kind, vscode.TreeItemCollapsibleState.None);
+		this.done = false;
+		this.description = `${basename(ref.file)} ${ref.line}:${ref.column}`;
+		this.kind = ref.kind;
+		this.file = ref.file;
+		this.line = ref.line;
+		this.column = ref.column;
+	}
+
+	contextValue = 'reference';
 }
 
 
@@ -165,41 +140,33 @@ async function openDatabase() {
 	// });
 }
 
-async function getReferences(query='') {
+async function changeReferenceChecklist(query='') {
 	// // No references if the database isn't open
 	// if (!(await openDatabase()))
 	// 	return {};
 
-	return {
-		145556: {
+	referenceChecklist.setData([
+		{
 			done: false,
 			name: 'setup_cpu_local_masks',
 			refs: [
 				{
 					done: false,
-					type: 'Definein',
+					kind: 'Definein',
 					file: 'C:/Users/Robby/Desktop/linuxKernel/linux-5.3.1/arch/x86/kernel/cpu/common.c',
 					line: 81,
 					column: 12,
 				},
 				{
 					done: false,
-					type: 'Declarein',
+					kind: 'Declarein',
 					file: 'C:/Users/Robby/Desktop/linuxKernel/linux-5.3.1/arch/x86/include/asm/cpumask.h',
 					line: 12,
 					column: 12,
 				},
 			],
 		},
-	};
-}
-
-function seeReferences(ents) {
-	for (const id in ents) {
-		const ent = ents[id];
-
-		// for (const ref in ent.refs)
-	}
+	]);
 }
 
 
@@ -235,11 +202,11 @@ async function selectDatabase() {
 }
 
 async function seeReferencesForFile() {
-	seeReferences(await getReferences(''));
+	changeReferenceChecklist('');
 }
 
 async function seeReferencesForSelected() {
-	seeReferences(await getReferences(''));
+	changeReferenceChecklist('');
 }
 
 
@@ -251,9 +218,9 @@ async function seeReferencesForSelected() {
 function activate(context) {
 	// openDatabase();
 
-	// Tree view
-	const referenceChecklistProvider = new ReferenceChecklistProvider(vscode.workspace.rootPath);
-	vscode.window.registerTreeDataProvider('referenceChecklist', referenceChecklistProvider);
+	// Register tree data providers
+	referenceChecklist = new ReferenceChecklistProvider(vscode.workspace.rootPath);
+	vscode.window.registerTreeDataProvider('referenceChecklist', referenceChecklist);
 
 	// Register commands created in package.json
 	context.subscriptions.push(
