@@ -48,20 +48,38 @@
 				}
 			]
 		},
+		"menus": {
+			"view/item/context": [
+				{
+					"command": "understand.referenceChecklist.seeFile",
+					"when": "view == referenceChecklist && viewItem == reference",
+					"group": "inline"
+				}
+			]
+		},
 		"commands": [
 			{
 				"command": "understand.selectDatabase",
 				"title": "Understand: Select Database"
 			},
 			{
-				"command": "understand.seeReferencesForFile",
+				"command": "understand.referenceChecklist.seeReferencesForFile",
 				"title": "Understand: See References for File",
 				"when": "editorTextFocus"
 			},
 			{
-				"command": "understand.seeReferencesForSelected",
+				"command": "understand.referenceChecklist.seeReferencesForSelected",
 				"title": "Understand: See References for Selected",
 				"when": "editorTextFocus"
+			},
+			{
+				"command": "understand.referenceChecklist.seeFile",
+				"title": "Understand: See File",
+				"when": "view == referenceChecklist && viewItem == reference",
+				"icon": {
+					"light": "resources/light/refresh.svg",
+					"dark": "resources/dark/refresh.svg"
+				}
 			}
 		]
 	}

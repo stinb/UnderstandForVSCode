@@ -224,9 +224,12 @@ function activate(context) {
 
 	// Register commands created in package.json
 	context.subscriptions.push(
+		// General
 		vscode.commands.registerCommand('understand.selectDatabase', selectDatabase),
-		vscode.commands.registerCommand('understand.seeReferencesForFile', seeReferencesForFile),
-		vscode.commands.registerCommand('understand.seeReferencesForSelected', seeReferencesForSelected),
+
+		// Reference checklist
+		vscode.commands.registerCommand('understand.referenceChecklist.seeReferencesForFile', seeReferencesForFile),
+		vscode.commands.registerCommand('understand.referenceChecklist.seeReferencesForSelected', seeReferencesForSelected),
 	);
 }
 
