@@ -267,7 +267,7 @@ function activate(context) {
 
 	// Register tree data providers
 	referenceChecklist = new ReferenceChecklistProvider(vscode.workspace.rootPath);
-	vscode.window.registerTreeDataProvider('referenceChecklist', referenceChecklist);
+	vscode.window.registerTreeDataProvider('understand.referenceChecklist', referenceChecklist);
 
 	// Register commands created in package.json
 	context.subscriptions.push(

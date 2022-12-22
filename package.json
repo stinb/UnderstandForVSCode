@@ -42,7 +42,7 @@
 		"views": {
 			"understand": [
 				{
-					"id": "referenceChecklist",
+					"id": "understand.referenceChecklist",
 					"name": "Reference Checklist",
 					"contextualTitle": "Reference Explorer"
 				}
@@ -52,17 +52,17 @@
 			"view/item/context": [
 				{
 					"command": "understand.referenceChecklist.seeFile",
-					"when": "view == referenceChecklist && viewItem == reference",
+					"when": "view == understand.referenceChecklist && viewItem == reference",
 					"group": "inline"
 				},
 				{
 					"command": "understand.referenceChecklist.toggleCheckedEntity",
-					"when": "view == referenceChecklist && viewItem == entity",
+					"when": "view == understand.referenceChecklist && viewItem == entity",
 					"group": "inline"
 				},
 				{
 					"command": "understand.referenceChecklist.toggleCheckedReference",
-					"when": "view == referenceChecklist && viewItem == reference",
+					"when": "view == understand.referenceChecklist && viewItem == reference",
 					"group": "inline"
 				}
 			]
@@ -85,20 +85,32 @@
 			{
 				"command": "understand.referenceChecklist.seeFile",
 				"title": "Understand: Reference Checklist: See File",
-				"when": "view == referenceChecklist && viewItem == reference",
+				"when": "view == understand.referenceChecklist && viewItem == reference",
 				"icon": "$(go-to-file)"
 			},
 			{
 				"command": "understand.referenceChecklist.toggleCheckedEntity",
-				"title": "Understand: Reference Checklist: Toggle Checked",
-				"when": "view == referenceChecklist && viewItem == entity",
+				"title": "Understand: Reference Checklist: Toggle Checked Entity",
+				"when": "view == understand.referenceChecklist && viewItem == entity",
 				"icon": "$(check-all)"
 			},
 			{
 				"command": "understand.referenceChecklist.toggleCheckedReference",
-				"title": "Understand: Reference Checklist: Toggle Checked",
-				"when": "view == referenceChecklist && viewItem == reference",
+				"title": "Understand: Reference Checklist: Toggle Checked Reference",
+				"when": "view == understand.referenceChecklist && viewItem == reference",
 				"icon": "$(check)"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "understand.referenceChecklist.toggleCheckedEntity",
+				"when": "view == understand.referenceChecklist && viewItem == entity",
+				"key": "t"
+			},
+			{
+				"command": "understand.referenceChecklist.toggleCheckedReference",
+				"when": "view == understand.referenceChecklist && viewItem == reference",
+				"key": "t"
 			}
 		]
 	}
