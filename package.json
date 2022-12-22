@@ -56,8 +56,14 @@
 					"group": "inline"
 				},
 				{
-					"command": "understand.referenceChecklist.toggleChecked",
-					"when": "view == referenceChecklist"
+					"command": "understand.referenceChecklist.toggleCheckedEntity",
+					"when": "view == referenceChecklist && viewItem == entity",
+					"group": "inline"
+				},
+				{
+					"command": "understand.referenceChecklist.toggleCheckedReference",
+					"when": "view == referenceChecklist && viewItem == reference",
+					"group": "inline"
 				}
 			]
 		},
@@ -79,12 +85,20 @@
 			{
 				"command": "understand.referenceChecklist.seeFile",
 				"title": "Understand: Reference Checklist: See File",
-				"when": "view == referenceChecklist && viewItem == reference"
+				"when": "view == referenceChecklist && viewItem == reference",
+				"icon": "$(go-to-file)"
 			},
 			{
-				"command": "understand.referenceChecklist.toggleChecked",
+				"command": "understand.referenceChecklist.toggleCheckedEntity",
 				"title": "Understand: Reference Checklist: Toggle Checked",
-				"when": "view == referenceChecklist"
+				"when": "view == referenceChecklist && viewItem == entity",
+				"icon": "$(check-all)"
+			},
+			{
+				"command": "understand.referenceChecklist.toggleCheckedReference",
+				"title": "Understand: Reference Checklist: Toggle Checked",
+				"when": "view == referenceChecklist && viewItem == reference",
+				"icon": "$(check)"
 			}
 		]
 	}

@@ -17,7 +17,7 @@ let referenceChecklist = null;
 // Icons
 //
 
-const iconUnchecked = new vscode.ThemeIcon('pass');
+const iconUnchecked = new vscode.ThemeIcon('circle-large-outline');
 const iconChecked   = new vscode.ThemeIcon('pass-filled');
 
 
@@ -278,7 +278,8 @@ function activate(context) {
 		vscode.commands.registerCommand('understand.referenceChecklist.seeReferencesForFile', seeReferencesForFile),
 		vscode.commands.registerCommand('understand.referenceChecklist.seeReferencesForSelected', seeReferencesForSelected),
 		vscode.commands.registerCommand('understand.referenceChecklist.seeFile', seeFile),
-		vscode.commands.registerCommand('understand.referenceChecklist.toggleChecked', toggleChecked),
+		vscode.commands.registerCommand('understand.referenceChecklist.toggleCheckedEntity', toggleChecked),
+		vscode.commands.registerCommand('understand.referenceChecklist.toggleCheckedReference', toggleChecked),
 	);
 }
 
