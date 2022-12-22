@@ -4,30 +4,42 @@ const { spawn }    = require('node:child_process');
 const { basename } = require('node:path');
 
 
+//
+// Data
+//
 
 let dbPath = null;
 let db = null;
 let referenceChecklist = null;
 
 
+//
+// Icons
+//
+
+const iconUnchecked = new vscode.ThemeIcon('pass');
+const iconChecked   = new vscode.ThemeIcon('pass-filled');
+
+
 
 //
-// Tree Data
+// Tree Data Provider
 //
 
 class ReferenceChecklistProvider {
 
 	#data;
-	#_onDidChangeTreeData;
+
+	_onDidChangeTreeData;
 	onDidChangeTreeData;
 
 	constructor(data) {
 		this.#data = data;
-		this._onDidChangeTreeData = new vscode.EventEmitter()
+		this._onDidChangeTreeData = new vscode.EventEmitter();
 		this.onDidChangeTreeData = this._onDidChangeTreeData.event;
 	}
 
-	refresh() {
+	update() {
 		this._onDidChangeTreeData.fire();
 	}
 
@@ -60,7 +72,7 @@ class ReferenceChecklistProvider {
 		for (const ent of data)
 			this.#data.push(new EntTreeItem(ent));
 
-		this.refresh();
+		this.update();
 	}
 }
 
@@ -69,10 +81,24 @@ class EntTreeItem extends vscode.TreeItem {
 		ent,
 	) {
 		super(ent.name, vscode.TreeItemCollapsibleState.Expanded);
-		this.done = false;
+		this.checked = false;
 		this.refs = [];
 		for (const ref of ent.refs)
 			this.refs.push(new RefTreeItem(ref));
+		this.updateIcon();
+	}
+
+	updateIcon() {
+		this.iconPath = this.checked ? iconChecked : iconUnchecked;
+	}
+
+	setChecked(checked=undefined) {
+		this.checked = (checked === undefined) ? !this.checked : checked;
+
+		for (const ref of this.refs)
+			ref.setChecked(this.checked);
+
+		this.updateIcon();
 	}
 
 	contextValue = 'entity';
@@ -83,12 +109,23 @@ class RefTreeItem extends vscode.TreeItem {
 		ref,
 	) {
 		super(ref.kind, vscode.TreeItemCollapsibleState.None);
-		this.done = false;
+		this.checked = false;
 		this.description = `${basename(ref.file)} ${ref.line}:${ref.column}`;
 		this.kind = ref.kind;
 		this.file = ref.file;
 		this.line = ref.line;
 		this.column = ref.column;
+		this.updateIcon();
+	}
+
+	updateIcon() {
+		this.iconPath = this.checked ? iconChecked : iconUnchecked;
+	}
+
+	setChecked(checked=undefined) {
+		this.checked = (checked === undefined) ? !this.checked : checked;
+
+		this.updateIcon();
 	}
 
 	contextValue = 'reference';
@@ -147,20 +184,20 @@ async function changeReferenceChecklist(query='') {
 
 	referenceChecklist.setData([
 		{
-			done: false,
+			checked: false,
 			name: 'setup_cpu_local_masks',
 			refs: [
 				{
-					done: false,
+					checked: false,
 					kind: 'Definein',
-					file: 'C:/Users/Robby/Desktop/linuxKernel/linux-5.3.1/arch/x86/kernel/cpu/common.c',
+					file: 'C:/Users/Robby/Projects/linuxKernel/linux-5.3.1/arch/x86/kernel/cpu/common.c',
 					line: 81,
 					column: 12,
 				},
 				{
-					done: false,
+					checked: false,
 					kind: 'Declarein',
-					file: 'C:/Users/Robby/Desktop/linuxKernel/linux-5.3.1/arch/x86/include/asm/cpumask.h',
+					file: 'C:/Users/Robby/Projects/linuxKernel/linux-5.3.1/arch/x86/include/asm/cpumask.h',
 					line: 12,
 					column: 12,
 				},
@@ -209,6 +246,16 @@ async function seeReferencesForSelected() {
 	changeReferenceChecklist('');
 }
 
+async function seeFile(refTreeItem) {
+	const doc = await vscode.workspace.openTextDocument(refTreeItem.file);
+    vscode.window.showTextDocument(doc);
+}
+
+async function toggleChecked(treeItem) {
+	treeItem.setChecked();
+	referenceChecklist.update();
+}
+
 
 
 //
@@ -230,6 +277,8 @@ function activate(context) {
 		// Reference checklist
 		vscode.commands.registerCommand('understand.referenceChecklist.seeReferencesForFile', seeReferencesForFile),
 		vscode.commands.registerCommand('understand.referenceChecklist.seeReferencesForSelected', seeReferencesForSelected),
+		vscode.commands.registerCommand('understand.referenceChecklist.seeFile', seeFile),
+		vscode.commands.registerCommand('understand.referenceChecklist.toggleChecked', toggleChecked),
 	);
 }
 
