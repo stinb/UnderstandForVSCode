@@ -1,7 +1,7 @@
 const vscode = require('vscode');
 
-const { spawn }    = require('node:child_process');
-const { basename } = require('node:path');
+const http = require('node:http');
+const path = require('node:path');
 
 
 //
@@ -9,7 +9,7 @@ const { basename } = require('node:path');
 //
 
 let dbPath = null;
-let db = null;
+let dbId = null;
 let referenceChecklist = null;
 
 
@@ -110,7 +110,7 @@ class RefTreeItem extends vscode.TreeItem {
 	) {
 		super(ref.kind, vscode.TreeItemCollapsibleState.None);
 		this.checked = false;
-		this.description = `${basename(ref.file)} ${ref.line}:${ref.column}`;
+		this.description = `${path.basename(ref.file)} ${ref.line}:${ref.column}`;
 		this.kind = ref.kind;
 		this.file = ref.file;
 		this.line = ref.line;
@@ -145,42 +145,73 @@ function info(message) {
 	vscode.window.showInformationMessage(`Understand: ${message}`)
 }
 
-async function openDatabase() {
-	// Fail if there's no database path
+async function request(options) {
+	// Send request
+	return new Promise((resolve, reject) => {
+		http.request(
+			options,
+			res => {
+				// Get body
+				const body = []
+				res.on('data', chunk => {
+					body.push(chunk);
+				});
+
+				// Parse JSON body and add to reponse
+				res.on('end', () => {
+					if (res.headers['content-type'] == 'application/json')
+						res.body = JSON.parse(body);
+					resolve(res);
+				});
+			}
+		).end();
+	});
+}
+
+function makeURL(path, params) {
+	const array = [path];
+	let first = true;
+	for (const [key, value] of Object.entries(params)) {
+		array.push(`${first ? '?' : '&'}${key}=${encodeURIComponent(value)}`);
+		if (first)
+			first = false;
+	}
+	return array.join('');
+}
+
+async function getDbId() {
+	// Get database path from user
 	if (!dbPath) {
-		error('Database not selected')
-		return false;
+		await selectDatabase();
+
+		// Fail if there's no database path from user
+		if (!dbPath) {
+			error('Database not selected')
+			return;
+		}
 	}
 
-	// Succeed if the database is already open
-	if (db)
-		return true;
+	// Succeed if the database is already known
+	if (dbId)
+		return dbId;
 
-	// // Open
-	// db = spawn(`undjs ${dbPath}`);
+	// Send request to userver
+	const res = await request({
+		host: '127.0.0.1',
+		port: 8080,
+		method: 'POST',
+		path: makeURL('/databases', {path: dbPath}),
+	});
 
-	// // Events
-	// db.on('disconnect', err => {
-	// 	error(`Disconnected from ${dbPath}`);
-	// });
-	// db.on('error', err => {
-	// 	error(`Error with ${dbPath}`);
-	// });
-	// db.on('exit', err => {
-	// 	error(`Exited from ${dbPath}`);
-	// });
-	// db.on('message', err => {
-	// 	info('Message from db');
-	// });
-	// db.on('spawn', err => {
-	// 	error(`Opened ${dbPath}`);
-	// });
+	// Get database id
+	if (res.body && res.body.id)
+		dbId = res.body.id;
 }
 
 async function changeReferenceChecklist(query='') {
-	// // No references if the database isn't open
-	// if (!(await openDatabase()))
-	// 	return {};
+	// No references if the database isn't open
+	if (!(await getDbId()))
+		return;
 
 	referenceChecklist.setData([
 		{
@@ -214,9 +245,11 @@ async function changeReferenceChecklist(query='') {
 
 async function selectDatabase() {
 	// Get database from user input
+	const rootPath = vscode.workspace.rootPath;
+	const rootUri = rootPath ? vscode.Uri.file(rootPath) : undefined;
 	const uris = await vscode.window.showOpenDialog({
 		canSelectFolders: true,
-		defaultUri: vscode.Uri.file(vscode.workspace.rootPath),
+		defaultUri: rootUri,
 		openLabel: 'Select',
 		title: 'Select .und Folder',
 	});
@@ -230,12 +263,10 @@ async function selectDatabase() {
 		return;
 	}
 
+	// TODO: Remember with storage
 	// Remember database
 	dbPath = uri.fsPath;
-	// TODO: Remember with storage
-
-	// Open database
-	openDatabase();
+	dbId = await getDbId();
 }
 
 async function seeReferencesForFile() {
@@ -263,7 +294,7 @@ async function toggleChecked(treeItem) {
 //
 
 function activate(context) {
-	// openDatabase();
+	// getDbId();
 
 	// Register tree data providers
 	referenceChecklist = new ReferenceChecklistProvider(vscode.workspace.rootPath);
