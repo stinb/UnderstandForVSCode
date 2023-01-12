@@ -186,7 +186,7 @@ function makeURLPath(path, params) {
 	return array.join('');
 }
 
-function getLexemeOfFirstSelection(editor) {
+function makeRefOfFirstSelection(editor) {
 	const document  = editor.document;
 	const selection = editor.selection;
 	const file      = document.fileName;
@@ -196,7 +196,7 @@ function getLexemeOfFirstSelection(editor) {
 	const match = /(\S+)/.exec(fullText);
 	if (! match)
 		return;
-	const text = match[0];
+	const name = match[0];
 
 	// Calculate the offset from trimming whitespace
 	let line = selection.start.line + 1;
@@ -218,7 +218,7 @@ function getLexemeOfFirstSelection(editor) {
 	}
 
 	return {
-		text:   text,
+		name:   name,
 		file:   file,
 		line:   line,
 		column: column,
@@ -256,7 +256,7 @@ async function getDbId() {
 	return dbId;
 }
 
-async function changeReferenceChecklist(lexeme) {
+async function changeReferenceChecklist(ref) {
 	if (!dbPath)
 		return error('Database not selected');
 	if (!dbId)
@@ -267,7 +267,7 @@ async function changeReferenceChecklist(lexeme) {
 		host: '127.0.0.1',
 		port: 8080,
 		method: 'GET',
-		path: makeURLPath(`/databases/${dbId}/ents`, lexeme),
+		path: makeURLPath(`/databases/${dbId}/ents`, ref),
 	});
 	if (!res.body)
 		return;
@@ -336,12 +336,13 @@ async function seeReferencesForSelected() {
 	if (!editor)
 		return error('No editor');
 
-	// Get lexeme of first selection
-	const lexeme = getLexemeOfFirstSelection(editor);
-	if (!lexeme)
+	// Make a reference of first selection
+	const ref = makeRefOfFirstSelection(editor);
+	if (!ref)
 		return error('First selection is only whitespace');
+	console.log(ref);
 
-	changeReferenceChecklist(lexeme);
+	changeReferenceChecklist(ref);
 }
 
 async function seeFile(refTreeItem) {
