@@ -25,7 +25,6 @@
 	"icon": "icon.png",
 	"activationEvents": [
         "onCommand:understand.selectDatabase",
-        "onCommand:understand.seeReferencesForFile",
         "onCommand:understand.seeReferencesForSelected"
 	],
 	"main": "extension.js",
@@ -71,11 +70,6 @@
 			{
 				"command": "understand.selectDatabase",
 				"title": "Understand: Select Database"
-			},
-			{
-				"command": "understand.referenceChecklist.seeReferencesForFile",
-				"title": "Understand: Reference Checklist: See References for File",
-				"when": "editorTextFocus"
 			},
 			{
 				"command": "understand.referenceChecklist.seeReferencesForSelected",

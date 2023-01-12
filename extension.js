@@ -152,15 +152,22 @@ async function request(options) {
 			options,
 			res => {
 				// Get body
-				const body = []
+				const body = [];
 				res.on('data', chunk => {
 					body.push(chunk);
 				});
 
 				// Parse JSON body and add to reponse
 				res.on('end', () => {
-					if (res.headers['content-type'] == 'application/json')
-						res.body = JSON.parse(body);
+					if (res.headers['content-type'] == 'application/json') {
+						try {
+							res.body = JSON.parse(body);
+						} catch (err) {
+							error('Unable to parse JSON from server');
+							console.log(err);
+							// reject(res);
+						}
+					}
 					resolve(res);
 				});
 			}
@@ -168,7 +175,7 @@ async function request(options) {
 	});
 }
 
-function makeURL(path, params) {
+function makeURLPath(path, params) {
 	const array = [path];
 	let first = true;
 	for (const [key, value] of Object.entries(params)) {
@@ -177,6 +184,45 @@ function makeURL(path, params) {
 			first = false;
 	}
 	return array.join('');
+}
+
+function getLexemeOfFirstSelection(editor) {
+	const document  = editor.document;
+	const selection = editor.selection;
+	const file      = document.fileName;
+	const fullText  = document.getText(selection);
+
+	// Get the first non-whitespace text
+	const match = /(\S+)/.exec(fullText);
+	if (! match)
+		return;
+	const text = match[0];
+
+	// Calculate the offset from trimming whitespace
+	let line = selection.start.line + 1;
+	let column = selection.start.character + 1;
+	for (let i = 0; i < fullText.length; i++) {
+		// Stop at first non-whitespace character
+		if (/\S/.test(fullText[i])) {
+			break;
+		}
+		// New line
+		else if (/\n/.test(fullText[i])) {
+			line += 1;
+			column = 1;
+		}
+		// Normal character
+		else {
+			column += 1;
+		}
+	}
+
+	return {
+		text:   text,
+		file:   file,
+		line:   line,
+		column: column,
+	};
 }
 
 async function getDbId() {
@@ -200,18 +246,33 @@ async function getDbId() {
 		host: '127.0.0.1',
 		port: 8080,
 		method: 'POST',
-		path: makeURL('/databases', {path: dbPath}),
+		path: makeURLPath('/databases', {path: dbPath}),
 	});
 
 	// Get database id
 	if (res.body && res.body.id)
 		dbId = res.body.id;
+
+	return dbId;
 }
 
-async function changeReferenceChecklist(query='') {
-	// No references if the database isn't open
-	if (!(await getDbId()))
+async function changeReferenceChecklist(lexeme) {
+	if (!dbPath)
+		return error('Database not selected');
+	if (!dbId)
+		return error('Server not available');
+
+	// Send request to userver
+	const res = await request({
+		host: '127.0.0.1',
+		port: 8080,
+		method: 'GET',
+		path: makeURLPath(`/databases/${dbId}/ents`, lexeme),
+	});
+	if (!res.body)
 		return;
+
+	console.log(res.body);
 
 	referenceChecklist.setData([
 		{
@@ -269,12 +330,18 @@ async function selectDatabase() {
 	dbId = await getDbId();
 }
 
-async function seeReferencesForFile() {
-	changeReferenceChecklist('');
-}
-
 async function seeReferencesForSelected() {
-	changeReferenceChecklist('');
+	// Get editor
+	const editor = vscode.window.activeTextEditor;
+	if (!editor)
+		return error('No editor');
+
+	// Get lexeme of first selection
+	const lexeme = getLexemeOfFirstSelection(editor);
+	if (!lexeme)
+		return error('First selection is only whitespace');
+
+	changeReferenceChecklist(lexeme);
 }
 
 async function seeFile(refTreeItem) {
@@ -294,8 +361,6 @@ async function toggleChecked(treeItem) {
 //
 
 function activate(context) {
-	// getDbId();
-
 	// Register tree data providers
 	referenceChecklist = new ReferenceChecklistProvider(vscode.workspace.rootPath);
 	vscode.window.registerTreeDataProvider('understand.referenceChecklist', referenceChecklist);
@@ -306,7 +371,6 @@ function activate(context) {
 		vscode.commands.registerCommand('understand.selectDatabase', selectDatabase),
 
 		// Reference checklist
-		vscode.commands.registerCommand('understand.referenceChecklist.seeReferencesForFile', seeReferencesForFile),
 		vscode.commands.registerCommand('understand.referenceChecklist.seeReferencesForSelected', seeReferencesForSelected),
 		vscode.commands.registerCommand('understand.referenceChecklist.seeFile', seeFile),
 		vscode.commands.registerCommand('understand.referenceChecklist.toggleCheckedEntity', toggleChecked),
