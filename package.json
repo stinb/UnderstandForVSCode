@@ -77,6 +77,11 @@
 				"when": "editorTextFocus"
 			},
 			{
+				"command": "understand.referenceChecklist.seeAllEntities",
+				"title": "Understand: Reference Checklist: See All Entities",
+				"when": "editorTextFocus"
+			},
+			{
 				"command": "understand.referenceChecklist.seeFile",
 				"title": "Understand: Reference Checklist: See File",
 				"when": "view == understand.referenceChecklist && viewItem == reference",

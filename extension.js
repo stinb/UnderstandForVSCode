@@ -79,8 +79,9 @@ class EntTreeItem extends vscode.TreeItem {
 		super(ent.name, vscode.TreeItemCollapsibleState.Expanded);
 		this.checked = false;
 		this.refs = [];
-		for (const ref of ent.refs)
-			this.refs.push(new RefTreeItem(ref));
+		if (ent.refs)
+			for (const ref of ent.refs)
+				this.refs.push(new RefTreeItem(ref));
 		this.updateIcon();
 	}
 
@@ -251,7 +252,7 @@ async function getDbId() {
 	return dbId;
 }
 
-async function changeReferenceChecklist(ref) {
+async function changeReferenceChecklist(path) {
 	if (!dbPath)
 		return error('Database not selected');
 	if (!dbId)
@@ -262,33 +263,12 @@ async function changeReferenceChecklist(ref) {
 		host: '127.0.0.1',
 		port: 8080,
 		method: 'GET',
-		path: makeURLPath(`/databases/${dbId}/ents`, ref),
+		path: path,
 	});
 	if (!res.body)
 		return;
 
-	referenceChecklist.setData([
-		{
-			checked: false,
-			name: 'setup_cpu_local_masks',
-			refs: [
-				{
-					checked: false,
-					kind: 'Definein',
-					file: 'C:/Users/Robby/Projects/linuxKernel/linux-5.3.1/arch/x86/kernel/cpu/common.c',
-					line: 81,
-					column: 12,
-				},
-				{
-					checked: false,
-					kind: 'Declarein',
-					file: 'C:/Users/Robby/Projects/linuxKernel/linux-5.3.1/arch/x86/include/asm/cpumask.h',
-					line: 12,
-					column: 12,
-				},
-			],
-		},
-	]);
+	referenceChecklist.setData(res.body);
 }
 
 
@@ -334,7 +314,13 @@ async function seeReferencesForSelected() {
 	if (!ref)
 		return error('First selection is only whitespace');
 
-	changeReferenceChecklist(ref);
+	const path = makeURLPath(`/databases/${dbId}/ents`, ref);
+	changeReferenceChecklist(path);
+}
+
+async function seeAllEntities() {
+	const path = `/databases/${dbId}/ents`;
+	changeReferenceChecklist(path);
 }
 
 async function seeFile(refTreeItem) {
@@ -365,6 +351,7 @@ function activate(context) {
 
 		// Reference checklist
 		vscode.commands.registerCommand('understand.referenceChecklist.seeReferencesForSelected', seeReferencesForSelected),
+		vscode.commands.registerCommand('understand.referenceChecklist.seeAllEntities', seeAllEntities),
 		vscode.commands.registerCommand('understand.referenceChecklist.seeFile', seeFile),
 		vscode.commands.registerCommand('understand.referenceChecklist.toggleCheckedEntity', toggleChecked),
 		vscode.commands.registerCommand('understand.referenceChecklist.toggleCheckedReference', toggleChecked),
