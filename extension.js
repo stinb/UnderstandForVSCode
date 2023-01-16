@@ -33,8 +33,8 @@ class ReferenceChecklistProvider {
 	_onDidChangeTreeData;
 	onDidChangeTreeData;
 
-	constructor(data) {
-		this.#data = data;
+	constructor() {
+		this.#data = [];
 		this._onDidChangeTreeData = new vscode.EventEmitter();
 		this.onDidChangeTreeData = this._onDidChangeTreeData.event;
 	}
@@ -48,10 +48,6 @@ class ReferenceChecklistProvider {
 	}
 
 	getChildren(element) {
-		if (!this.#data) {
-			return Promise.resolve([]);
-		}
-
 		// Ent
 		if (element && element.refs) {
 			return Promise.resolve(element.refs);
@@ -60,7 +56,7 @@ class ReferenceChecklistProvider {
 		else if (element) {
 			return Promise.resolve([]);
 		}
-		// Ents
+		// Ent
 		else {
 			return Promise.resolve(this.#data);
 		}
@@ -164,7 +160,6 @@ async function request(options) {
 							res.body = JSON.parse(body);
 						} catch (err) {
 							error('Unable to parse JSON from server');
-							console.log(err);
 							// reject(res);
 						}
 					}
@@ -272,8 +267,6 @@ async function changeReferenceChecklist(ref) {
 	if (!res.body)
 		return;
 
-	console.log(res.body);
-
 	referenceChecklist.setData([
 		{
 			checked: false,
@@ -340,7 +333,6 @@ async function seeReferencesForSelected() {
 	const ref = makeRefOfFirstSelection(editor);
 	if (!ref)
 		return error('First selection is only whitespace');
-	console.log(ref);
 
 	changeReferenceChecklist(ref);
 }
@@ -363,7 +355,7 @@ async function toggleChecked(treeItem) {
 
 function activate(context) {
 	// Register tree data providers
-	referenceChecklist = new ReferenceChecklistProvider(vscode.workspace.rootPath);
+	referenceChecklist = new ReferenceChecklistProvider();
 	vscode.window.registerTreeDataProvider('understand.referenceChecklist', referenceChecklist);
 
 	// Register commands created in package.json
