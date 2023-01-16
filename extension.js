@@ -151,17 +151,17 @@ async function request(options) {
 				// Get body
 				const body = [];
 				res.on('data', chunk => {
-					body.push(chunk);
+					body.push(chunk.toString());
 				});
 
 				// Parse JSON body and add to reponse
 				res.on('end', () => {
 					if (res.headers['content-type'] == 'application/json') {
 						try {
-							res.body = JSON.parse(body);
+							res.body = JSON.parse(body.join(''));
 						} catch (err) {
 							error('Unable to parse JSON from server');
-							// reject(res);
+							reject(res);
 						}
 					}
 					resolve(res);
