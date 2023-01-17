@@ -321,7 +321,7 @@ async function manuallySelectDatabase() {
 // Extension Commands
 //
 
-async function selectDatabase() {
+async function connectToDatabase() {
 	let possiblePath = await automaticallySelectDatabase();
 
 	if (!possiblePath)
@@ -348,11 +348,6 @@ async function seeReferencesForSelected() {
 	changeReferenceChecklist(path);
 }
 
-async function seeAllEntities() {
-	const path = `/databases/${dbId}/ents`;
-	changeReferenceChecklist(path);
-}
-
 async function seeFile(refTreeItem) {
 	const doc = await vscode.workspace.openTextDocument(refTreeItem.file);
     vscode.window.showTextDocument(doc);
@@ -372,16 +367,15 @@ async function toggleChecked(treeItem) {
 function activate(context) {
 	// Register tree data providers
 	referenceChecklist = new ReferenceChecklistProvider();
-	vscode.window.registerTreeDataProvider('understand.referenceChecklist', referenceChecklist);
+	vscode.window.registerTreeDataProvider('understand', referenceChecklist);
 
 	// Register commands created in package.json
 	context.subscriptions.push(
 		// General
-		vscode.commands.registerCommand('understand.selectDatabase', selectDatabase),
+		vscode.commands.registerCommand('understand.connectToDatabase', connectToDatabase),
 
 		// Reference checklist
 		vscode.commands.registerCommand('understand.referenceChecklist.seeReferencesForSelected', seeReferencesForSelected),
-		vscode.commands.registerCommand('understand.referenceChecklist.seeAllEntities', seeAllEntities),
 		vscode.commands.registerCommand('understand.referenceChecklist.seeFile', seeFile),
 		vscode.commands.registerCommand('understand.referenceChecklist.toggleCheckedEntity', toggleChecked),
 		vscode.commands.registerCommand('understand.referenceChecklist.toggleCheckedReference', toggleChecked),

@@ -41,75 +41,75 @@
 		"views": {
 			"understand": [
 				{
-					"id": "understand.referenceChecklist",
-					"name": "Reference Checklist",
-					"contextualTitle": "Reference Explorer"
+					"id": "understand",
+					"name": ""
 				}
 			]
 		},
+		"viewsWelcome": [
+			{
+				"view": "understand",
+				"contents": "To use the Understand extension, userver should be running.\n[Connect to DB](command:understand.connectToDatabase)"
+			}
+		],
 		"menus": {
 			"view/item/context": [
 				{
 					"command": "understand.referenceChecklist.seeFile",
-					"when": "view == understand.referenceChecklist && viewItem == reference",
+					"when": "view == understand && viewItem == reference",
 					"group": "inline"
 				},
 				{
 					"command": "understand.referenceChecklist.toggleCheckedEntity",
-					"when": "view == understand.referenceChecklist && viewItem == entity",
+					"when": "view == understand && viewItem == entity",
 					"group": "inline"
 				},
 				{
 					"command": "understand.referenceChecklist.toggleCheckedReference",
-					"when": "view == understand.referenceChecklist && viewItem == reference",
+					"when": "view == understand && viewItem == reference",
 					"group": "inline"
 				}
 			]
 		},
 		"commands": [
 			{
-				"command": "understand.selectDatabase",
-				"title": "Understand: Select Database"
+				"command": "understand.connectToDatabase",
+				"title": "Understand: Connect to Database",
+				"icon": "$(database)"
 			},
 			{
 				"command": "understand.referenceChecklist.seeReferencesForSelected",
-				"title": "Understand: Reference Checklist: See References for Selected",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "understand.referenceChecklist.seeAllEntities",
-				"title": "Understand: Reference Checklist: See All Entities",
-				"when": "editorTextFocus"
+				"title": "Understand: Reference Checklist: See References for Selected"
 			},
 			{
 				"command": "understand.referenceChecklist.seeFile",
 				"title": "Understand: Reference Checklist: See File",
-				"when": "view == understand.referenceChecklist && viewItem == reference",
 				"icon": "$(go-to-file)"
 			},
 			{
 				"command": "understand.referenceChecklist.toggleCheckedEntity",
 				"title": "Understand: Reference Checklist: Toggle Checked Entity",
-				"when": "view == understand.referenceChecklist && viewItem == entity",
 				"icon": "$(check-all)"
 			},
 			{
 				"command": "understand.referenceChecklist.toggleCheckedReference",
 				"title": "Understand: Reference Checklist: Toggle Checked Reference",
-				"when": "view == understand.referenceChecklist && viewItem == reference",
 				"icon": "$(check)"
 			}
 		],
 		"keybindings": [
 			{
+				"command": "understand.referenceChecklist.seeFile",
+				"when": "view == understand && viewItem == reference"
+			},
+			{
 				"command": "understand.referenceChecklist.toggleCheckedEntity",
-				"when": "view == understand.referenceChecklist && viewItem == entity",
-				"key": "t"
+				"when": "view == understand && viewItem == entity",
+				"key": "ctrl+f"
 			},
 			{
 				"command": "understand.referenceChecklist.toggleCheckedReference",
-				"when": "view == understand.referenceChecklist && viewItem == reference",
-				"key": "t"
+				"when": "view == understand && viewItem == reference"
 			}
 		]
 	}
