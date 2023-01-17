@@ -42,7 +42,7 @@
 			"understand": [
 				{
 					"id": "understand",
-					"name": ""
+					"name": "Understand"
 				}
 			]
 		},
@@ -53,63 +53,86 @@
 			}
 		],
 		"menus": {
+			"view/title": [
+				{
+					"command": "understand.hiddenAnalyzeDatabase",
+					"group": "navigation"
+				},
+				{
+					"command": "understand.hiddenConnectToDatabase"
+				}
+			],
 			"view/item/context": [
 				{
-					"command": "understand.referenceChecklist.seeFile",
+					"command": "understand.referenceChecklist.hiddenSeeFile",
 					"when": "view == understand && viewItem == reference",
 					"group": "inline"
 				},
 				{
-					"command": "understand.referenceChecklist.toggleCheckedEntity",
+					"command": "understand.referenceChecklist.hiddenToggleCheckmarkEntity",
 					"when": "view == understand && viewItem == entity",
 					"group": "inline"
 				},
 				{
-					"command": "understand.referenceChecklist.toggleCheckedReference",
+					"command": "understand.referenceChecklist.hiddenToggleCheckmarkReference",
 					"when": "view == understand && viewItem == reference",
 					"group": "inline"
 				}
-			]
+			],
+			"commandPalette": [
+            {
+                "command": "understand.referenceChecklist.hiddenSeeFile",
+                "when": "false"
+            },
+            {
+                "command": "understand.referenceChecklist.hiddenToggleCheckmarkEntity",
+                "when": "false"
+            },
+            {
+                "command": "understand.referenceChecklist.hiddenToggleCheckmarkReference",
+                "when": "false"
+            }
+        ]
 		},
 		"commands": [
 			{
 				"command": "understand.connectToDatabase",
-				"title": "Understand: Connect to Database",
-				"icon": "$(database)"
+				"title": "Understand: Database: Connect"
 			},
+			{
+				"command": "understand.analyzeDatabase",
+				"title": "Understand: Database: Analyze"
+			},
+
+			{
+				"command": "understand.hiddenConnectToDatabase",
+				"title": "Connect to Database",
+				"icon": "$(play)"
+			},
+			{
+				"command": "understand.hiddenAnalyzeDatabase",
+				"title": "Analyze Database",
+				"icon": "$(refresh)"
+			},
+
 			{
 				"command": "understand.referenceChecklist.seeReferencesForSelected",
 				"title": "Understand: Reference Checklist: See References for Selected"
 			},
 			{
-				"command": "understand.referenceChecklist.seeFile",
-				"title": "Understand: Reference Checklist: See File",
+				"command": "understand.referenceChecklist.hiddenSeeFile",
+				"title": "See File",
 				"icon": "$(go-to-file)"
 			},
 			{
-				"command": "understand.referenceChecklist.toggleCheckedEntity",
-				"title": "Understand: Reference Checklist: Toggle Checked Entity",
+				"command": "understand.referenceChecklist.hiddenToggleCheckmarkEntity",
+				"title": "Toggle Checkmark",
 				"icon": "$(check-all)"
 			},
 			{
-				"command": "understand.referenceChecklist.toggleCheckedReference",
-				"title": "Understand: Reference Checklist: Toggle Checked Reference",
+				"command": "understand.referenceChecklist.hiddenToggleCheckmarkReference",
+				"title": "Toggle Checkmark",
 				"icon": "$(check)"
-			}
-		],
-		"keybindings": [
-			{
-				"command": "understand.referenceChecklist.seeFile",
-				"when": "view == understand && viewItem == reference"
-			},
-			{
-				"command": "understand.referenceChecklist.toggleCheckedEntity",
-				"when": "view == understand && viewItem == entity",
-				"key": "ctrl+f"
-			},
-			{
-				"command": "understand.referenceChecklist.toggleCheckedReference",
-				"when": "view == understand && viewItem == reference"
 			}
 		]
 	}

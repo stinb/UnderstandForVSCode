@@ -316,9 +316,8 @@ async function manuallySelectDatabase() {
 }
 
 
-
 //
-// Extension Commands
+// Extension Commands: General
 //
 
 async function connectToDatabase() {
@@ -331,6 +330,10 @@ async function connectToDatabase() {
 	// Remember database with settings in storage
 	dbPath = possiblePath;
 	dbId = await getDbId();
+}
+
+async function analyzeDatabase() {
+	info('Feature coming soon');
 }
 
 async function seeReferencesForSelected() {
@@ -348,12 +351,18 @@ async function seeReferencesForSelected() {
 	changeReferenceChecklist(path);
 }
 
+
+
+//
+// Extension Commands: Reference Checklist
+//
+
 async function seeFile(refTreeItem) {
 	const doc = await vscode.workspace.openTextDocument(refTreeItem.file);
     vscode.window.showTextDocument(doc);
 }
 
-async function toggleChecked(treeItem) {
+async function toggleCheckmark(treeItem) {
 	treeItem.setChecked();
 	referenceChecklist.update();
 }
@@ -361,7 +370,7 @@ async function toggleChecked(treeItem) {
 
 
 //
-// Basic Extension Functions
+// Extension Initialization
 //
 
 function activate(context) {
@@ -372,13 +381,22 @@ function activate(context) {
 	// Register commands created in package.json
 	context.subscriptions.push(
 		// General
+
+		// Command pallette
 		vscode.commands.registerCommand('understand.connectToDatabase', connectToDatabase),
+		vscode.commands.registerCommand('understand.analyzeDatabase', analyzeDatabase),
+		// Hidden
+		vscode.commands.registerCommand('understand.hiddenConnectToDatabase', connectToDatabase),
+		vscode.commands.registerCommand('understand.hiddenAnalyzeDatabase', analyzeDatabase),
 
 		// Reference checklist
+
+		// Command pallette
 		vscode.commands.registerCommand('understand.referenceChecklist.seeReferencesForSelected', seeReferencesForSelected),
-		vscode.commands.registerCommand('understand.referenceChecklist.seeFile', seeFile),
-		vscode.commands.registerCommand('understand.referenceChecklist.toggleCheckedEntity', toggleChecked),
-		vscode.commands.registerCommand('understand.referenceChecklist.toggleCheckedReference', toggleChecked),
+		// Hidden
+		vscode.commands.registerCommand('understand.referenceChecklist.hiddenSeeFile', seeFile),
+		vscode.commands.registerCommand('understand.referenceChecklist.hiddenToggleCheckmarkEntity', toggleCheckmark),
+		vscode.commands.registerCommand('understand.referenceChecklist.hiddenToggleCheckmarkReference', toggleCheckmark),
 	);
 }
 
