@@ -222,21 +222,6 @@ function makeRefOfFirstSelection(editor) {
 }
 
 async function getDbId() {
-	// Get database path from user
-	if (!dbPath) {
-		await selectDatabase();
-
-		// Fail if there's no database path from user
-		if (!dbPath) {
-			error('Database not selected')
-			return;
-		}
-	}
-
-	// Succeed if the database is already known
-	if (dbId)
-		return dbId;
-
 	// Send request to userver
 	const res = await request({
 		host: '127.0.0.1',
@@ -246,10 +231,10 @@ async function getDbId() {
 	});
 
 	// Get database id
-	if (res.body && res.body.id)
-		dbId = res.body.id;
-
-	return dbId;
+	if (res.body && res.body.id) {
+		info('Connected to DB');
+		return res.body.id;
+	}
 }
 
 async function changeReferenceChecklist(path) {
@@ -271,13 +256,43 @@ async function changeReferenceChecklist(path) {
 	referenceChecklist.setData(res.body);
 }
 
+async function automaticallySelectDatabase() {
+	// Initiailize the stack of folders to search
+	const folderUrisToSearch = [];
+	for (const folder of vscode.workspace.workspaceFolders)
+		folderUrisToSearch.push(folder.uri);
 
+	// Find all .und folders
+	const undPathsObj = {};
+	while (folderUrisToSearch.length) {
+		// Pop current folder
+		const folderUri = folderUrisToSearch.pop();
 
-//
-// Extension Commands
-//
+		// Base case: .und folder found
+		if (/\.und$/.test(folderUri.fsPath)) {
+			undPathsObj[folderUri.fsPath] = true;
+			continue;
+		}
 
-async function selectDatabase() {
+		// Push child folders to stack
+		const children = await vscode.workspace.fs.readDirectory(folderUri);
+		for (const [name, type] of children) {
+			// Skip non-folders
+			if (type != vscode.FileType.Directory)
+				continue;
+
+			const subFolderUri = vscode.Uri.joinPath(folderUri, name);
+			folderUrisToSearch.push(subFolderUri);
+		}
+	}
+
+	// Return first result if only one was found
+	const undPathsArr = Object.keys(undPathsObj);
+	if (undPathsArr.length == 1)
+		return undPathsArr[0];
+}
+
+async function manuallySelectDatabase() {
 	// Get database from user input
 	const rootPath = vscode.workspace.rootPath;
 	const rootUri = rootPath ? vscode.Uri.file(rootPath) : undefined;
@@ -287,19 +302,34 @@ async function selectDatabase() {
 		openLabel: 'Select',
 		title: 'Select .und Folder',
 	});
-	if (!uris) {
-		error('No folder selected');
-		return;
-	}
-	const uri = uris[0];
-	if (!(/\.und$/.test(uri.fsPath))) {
-		error('Selected folder is not .und');
-		return;
-	}
 
-	// TODO: Remember with storage
-	// Remember database
-	dbPath = uri.fsPath;
+	// Error: not selected
+	if (!uris)
+		return error('No folder selected');
+
+	// Error: not .und
+	const uri = uris[0];
+	if (!(/\.und$/.test(uri.fsPath)))
+		return error('Selected folder is not .und');
+
+	return uri.fsPath;
+}
+
+
+
+//
+// Extension Commands
+//
+
+async function selectDatabase() {
+	let possiblePath = await automaticallySelectDatabase();
+
+	if (!possiblePath)
+		possiblePath = await manuallySelectDatabase();
+
+	// TODO:
+	// Remember database with settings in storage
+	dbPath = possiblePath;
 	dbId = await getDbId();
 }
 
