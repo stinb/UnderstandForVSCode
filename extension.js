@@ -208,7 +208,7 @@ async function request(options) {
 	});
 }
 
-function makeURLPath(path, params) {
+function makeURLPath(path, params = {}) {
 	const array = [path];
 	let first = true;
 	for (const [key, value] of Object.entries(params)) {
@@ -274,12 +274,21 @@ async function getDbId() {
 	}
 }
 
-async function changeReferenceChecklist(path) {
-	if (!dbPath)
-		return error('Database not selected');
-	if (!dbId)
-		return error('Server not available');
+async function getEntId(ref) {
+	// Send request to userver
+	const res = await request({
+		host: '127.0.0.1',
+		port: 8080,
+		method: 'GET',
+		path: makeURLPath(`/databases/${dbId}/ents`, ref),
+	});
 
+	// Get entity id
+	if (res.body && res.body.length && res.body[0].id)
+		return res.body[0].id;
+}
+
+async function changeReferenceChecklist(path) {
 	// Send request to userver
 	const res = await request({
 		host: '127.0.0.1',
@@ -374,6 +383,11 @@ async function analyzeDatabase() {
 }
 
 async function seeReferenceChecklist() {
+	if (!dbPath)
+		return error('Database not selected');
+	if (!dbId)
+		return error('Server not available');
+
 	// Get editor
 	const editor = vscode.window.activeTextEditor;
 	if (!editor)
@@ -384,7 +398,11 @@ async function seeReferenceChecklist() {
 	if (!ref)
 		return error('Selection is only whitespace');
 
-	const path = makeURLPath(`/databases/${dbId}/ents`, ref);
+	// Get entity id
+	const entId = await getEntId(ref);
+
+	// Get all references
+	const path = makeURLPath(`/databases/${dbId}/ents/${entId}/refs`);
 	changeReferenceChecklist(path);
 }
 
