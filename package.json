@@ -80,19 +80,25 @@
 				}
 			],
 			"commandPalette": [
-            {
-                "command": "understand.referenceChecklist.hiddenSeeFile",
-                "when": "false"
-            },
-            {
-                "command": "understand.referenceChecklist.hiddenToggleCheckmarkEntity",
-                "when": "false"
-            },
-            {
-                "command": "understand.referenceChecklist.hiddenToggleCheckmarkReference",
-                "when": "false"
-            }
-        ]
+				{
+					"command": "understand.referenceChecklist.hiddenSeeFile",
+					"when": "false"
+				},
+				{
+					"command": "understand.referenceChecklist.hiddenToggleCheckmarkEntity",
+					"when": "false"
+				},
+				{
+					"command": "understand.referenceChecklist.hiddenToggleCheckmarkReference",
+					"when": "false"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "understand.referenceChecklist",
+                    "when": "editorTextFocus"
+				}
+			]
 		},
 		"commands": [
 			{
@@ -116,8 +122,8 @@
 			},
 
 			{
-				"command": "understand.referenceChecklist.seeReferencesForSelected",
-				"title": "Understand: Reference Checklist: See References for Selected"
+				"command": "understand.referenceChecklist",
+				"title": "Understand: Reference Checklist"
 			},
 			{
 				"command": "understand.referenceChecklist.hiddenSeeFile",

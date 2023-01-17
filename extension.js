@@ -336,7 +336,7 @@ async function analyzeDatabase() {
 	info('Feature coming soon');
 }
 
-async function seeReferencesForSelected() {
+async function seeReferenceChecklist() {
 	// Get editor
 	const editor = vscode.window.activeTextEditor;
 	if (!editor)
@@ -392,7 +392,7 @@ function activate(context) {
 		// Reference checklist
 
 		// Command pallette
-		vscode.commands.registerCommand('understand.referenceChecklist.seeReferencesForSelected', seeReferencesForSelected),
+		vscode.commands.registerCommand('understand.referenceChecklist', seeReferenceChecklist),
 		// Hidden
 		vscode.commands.registerCommand('understand.referenceChecklist.hiddenSeeFile', seeFile),
 		vscode.commands.registerCommand('understand.referenceChecklist.hiddenToggleCheckmarkEntity', toggleCheckmark),
