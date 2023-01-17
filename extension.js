@@ -142,6 +142,43 @@ function info(message) {
 	vscode.window.showInformationMessage(`Understand: ${message}`)
 }
 
+function isASelection(selection) {
+	return selection.start.character != selection.end.character || selection.start.line != selection.end.line;
+}
+
+function selectWordIfNoSelection(document, selection) {
+	// Skip if there is a selection
+	if (isASelection(selection))
+		return selection;
+
+	// Make a new selection
+	const word = /\w/;
+	const text = document.getText();
+	const lastIndex = text.length - 1;
+	let l = document.offsetAt(selection.start);
+	let r = l - 1;
+	while (true) {
+		let movedEither = false;
+
+		// Move left if there's a word character
+		if (l > 0 && word.test(text[l-1])) {
+			l--;
+			movedEither = true;
+		}
+		// Move right if there's a word character
+		if (r < lastIndex && word.test(text[r+1])) {
+			r++;
+			movedEither = true;
+		}
+
+		if (! movedEither)
+			break;
+	}
+
+	// Make a new selection
+	return new vscode.Selection(document.positionAt(l), document.positionAt(r+1));
+}
+
 async function request(options) {
 	// Send request
 	return new Promise((resolve, reject) => {
@@ -182,9 +219,9 @@ function makeURLPath(path, params) {
 	return array.join('');
 }
 
-function makeRefOfFirstSelection(editor) {
+function makeRefOfSelection(editor) {
 	const document  = editor.document;
-	const selection = editor.selection;
+	const selection = selectWordIfNoSelection(document, editor.selection);
 	const file      = document.fileName;
 	const fullText  = document.getText(selection);
 
@@ -342,10 +379,10 @@ async function seeReferenceChecklist() {
 	if (!editor)
 		return error('No editor');
 
-	// Make a reference of first selection
-	const ref = makeRefOfFirstSelection(editor);
+	// Make a reference of selection
+	const ref = makeRefOfSelection(editor);
 	if (!ref)
-		return error('First selection is only whitespace');
+		return error('Selection is only whitespace');
 
 	const path = makeURLPath(`/databases/${dbId}/ents`, ref);
 	changeReferenceChecklist(path);
