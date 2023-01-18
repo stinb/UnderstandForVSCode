@@ -35,12 +35,14 @@ const iconChecked   = new vscode.ThemeIcon('pass-filled');
 class RefChecklistProvider {
 
 	#data;
+	#dataHash;
 
 	_onDidChangeTreeData;
 	onDidChangeTreeData;
 
 	constructor() {
 		this.#data = [];
+		this.#dataHash = {};
 		this._onDidChangeTreeData = new vscode.EventEmitter();
 		this.onDidChangeTreeData = this._onDidChangeTreeData.event;
 	}
@@ -69,13 +71,36 @@ class RefChecklistProvider {
 	}
 
 	add(ent, refs) {
+		// Skip if already there
+		if (ent.id in this.#dataHash)
+			return;
+
+		// Add
 		this.#data.push(new EntTreeItem(ent, refs));
+		this.#dataHash[ent.id] = true;
 
 		this.update();
 	}
 
 	remove(entTreeItem) {
+		// Remove
 		delete this.#data[this.#data.indexOf(entTreeItem)];
+		delete this.#dataHash[entTreeItem.id];
+
+		// Clear if full of null
+		let allNull = false;
+		for (let i = 0; i < this.#data.length; i++) {
+			if (this.#data[i] != null) {
+				allNull = false;
+				break;
+			}
+			else {
+				allNull = true;
+			}
+		}
+		if (allNull)
+			this.#data = [];
+
 		refChecklist.update();
 	}
 }
@@ -86,6 +111,7 @@ class EntTreeItem extends vscode.TreeItem
 		super(ent.name, vscode.TreeItemCollapsibleState.Expanded);
 		this.checked = false;
 		this.refs = [];
+		this.id = ent.id;
 		for (const ref of refs)
 			this.refs.push(new RefTreeItem(ref));
 		this.updateIcon();
@@ -429,6 +455,9 @@ async function seeRefChecklist() {
 
 	// Set data of checklist
 	refChecklist.add(ent, refs);
+
+	// Show in sidebar
+	vscode.commands.executeCommand('workbench.view.extension.understand');
 }
 
 async function seeRef(refTreeItem) {
