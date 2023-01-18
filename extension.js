@@ -405,8 +405,6 @@ async function connectToDatabase(manual=true) {
 	if (!possiblePath && manual)
 		possiblePath = await manuallySelectDatabase();
 
-	// Remember database with settings in storage
-
 	dbPath = possiblePath;
 	const db = dbId = await openDb();
 	if (!db)
