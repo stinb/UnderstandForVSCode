@@ -304,15 +304,23 @@ async function automaticallySelectDatabase() {
 		folderUrisToSearch.push(folder.uri);
 
 	// Find all .und folders
-	const undPathsObj = {};
+	let undPath;
 	while (folderUrisToSearch.length) {
 		// Pop current folder
 		const folderUri = folderUrisToSearch.pop();
 
 		// Base case: .und folder found
 		if (/\.und$/.test(folderUri.fsPath)) {
-			undPathsObj[folderUri.fsPath] = true;
-			continue;
+			// Stop recursion in this folder
+			if (!undPath) {
+				undPath = folderUri.fsPath;
+				continue;
+			}
+			// Stop searching altogether
+			else {
+				undPath = null;
+				break;
+			}
 		}
 
 		// Push child folders to stack
@@ -322,15 +330,16 @@ async function automaticallySelectDatabase() {
 			if (type != vscode.FileType.Directory)
 				continue;
 
+			// Skip black-listed folders
+			if (name == '.git')
+				continue;
+
 			const subFolderUri = vscode.Uri.joinPath(folderUri, name);
 			folderUrisToSearch.push(subFolderUri);
 		}
 	}
 
-	// Return first result if only one was found
-	const undPathsArr = Object.keys(undPathsObj);
-	if (undPathsArr.length == 1)
-		return undPathsArr[0];
+	return undPath;
 }
 
 async function manuallySelectDatabase() {
