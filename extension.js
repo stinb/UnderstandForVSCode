@@ -416,7 +416,12 @@ async function seeRefChecklist() {
 
 async function seeRef(refTreeItem) {
 	const doc = await vscode.workspace.openTextDocument(refTreeItem.filelongname);
-    vscode.window.showTextDocument(doc);
+
+	const line      = refTreeItem.line - 1;
+	const column    = refTreeItem.column;
+	const selection = new vscode.Selection(line, column, line, column);
+
+	vscode.window.showTextDocument(doc, {selection:	selection});
 }
 
 async function toggleCheckmark(treeItem) {
