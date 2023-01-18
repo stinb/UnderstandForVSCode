@@ -48,10 +48,12 @@
 			"view/title": [
 				{
 					"command": "understand.hiddenAnalyzeDatabase",
-					"group": "navigation"
+					"group": "navigation",
+					"when": "view == understand"
 				},
 				{
-					"command": "understand.hiddenConnectToDatabase"
+					"command": "understand.hiddenConnectToDatabase",
+					"when": "view == understand"
 				}
 			],
 			"view/item/context": [
