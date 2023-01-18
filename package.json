@@ -24,8 +24,7 @@
 	],
 	"icon": "icon.png",
 	"activationEvents": [
-        "onCommand:understand.selectDatabase",
-        "onCommand:understand.seeReferencesForSelected"
+        "onCommand:understand.hiddenSelectDbAuto"
 	],
 	"main": "extension.js",
 	"contributes": {
@@ -64,38 +63,38 @@
 			],
 			"view/item/context": [
 				{
-					"command": "understand.referenceChecklist.hiddenSeeFile",
-					"when": "view == understand && viewItem == reference",
+					"command": "understand.refChecklist.hiddenSeeRef",
+					"when": "view == understand && viewItem == ref",
 					"group": "inline"
 				},
 				{
-					"command": "understand.referenceChecklist.hiddenToggleCheckmarkEntity",
-					"when": "view == understand && viewItem == entity",
+					"command": "understand.refChecklist.hiddenToggleCheckmarkEnt",
+					"when": "view == understand && viewItem == ent",
 					"group": "inline"
 				},
 				{
-					"command": "understand.referenceChecklist.hiddenToggleCheckmarkReference",
-					"when": "view == understand && viewItem == reference",
+					"command": "understand.refChecklist.hiddenToggleCheckmarkRef",
+					"when": "view == understand && viewItem == ref",
 					"group": "inline"
 				}
 			],
 			"commandPalette": [
 				{
-					"command": "understand.referenceChecklist.hiddenSeeFile",
+					"command": "understand.refChecklist.hiddenSeeRef",
 					"when": "false"
 				},
 				{
-					"command": "understand.referenceChecklist.hiddenToggleCheckmarkEntity",
+					"command": "understand.refChecklist.hiddenToggleCheckmarkEnt",
 					"when": "false"
 				},
 				{
-					"command": "understand.referenceChecklist.hiddenToggleCheckmarkReference",
+					"command": "understand.refChecklist.hiddenToggleCheckmarkRef",
 					"when": "false"
 				}
 			],
 			"editor/context": [
 				{
-					"command": "understand.referenceChecklist",
+					"command": "understand.refChecklist",
                     "when": "editorTextFocus"
 				}
 			]
@@ -122,21 +121,21 @@
 			},
 
 			{
-				"command": "understand.referenceChecklist",
+				"command": "understand.refChecklist",
 				"title": "Understand: Reference Checklist"
 			},
 			{
-				"command": "understand.referenceChecklist.hiddenSeeFile",
-				"title": "See File",
+				"command": "understand.refChecklist.hiddenSeeRef",
+				"title": "See Reference",
 				"icon": "$(go-to-file)"
 			},
 			{
-				"command": "understand.referenceChecklist.hiddenToggleCheckmarkEntity",
+				"command": "understand.refChecklist.hiddenToggleCheckmarkEnt",
 				"title": "Toggle Checkmark",
 				"icon": "$(check-all)"
 			},
 			{
-				"command": "understand.referenceChecklist.hiddenToggleCheckmarkReference",
+				"command": "understand.refChecklist.hiddenToggleCheckmarkRef",
 				"title": "Toggle Checkmark",
 				"icon": "$(check)"
 			}

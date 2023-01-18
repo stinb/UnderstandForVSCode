@@ -4,13 +4,19 @@ const http = require('node:http');
 const path = require('node:path');
 
 
+
 //
 // Data
 //
 
+let userverHost = '127.0.0.1';
+let userverPort = 8080;
+
 let dbPath = null;
 let dbId = null;
-let referenceChecklist = null;
+
+let refChecklist = null;
+
 
 
 //
@@ -26,7 +32,7 @@ const iconChecked   = new vscode.ThemeIcon('pass-filled');
 // Tree Data Provider
 //
 
-class ReferenceChecklistProvider {
+class RefChecklistProvider {
 
 	#data;
 
@@ -62,26 +68,21 @@ class ReferenceChecklistProvider {
 		}
 	}
 
-	setData(data) {
-		this.#data = [];
-
-		for (const ent of data)
-			this.#data.push(new EntTreeItem(ent));
+	setData(ent, refs) {
+		this.#data = [new EntTreeItem(ent, refs)];
 
 		this.update();
 	}
 }
 
-class EntTreeItem extends vscode.TreeItem {
-	constructor(
-		ent,
-	) {
+class EntTreeItem extends vscode.TreeItem
+{
+	constructor(ent, refs) {
 		super(ent.name, vscode.TreeItemCollapsibleState.Expanded);
 		this.checked = false;
 		this.refs = [];
-		if (ent.refs)
-			for (const ref of ent.refs)
-				this.refs.push(new RefTreeItem(ref));
+		for (const ref of refs)
+			this.refs.push(new RefTreeItem(ref));
 		this.updateIcon();
 	}
 
@@ -98,18 +99,16 @@ class EntTreeItem extends vscode.TreeItem {
 		this.updateIcon();
 	}
 
-	contextValue = 'entity';
+	contextValue = 'ent';
 }
 
 class RefTreeItem extends vscode.TreeItem {
-	constructor(
-		ref,
-	) {
-		super(ref.kind, vscode.TreeItemCollapsibleState.None);
+	constructor(ref) {
+		super(ref.kindname, vscode.TreeItemCollapsibleState.None);
 		this.checked = false;
-		this.description = `${path.basename(ref.file)} ${ref.line}:${ref.column}`;
-		this.kind = ref.kind;
-		this.file = ref.file;
+		this.description = `${path.basename(ref.filelongname)} ${ref.line}:${ref.column}`;
+		this.kindname = ref.kindname;
+		this.filelongname = ref.filelongname;
 		this.line = ref.line;
 		this.column = ref.column;
 		this.updateIcon();
@@ -125,7 +124,7 @@ class RefTreeItem extends vscode.TreeItem {
 		this.updateIcon();
 	}
 
-	contextValue = 'reference';
+	contextValue = 'ref';
 }
 
 
@@ -180,6 +179,10 @@ function selectWordIfNoSelection(document, selection) {
 }
 
 async function request(options) {
+	// Add host and port
+	options.host = userverHost;
+	options.port = userverPort;
+
 	// Send request
 	return new Promise((resolve, reject) => {
 		http.request(
@@ -206,6 +209,37 @@ async function request(options) {
 			}
 		).end();
 	});
+}
+
+
+async function openDb() {
+	// Send request to userver
+	const res = await request({
+		method: 'POST',
+		path: makeURLPath('/databases', {path: dbPath}),
+	});
+
+	return res.body;
+}
+
+async function getEntByRef(ref) {
+	// Send request to userver
+	const res = await request({
+		method: 'GET',
+		path: makeURLPath(`/databases/${dbId}/ent`, ref),
+	});
+
+	return res.body;
+}
+
+async function getRefsByEnt(ent) {
+	// Send request to userver
+	const res = await request({
+		method: 'GET',
+		path: makeURLPath(`/databases/${dbId}/ents/${ent.id}/refs`),
+	});
+
+	return res.body;
 }
 
 function makeURLPath(path, params = {}) {
@@ -256,50 +290,6 @@ function makeRefOfSelection(editor) {
 		line:   line,
 		column: column,
 	};
-}
-
-async function getDbId() {
-	// Send request to userver
-	const res = await request({
-		host: '127.0.0.1',
-		port: 8080,
-		method: 'POST',
-		path: makeURLPath('/databases', {path: dbPath}),
-	});
-
-	// Get database id
-	if (res.body && res.body.id) {
-		info('Connected to DB');
-		return res.body.id;
-	}
-}
-
-async function getEntId(ref) {
-	// Send request to userver
-	const res = await request({
-		host: '127.0.0.1',
-		port: 8080,
-		method: 'GET',
-		path: makeURLPath(`/databases/${dbId}/ents`, ref),
-	});
-
-	// Get entity id
-	if (res.body && res.body.length && res.body[0].id)
-		return res.body[0].id;
-}
-
-async function changeReferenceChecklist(path) {
-	// Send request to userver
-	const res = await request({
-		host: '127.0.0.1',
-		port: 8080,
-		method: 'GET',
-		path: path,
-	});
-	if (!res.body)
-		return;
-
-	referenceChecklist.setData(res.body);
 }
 
 async function automaticallySelectDatabase() {
@@ -374,15 +364,27 @@ async function connectToDatabase() {
 
 	// TODO:
 	// Remember database with settings in storage
+
 	dbPath = possiblePath;
-	dbId = await getDbId();
+	const db = dbId = await openDb();
+	if (!db)
+		return;
+
+	dbId = db.id;
+	info('Connected to DB');
 }
 
 async function analyzeDatabase() {
 	info('Feature coming soon');
 }
 
-async function seeReferenceChecklist() {
+
+
+//
+// Extension Commands: Reference Checklist
+//
+
+async function seeRefChecklist() {
 	if (!dbPath)
 		return error('Database not selected');
 	if (!dbId)
@@ -398,28 +400,28 @@ async function seeReferenceChecklist() {
 	if (!ref)
 		return error('Selection is only whitespace');
 
-	// Get entity id
-	const entId = await getEntId(ref);
+	// Get entity
+	const ent = await getEntByRef(ref);
+	if (!ent)
+		return error('Entity not found');
 
-	// Get all references
-	const path = makeURLPath(`/databases/${dbId}/ents/${entId}/refs`);
-	changeReferenceChecklist(path);
+	// Get references
+	const refs = await getRefsByEnt(ent);
+	if (!refs || !refs.length)
+		return error('References not found');
+
+	// Set data of checklist
+	refChecklist.setData(ent, refs);
 }
 
-
-
-//
-// Extension Commands: Reference Checklist
-//
-
-async function seeFile(refTreeItem) {
-	const doc = await vscode.workspace.openTextDocument(refTreeItem.file);
+async function seeRef(refTreeItem) {
+	const doc = await vscode.workspace.openTextDocument(refTreeItem.filelongname);
     vscode.window.showTextDocument(doc);
 }
 
 async function toggleCheckmark(treeItem) {
 	treeItem.setChecked();
-	referenceChecklist.update();
+	refChecklist.update();
 }
 
 
@@ -430,8 +432,8 @@ async function toggleCheckmark(treeItem) {
 
 function activate(context) {
 	// Register tree data providers
-	referenceChecklist = new ReferenceChecklistProvider();
-	vscode.window.registerTreeDataProvider('understand', referenceChecklist);
+	refChecklist = new RefChecklistProvider();
+	vscode.window.registerTreeDataProvider('understand', refChecklist);
 
 	// Register commands created in package.json
 	context.subscriptions.push(
@@ -447,11 +449,11 @@ function activate(context) {
 		// Reference checklist
 
 		// Command pallette
-		vscode.commands.registerCommand('understand.referenceChecklist', seeReferenceChecklist),
+		vscode.commands.registerCommand('understand.refChecklist', seeRefChecklist),
 		// Hidden
-		vscode.commands.registerCommand('understand.referenceChecklist.hiddenSeeFile', seeFile),
-		vscode.commands.registerCommand('understand.referenceChecklist.hiddenToggleCheckmarkEntity', toggleCheckmark),
-		vscode.commands.registerCommand('understand.referenceChecklist.hiddenToggleCheckmarkReference', toggleCheckmark),
+		vscode.commands.registerCommand('understand.refChecklist.hiddenSeeRef', seeRef),
+		vscode.commands.registerCommand('understand.refChecklist.hiddenToggleCheckmarkEnt', toggleCheckmark),
+		vscode.commands.registerCommand('understand.refChecklist.hiddenToggleCheckmarkRef', toggleCheckmark),
 	);
 }
 
