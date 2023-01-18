@@ -9,9 +9,6 @@ const path = require('node:path');
 // Data
 //
 
-let userverHost = '127.0.0.1';
-let userverPort = 8080;
-
 let dbPath = null;
 let dbId = null;
 
@@ -176,6 +173,10 @@ function isASelection(selection) {
 	return selection.start.character != selection.end.character || selection.start.line != selection.end.line;
 }
 
+function getConfig(key=null) {
+	return vscode.workspace.getConfiguration().get(`understand${key ? '.' + key : ''}`);
+}
+
 function selectWordIfNoSelection(document, selection) {
 	// Skip if there is a selection
 	if (isASelection(selection))
@@ -210,9 +211,10 @@ function selectWordIfNoSelection(document, selection) {
 }
 
 async function request(options) {
-	// Add host and port
-	options.host = userverHost;
-	options.port = userverPort;
+	// Add host and port to the request options
+	const config = getConfig('userver');
+	options.host = config.host;
+	options.port = config.port;
 
 	// Send request
 	return new Promise((resolve, reject) => {

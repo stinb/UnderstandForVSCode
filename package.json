@@ -4,10 +4,7 @@
 	"description": "Interact with an Understand database",
 	"version": "1.0.0",
 	"publisher": "scitools",
-	"repository": {
-		"type": "git",
-		"url": ""
-	},
+	"repository": {},
 	"engines": {
 		"vscode": "^1.64.0"
 	},
@@ -157,6 +154,30 @@
 				"title": "Toggle Checkmark",
 				"icon": "$(check)"
 			}
-		]
+		],
+		"configuration": {
+			"title": "Understand",
+			"properties": {
+				"understand.userver.host": {
+					"type": "string",
+					"description": "IP address or hostname of userver",
+					"default": "127.0.0.1"
+				},
+				"understand.userver.port": {
+					"type": "number",
+					"description": "Port number of userver",
+					"default": 8080
+				},
+
+				"understand.db.path": {
+					"type": "string",
+					"description": "Full path of database (PROJECT_NAME.und folder)"
+				},
+				"understand.db.id": {
+					"type": "string",
+					"description": "ID of database (PROJECT_NAME.und/id.txt)"
+				}
+			}
+		}
 	}
 }
