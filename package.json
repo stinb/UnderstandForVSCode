@@ -168,6 +168,11 @@
 					"description": "Port number of userver",
 					"default": 8080
 				},
+				"understand.userver.timeout": {
+					"type": "number",
+					"description": "Timeout in milliseconds of userver",
+					"default": 2000
+				},
 
 				"understand.db.path": {
 					"type": "string",

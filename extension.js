@@ -211,15 +211,10 @@ function selectWordIfNoSelection(document, selection) {
 }
 
 async function request(options) {
-	// Add host and port to the request options
-	const config = getConfig('userver');
-	options.host = config.host;
-	options.port = config.port;
-
 	// Send request
 	return new Promise((resolve, reject) => {
-		http.request(
-			options,
+		const req = http.request(
+			Object.assign(options, getConfig('userver')),
 			res => {
 				// Get body
 				const body = [];
@@ -233,14 +228,20 @@ async function request(options) {
 						try {
 							res.body = JSON.parse(body.join(''));
 						} catch (err) {
-							error('Unable to parse JSON from server');
+							error('Unable to parse JSON from userver');
 							reject(res);
 						}
 					}
 					resolve(res);
 				});
 			}
-		).end();
+		);
+
+		req.on('error', () => {
+			error('Error communicating with userver');
+		});
+
+		req.end();
 	});
 }
 
@@ -404,7 +405,6 @@ async function connectToDatabase(manual=true) {
 	if (!possiblePath && manual)
 		possiblePath = await manuallySelectDatabase();
 
-	// TODO:
 	// Remember database with settings in storage
 
 	dbPath = possiblePath;
@@ -433,7 +433,7 @@ async function seeRefChecklist() {
 	if (!dbPath)
 		return error('Database not selected');
 	if (!dbId)
-		return error('Server not available');
+		return error('Could not get database id from userver');
 
 	// Get editor
 	const editor = vscode.window.activeTextEditor;
