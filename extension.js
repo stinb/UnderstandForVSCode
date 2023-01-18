@@ -68,10 +68,15 @@ class RefChecklistProvider {
 		}
 	}
 
-	setData(ent, refs) {
-		this.#data = [new EntTreeItem(ent, refs)];
+	add(ent, refs) {
+		this.#data.push(new EntTreeItem(ent, refs));
 
 		this.update();
+	}
+
+	remove(entTreeItem) {
+		delete this.#data[this.#data.indexOf(entTreeItem)];
+		refChecklist.update();
 	}
 }
 
@@ -356,10 +361,10 @@ async function manuallySelectDatabase() {
 // Extension Commands: General
 //
 
-async function connectToDatabase() {
+async function connectToDatabase(manual=true) {
 	let possiblePath = await automaticallySelectDatabase();
 
-	if (!possiblePath)
+	if (!possiblePath && manual)
 		possiblePath = await manuallySelectDatabase();
 
 	// TODO:
@@ -385,6 +390,9 @@ async function analyzeDatabase() {
 //
 
 async function seeRefChecklist() {
+	if (!dbId)
+		await connectToDatabase(false);
+
 	if (!dbPath)
 		return error('Database not selected');
 	if (!dbId)
@@ -411,7 +419,7 @@ async function seeRefChecklist() {
 		return error('References not found');
 
 	// Set data of checklist
-	refChecklist.setData(ent, refs);
+	refChecklist.add(ent, refs);
 }
 
 async function seeRef(refTreeItem) {
@@ -422,6 +430,10 @@ async function seeRef(refTreeItem) {
 	const selection = new vscode.Selection(line, column, line, column);
 
 	vscode.window.showTextDocument(doc, {selection:	selection});
+}
+
+async function removeEnt(entTreeItem) {
+	refChecklist.remove(entTreeItem);
 }
 
 async function toggleCheckmark(treeItem) {
@@ -456,8 +468,9 @@ function activate(context) {
 		// Command pallette
 		vscode.commands.registerCommand('understand.refChecklist', seeRefChecklist),
 		// Hidden
-		vscode.commands.registerCommand('understand.refChecklist.hiddenSeeRef', seeRef),
+		vscode.commands.registerCommand('understand.refChecklist.hiddenRemoveEnt', removeEnt),
 		vscode.commands.registerCommand('understand.refChecklist.hiddenToggleCheckmarkEnt', toggleCheckmark),
+		vscode.commands.registerCommand('understand.refChecklist.hiddenSeeRef', seeRef),
 		vscode.commands.registerCommand('understand.refChecklist.hiddenToggleCheckmarkRef', toggleCheckmark),
 	);
 }

@@ -1,7 +1,7 @@
 {
 	"name": "understand",
 	"displayName": "Understand",
-	"description": "Navigate and select strings",
+	"description": "Interact with an Understand database",
 	"version": "1.0.0",
 	"publisher": "scitools",
 	"repository": {
@@ -12,20 +12,16 @@
 		"vscode": "^1.64.0"
 	},
 	"categories": [
-		"Keymaps",
-		"Other"
+		"Data Science",
+		"Visualization"
 	],
 	"keywords": [
-		"Select",
-		"Move",
-		"Cursor",
-		"String",
-		"Quote"
+		"Reference",
+		"Checklist",
+		"Understand"
 	],
-	"icon": "icon.png",
-	"activationEvents": [
-        "onCommand:understand.hiddenSelectDbAuto"
-	],
+	"icon": "logoColor.png",
+	"activationEvents": [],
 	"main": "extension.js",
 	"contributes": {
 		"viewsContainers": {
@@ -33,7 +29,7 @@
 				{
 					"id": "understand",
 					"title": "Understand",
-					"icon": "icon.svg"
+					"icon": "logoMonochrome.svg"
 				}
 			]
 		},
@@ -63,13 +59,19 @@
 			],
 			"view/item/context": [
 				{
-					"command": "understand.refChecklist.hiddenSeeRef",
-					"when": "view == understand && viewItem == ref",
+					"command": "understand.refChecklist.hiddenRemoveEnt",
+					"when": "view == understand && viewItem == ent",
 					"group": "inline"
 				},
 				{
 					"command": "understand.refChecklist.hiddenToggleCheckmarkEnt",
 					"when": "view == understand && viewItem == ent",
+					"group": "inline"
+				},
+
+				{
+					"command": "understand.refChecklist.hiddenSeeRef",
+					"when": "view == understand && viewItem == ref",
 					"group": "inline"
 				},
 				{
@@ -80,11 +82,16 @@
 			],
 			"commandPalette": [
 				{
-					"command": "understand.refChecklist.hiddenSeeRef",
+					"command": "understand.refChecklist.hiddenRemoveEnt",
 					"when": "false"
 				},
 				{
 					"command": "understand.refChecklist.hiddenToggleCheckmarkEnt",
+					"when": "false"
+				},
+
+				{
+					"command": "understand.refChecklist.hiddenSeeRef",
 					"when": "false"
 				},
 				{
@@ -109,6 +116,8 @@
 				"title": "Understand: Database: Analyze"
 			},
 
+
+
 			{
 				"command": "understand.hiddenConnectToDatabase",
 				"title": "Connect to Database",
@@ -120,19 +129,28 @@
 				"icon": "$(refresh)"
 			},
 
+
+
 			{
 				"command": "understand.refChecklist",
 				"title": "Understand: Reference Checklist"
 			},
+
 			{
-				"command": "understand.refChecklist.hiddenSeeRef",
-				"title": "See Reference",
-				"icon": "$(go-to-file)"
+				"command": "understand.refChecklist.hiddenRemoveEnt",
+				"title": "Remove Entity",
+				"icon": "$(trash)"
 			},
 			{
 				"command": "understand.refChecklist.hiddenToggleCheckmarkEnt",
 				"title": "Toggle Checkmark",
 				"icon": "$(check-all)"
+			},
+
+			{
+				"command": "understand.refChecklist.hiddenSeeRef",
+				"title": "See Reference",
+				"icon": "$(go-to-file)"
 			},
 			{
 				"command": "understand.refChecklist.hiddenToggleCheckmarkRef",
