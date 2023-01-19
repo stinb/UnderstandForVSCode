@@ -432,11 +432,12 @@ async function getDbPathFromUser() {
 
 async function connectToDatabase(userInput=true) {
 	// Get id from config
-	let dbPath = getConfig('db.path');
+	let dbConfig = getConfig('db');
+	let dbPath = dbConfig.path;
 	let source = 'from config';
 
 	// Get id from searching
-	if (!dbPath) {
+	if (!dbPath && dbConfig.findPathAutomatically) {
 		const t0 = performance.now();
 		dbPath = await getDbPathFromSearching();
 		const t1 = performance.now();
@@ -444,7 +445,7 @@ async function connectToDatabase(userInput=true) {
 	}
 
 	// Get id from user
-	if (!dbPath && userInput) {
+	if (!dbPath && dbConfig.findPathManually && userInput) {
 		dbPath = await getDbPathFromUser();
 		source = 'selected manually';
 	}

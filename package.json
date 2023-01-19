@@ -179,6 +179,16 @@
 				"understand.db.path": {
 					"type": "string",
 					"description": "Full path of database (PROJECT_NAME.und folder)"
+				},
+				"understand.db.findPathAutomatically": {
+					"type": "boolean",
+					"description": "Search for database path automatically",
+					"default": true
+				},
+				"understand.db.findPathManually": {
+					"type": "boolean",
+					"description": "Find the database path with user input",
+					"default": true
 				}
 			}
 		}
