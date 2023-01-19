@@ -43,7 +43,7 @@
 		"viewsWelcome": [
 			{
 				"view": "understand",
-				"contents": "To use the Understand extension:\n1. userver should be running.\n2. There should be an existing database.\n3. Right click on entities in the code to see results here."
+				"contents": "Setup:\n• Understand Server should be running.\n• There should be an existing database.\nUsage:\n• Right click on entities in the code.\n• Select an Understand action and see results here."
 			}
 		],
 		"menus": {

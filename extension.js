@@ -31,10 +31,11 @@ const iconChecked   = new vscode.ThemeIcon('pass-filled');
 // Statuses
 //
 
-const statusNoProject  = 0;
-const statusSearching  = 1;
-const statusConnecting = 2;
-const statusConnected  = 3;
+const statusNoProject    = 0;
+const statusSearching    = 1;
+const statusConnecting   = 2;
+const statusNoConnection = 3;
+const statusConnected    = 4;
 
 
 //
@@ -173,10 +174,8 @@ class RefTreeItem extends vscode.TreeItem {
 // Helper Functions
 //
 
-function error(message, err=null) {
+function error(message) {
 	vscode.window.showErrorMessage(`Understand: ${message}`);
-	if (err)
-		console.error(err);
 }
 
 function info(message) {
@@ -184,25 +183,32 @@ function info(message) {
 }
 
 function changeStatusBar(status) {
-	if (status == statusNoProject) {
-		statusBar.text = '$(search) Understand';
-		statusBar.tooltip = 'No Understand Project'
-		statusBar.command = 'understand.connectToDatabase';
-	}
-	else if (status == statusSearching) {
-		statusBar.text = '$(loading~spin) Understand';
-		statusBar.tooltip = 'Finding Understand Project'
-		statusBar.command = 'understand.connectToDatabase';
-	}
-	else if (status == statusConnecting) {
-		statusBar.text = '$(loading~spin) Understand';
-		statusBar.tooltip = 'Connecting to Understand Server'
-		statusBar.command = null;
-	}
-	else if (status == statusConnected) {
-		statusBar.text = '$(refresh) Understand';
-		statusBar.tooltip = 'Analyze Understand Project'
-		statusBar.command = 'understand.analyzeDatabase';
+	switch (status) {
+		case statusNoProject:
+			statusBar.text = '$(search) Understand';
+			statusBar.tooltip = 'No Understand Project'
+			statusBar.command = 'understand.connectToDatabase';
+			break;
+		case statusSearching:
+			statusBar.text = '$(loading~spin) Understand';
+			statusBar.tooltip = 'Finding Understand Project'
+			statusBar.command = 'understand.connectToDatabase';
+			break;
+		case statusConnecting:
+			statusBar.text = '$(loading~spin) Understand';
+			statusBar.tooltip = 'Connecting to Understand Server'
+			statusBar.command = null;
+			break;
+		case statusNoConnection:
+			statusBar.text = '$(error) Understand';
+			statusBar.tooltip = 'Failed to Connect to Understand Server'
+			statusBar.command = 'understand.connectToDatabase';
+			break;
+		case statusConnected:
+			statusBar.text = '$(refresh) Understand';
+			statusBar.tooltip = 'Analyze Understand Project'
+			statusBar.command = 'understand.analyzeDatabase';
+			break;
 	}
 }
 
@@ -266,7 +272,6 @@ async function request(options) {
 							res.body = JSON.parse(body.join(''));
 						} catch (err) {
 							error('Unable to parse JSON from userver', err);
-							reject();
 						}
 					}
 					resolve(res);
@@ -275,8 +280,20 @@ async function request(options) {
 		);
 
 		req.on('error', err => {
-			error('Error communicating with userver', err);
-			reject();
+			changeStatusBar(statusNoConnection);
+
+			// Error with host
+			let match = err.message.match(/getaddrinfo ENOTFOUND (.*)/);
+			if (match)
+				return error(`Error finding host for userver (host "${match[1]}" not found)`);
+
+			// Error with connecting
+			match = err.message.match(/connect ECONNREFUSED (.*)/);
+			if (match)
+				return error(`Error communicating with userver (failed to connect to "${match[1]}")`);
+
+			// Other error
+			error(`Error communicating with userver (${err.message})`);
 		});
 
 		req.end();
