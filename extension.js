@@ -1,4 +1,4 @@
-onst vscode = require('vscode');
+const vscode = require('vscode');
 
 const http = require('node:http');
 const path = require('node:path');
@@ -277,6 +277,16 @@ async function openDb(path) {
 	return res.body;
 }
 
+async function closeDb(path) {
+	if (!dbId)
+		return;
+
+	return request({
+		method: 'DELETE',
+		path: `/databases/${dbId}`,
+	});
+}
+
 async function getEntByRef(ref) {
 	const res = await request({
 		method: 'GET',
@@ -552,7 +562,9 @@ function activate(context) {
 	);
 }
 
-function deactivate() {}
+function deactivate() {
+	return closeDb();
+}
 
 module.exports = {
 	activate,
