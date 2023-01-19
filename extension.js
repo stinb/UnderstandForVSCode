@@ -357,47 +357,58 @@ function makeRefOfSelection(editor) {
 }
 
 async function getDbPathFromSearching(returnOnFirstMatch) {
-	// Initiailize the stack of folders to search
-	const folderUrisToSearch = [];
+	// Initiailize the stacks of folders for a breadth-first search
+	const childrenToCheck = [];
+	const parentsToCheck  = [];
 	for (const folder of vscode.workspace.workspaceFolders)
-		folderUrisToSearch.push(folder.uri);
+		childrenToCheck.push(folder.uri);
 
 	// Find all .und folders
 	let undPath;
-	while (folderUrisToSearch.length) {
-		// Pop current folder
-		const folderUri = folderUrisToSearch.pop();
+	while (childrenToCheck.length || parentsToCheck.length) {
+		while (childrenToCheck.length) {
+			// Pop current folder to children stack
+			const folderUri = childrenToCheck.pop();
 
-		// Base case: .und folder found
-		if (/\.und$/.test(folderUri.fsPath)) {
-			// Stop recursion in this folder
-			if (!undPath) {
-				undPath = folderUri.fsPath;
-				// Stop searching if one is found
-				if (returnOnFirstMatch)
-					return undPath;
-				continue;
+			// Base case: .und folder found
+			if (/\.und$/.test(folderUri.fsPath)) {
+				// Stop recursion in this folder
+				if (!undPath) {
+					undPath = folderUri.fsPath;
+					// Stop searching if one is found
+					if (returnOnFirstMatch)
+						return undPath;
+					continue;
+				}
+				// Stop searching if two are found
+				else {
+					undPath = null;
+					break;
+				}
 			}
-			// Stop searching if two are found
-			else {
-				undPath = null;
-				break;
-			}
+
+			// Push current folder to parents parentsToCheck
+			parentsToCheck.push(folderUri);
 		}
 
-		// Push child folders to stack
-		const children = await vscode.workspace.fs.readDirectory(folderUri);
-		for (const [name, type] of children) {
-			// Skip non-folders
-			if (type != vscode.FileType.Directory)
-				continue;
+		while (parentsToCheck.length) {
+			// Pop current folder from parents
+			const folderUri = parentsToCheck.pop();
 
-			// Skip black-listed folders
-			if (name == '.git')
-				continue;
+			// Push sub-folders to children stack
+			const children = await vscode.workspace.fs.readDirectory(folderUri);
+			for (const [name, type] of children) {
+				// Skip non-folders
+				if (type != vscode.FileType.Directory)
+					continue;
 
-			const subFolderUri = vscode.Uri.joinPath(folderUri, name);
-			folderUrisToSearch.push(subFolderUri);
+				// Skip black-listed folders
+				if (name == '.git')
+					continue;
+
+				const subFolderUri = vscode.Uri.joinPath(folderUri, name);
+				childrenToCheck.push(subFolderUri);
+			}
 		}
 	}
 
