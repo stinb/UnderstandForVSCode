@@ -32,8 +32,9 @@ const iconChecked   = new vscode.ThemeIcon('pass-filled');
 //
 
 const statusNoProject  = 0;
-const statusConnecting = 1;
-const statusConnected  = 2;
+const statusSearching  = 1;
+const statusConnecting = 2;
+const statusConnected  = 3;
 
 
 //
@@ -184,15 +185,23 @@ function info(message) {
 
 function changeStatusBar(status) {
 	if (status == statusNoProject) {
-		statusBar.text = '$(search) Understand Project';
+		statusBar.text = '$(search) Understand';
+		statusBar.tooltip = 'No Understand Project'
+		statusBar.command = 'understand.connectToDatabase';
+	}
+	else if (status == statusSearching) {
+		statusBar.text = '$(loading~spin) Understand';
+		statusBar.tooltip = 'Finding Understand Project'
 		statusBar.command = 'understand.connectToDatabase';
 	}
 	else if (status == statusConnecting) {
-		statusBar.text = '$(loading~spin) Understand Project';
+		statusBar.text = '$(loading~spin) Understand';
+		statusBar.tooltip = 'Connecting to Understand Server'
 		statusBar.command = null;
 	}
 	else if (status == statusConnected) {
-		statusBar.text = '$(refresh) Understand Project';
+		statusBar.text = '$(refresh) Understand';
+		statusBar.tooltip = 'Analyze Understand Project'
 		statusBar.command = 'understand.analyzeDatabase';
 	}
 }
@@ -452,7 +461,7 @@ async function getDbPathFromUser() {
 //
 
 async function connectToDatabase(calledByUser=true) {
-	changeStatusBar(statusConnecting);
+	changeStatusBar(statusSearching);
 
 	// Get id from config
 	let dbConfig = getConfig('db');
@@ -474,6 +483,7 @@ async function connectToDatabase(calledByUser=true) {
 	}
 
 	// Connect to userver and open db
+	changeStatusBar(statusConnecting);
 	const db = await openDb(dbPath);
 	if (!db) {
 		dbId = null;
