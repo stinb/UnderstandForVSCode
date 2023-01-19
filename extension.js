@@ -268,16 +268,16 @@ async function request(options) {
 }
 
 
-async function openDb(path) {
+async function openDb() {
 	const res = await request({
 		method: 'POST',
-		path: makeURLPath('/databases', {path: path}),
+		path: makeURLPath('/databases', {path: dbPath}),
 	});
 
 	return res.body;
 }
 
-async function closeDb(path) {
+async function closeDb() {
 	if (!dbId)
 		return;
 
@@ -305,8 +305,8 @@ async function getRefsByEnt(ent) {
 	return res.body;
 }
 
-function makeURLPath(path, params = {}) {
-	const array = [path];
+function makeURLPath(pathStr, params = {}) {
+	const array = [pathStr];
 	let first = true;
 	for (const [key, value] of Object.entries(params)) {
 		array.push(`${first ? '?' : '&'}${key}=${encodeURIComponent(value)}`);
@@ -430,7 +430,7 @@ async function getDbPathFromUser() {
 // Extension Commands: General
 //
 
-async function connectToDatabase(userInput=true) {
+async function connectToDatabase(calledByUser=true) {
 	// Get id from config
 	let dbConfig = getConfig('db');
 	let dbPath = dbConfig.path;
@@ -445,7 +445,7 @@ async function connectToDatabase(userInput=true) {
 	}
 
 	// Get id from user
-	if (!dbPath && dbConfig.findPathManually && userInput) {
+	if (!dbPath && dbConfig.findPathManually && calledByUser) {
 		dbPath = await getDbPathFromUser();
 		source = 'selected manually';
 	}
