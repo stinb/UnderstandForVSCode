@@ -1,5 +1,6 @@
 const vscode = require('vscode');
 
+const fs   = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
 
@@ -268,10 +269,10 @@ async function request(options) {
 }
 
 
-async function openDb() {
+async function openDb(pathStr) {
 	const res = await request({
 		method: 'POST',
-		path: makeURLPath('/databases', {path: dbPath}),
+		path: makeURLPath('/databases', {path: pathStr}),
 	});
 
 	return res.body;
@@ -355,7 +356,7 @@ function makeRefOfSelection(editor) {
 	};
 }
 
-async function getDbPathFromSearching() {
+async function getDbPathFromSearching(returnOnFirstMatch) {
 	// Initiailize the stack of folders to search
 	const folderUrisToSearch = [];
 	for (const folder of vscode.workspace.workspaceFolders)
@@ -372,9 +373,12 @@ async function getDbPathFromSearching() {
 			// Stop recursion in this folder
 			if (!undPath) {
 				undPath = folderUri.fsPath;
+				// Stop searching if one is found
+				if (returnOnFirstMatch)
+					return undPath;
 				continue;
 			}
-			// Stop searching altogether
+			// Stop searching if two are found
 			else {
 				undPath = null;
 				break;
@@ -439,7 +443,7 @@ async function connectToDatabase(calledByUser=true) {
 	// Get id from searching
 	if (!dbPath && dbConfig.findPathAutomatically) {
 		const t0 = performance.now();
-		dbPath = await getDbPathFromSearching();
+		dbPath = await getDbPathFromSearching(dbConfig.findFirstPathAutomatically);
 		const t1 = performance.now();
 		source = `from searching (${formatMilliseconds(t1 - t0)} to get path)`;
 	}

@@ -182,6 +182,11 @@
 					"type": "string",
 					"description": "Full path of database (PROJECT_NAME.und folder)"
 				},
+				"understand.db.findFirstPathAutomatically": {
+					"type": "boolean",
+					"description": "Quickly use the first database path found automatically",
+					"default": true
+				},
 				"understand.db.findPathAutomatically": {
 					"type": "boolean",
 					"description": "Search for database path automatically",
