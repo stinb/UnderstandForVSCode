@@ -43,7 +43,7 @@
 		"viewsWelcome": [
 			{
 				"view": "understand",
-				"contents": "To use the Understand extension, userver should be running.\n[Connect to DB](command:understand.connectToDatabase)"
+				"contents": "To use the Understand extension:\n1. userver should be running.\n2. There should be an existing database.\n3. Right click on entities in the code to see results here."
 			}
 		],
 		"menus": {
