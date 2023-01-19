@@ -536,6 +536,9 @@ async function toggleCheckmark(treeItem) {
 //
 
 function activate(context) {
+	// Connect to database without user input
+	connectToDatabase(false);
+
 	// Register tree data providers
 	refChecklist = new RefChecklistProvider();
 	vscode.window.registerTreeDataProvider('understand', refChecklist);

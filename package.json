@@ -18,7 +18,9 @@
 		"Understand"
 	],
 	"icon": "logoColor.png",
-	"activationEvents": [],
+	"activationEvents": [
+		"workspaceContains:**/*.und/id.txt"
+	],
 	"main": "extension.js",
 	"contributes": {
 		"viewsContainers": {
