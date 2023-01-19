@@ -1,4 +1,4 @@
-const vscode = require('vscode');
+onst vscode = require('vscode');
 
 const http = require('node:http');
 const path = require('node:path');
@@ -9,7 +9,6 @@ const path = require('node:path');
 // Data
 //
 
-let dbPath = null;
 let dbId = null;
 
 let refChecklist = null;
@@ -161,12 +160,34 @@ class RefTreeItem extends vscode.TreeItem {
 // Helper Functions
 //
 
-function error(message) {
-	vscode.window.showErrorMessage(`Understand: ${message}`)
+function error(message, err=null) {
+	vscode.window.showErrorMessage(`Understand: ${message}`);
+	if (err)
+		console.error(err);
 }
 
 function info(message) {
-	vscode.window.showInformationMessage(`Understand: ${message}`)
+	vscode.window.showInformationMessage(`Understand: ${message}`);
+}
+
+function round(n, places=0) {
+	if (places) {
+		const x = 10 ** places;
+		return Math.round((n + Number.EPSILON) * x) / x;
+	}
+	return Math.round(n);
+}
+
+function formatMilliseconds(ms) {
+	if (ms < 1_000)
+		return `${round(ms, 2)} ms`;
+	if (ms < 60_000)
+		return `${round(ms / 1_000, 2)} sec`;
+	if (ms < 3_600_000)
+		return `${round(ms / 60_000, 2)} min`;
+	if (ms < 86_400_000)
+		return `${round(ms / 3_600_000, 2)} hr`;
+	return 'a LONG time';
 }
 
 function isASelection(selection) {
@@ -228,8 +249,8 @@ async function request(options) {
 						try {
 							res.body = JSON.parse(body.join(''));
 						} catch (err) {
-							error('Unable to parse JSON from userver');
-							reject(res);
+							error('Unable to parse JSON from userver', err);
+							reject();
 						}
 					}
 					resolve(res);
@@ -237,8 +258,9 @@ async function request(options) {
 			}
 		);
 
-		req.on('error', () => {
-			error('Error communicating with userver');
+		req.on('error', err => {
+			error('Error communicating with userver', err);
+			reject();
 		});
 
 		req.end();
@@ -246,18 +268,16 @@ async function request(options) {
 }
 
 
-async function openDb() {
-	// Send request to userver
+async function openDb(path) {
 	const res = await request({
 		method: 'POST',
-		path: makeURLPath('/databases', {path: dbPath}),
+		path: makeURLPath('/databases', {path: path}),
 	});
 
 	return res.body;
 }
 
 async function getEntByRef(ref) {
-	// Send request to userver
 	const res = await request({
 		method: 'GET',
 		path: makeURLPath(`/databases/${dbId}/ent`, ref),
@@ -267,7 +287,6 @@ async function getEntByRef(ref) {
 }
 
 async function getRefsByEnt(ent) {
-	// Send request to userver
 	const res = await request({
 		method: 'GET',
 		path: makeURLPath(`/databases/${dbId}/ents/${ent.id}/refs`),
@@ -326,7 +345,7 @@ function makeRefOfSelection(editor) {
 	};
 }
 
-async function automaticallySelectDatabase() {
+async function getDbPathFromSearching() {
 	// Initiailize the stack of folders to search
 	const folderUrisToSearch = [];
 	for (const folder of vscode.workspace.workspaceFolders)
@@ -371,7 +390,7 @@ async function automaticallySelectDatabase() {
 	return undPath;
 }
 
-async function manuallySelectDatabase() {
+async function getDbPathFromUser() {
 	// Get database from user input
 	const rootPath = vscode.workspace.rootPath;
 	const rootUri = rootPath ? vscode.Uri.file(rootPath) : undefined;
@@ -395,26 +414,51 @@ async function manuallySelectDatabase() {
 }
 
 
+
+
 //
 // Extension Commands: General
 //
 
-async function connectToDatabase(manual=true) {
-	let possiblePath = await automaticallySelectDatabase();
+async function connectToDatabase(userInput=true) {
+	// Get id from config
+	let dbPath = getConfig('db.path');
+	let source = 'from config';
 
-	if (!possiblePath && manual)
-		possiblePath = await manuallySelectDatabase();
+	// Get id from searching
+	if (!dbPath) {
+		const t0 = performance.now();
+		dbPath = await getDbPathFromSearching();
+		const t1 = performance.now();
+		source = `from searching (${formatMilliseconds(t1 - t0)} to get path)`;
+	}
 
-	dbPath = possiblePath;
-	const db = dbId = await openDb();
-	if (!db)
-		return;
+	// Get id from user
+	if (!dbPath && userInput) {
+		dbPath = await getDbPathFromUser();
+		source = 'selected manually';
+	}
 
+	// No id
+	if (!dbPath) {
+		dbId = null;
+		return
+	}
+
+	// Connect to userver and open db
+	const db = await openDb(dbPath);
+	if (!db) {
+		dbId = null;
+		return error('Database not found by userver');
+	}
+
+	// Remember id in memory
 	dbId = db.id;
-	info('Connected to DB');
+	info(`Connected to DB ${source}`);
 }
 
 async function analyzeDatabase() {
+	// TODO
 	info('Feature coming soon');
 }
 
@@ -426,12 +470,7 @@ async function analyzeDatabase() {
 
 async function seeRefChecklist() {
 	if (!dbId)
-		await connectToDatabase(false);
-
-	if (!dbPath)
-		return error('Database not selected');
-	if (!dbId)
-		return error('Could not get database id from userver');
+		return error('Not connected with userver');
 
 	// Get editor
 	const editor = vscode.window.activeTextEditor;

@@ -179,10 +179,6 @@
 				"understand.db.path": {
 					"type": "string",
 					"description": "Full path of database (PROJECT_NAME.und folder)"
-				},
-				"understand.db.id": {
-					"type": "string",
-					"description": "ID of database (PROJECT_NAME.und/id.txt)"
 				}
 			}
 		}
