@@ -12,6 +12,8 @@ const path = require('node:path');
 
 let dbId = null;
 
+let statusBar = null;
+
 let refChecklist = null;
 
 
@@ -23,6 +25,15 @@ let refChecklist = null;
 const iconUnchecked = new vscode.ThemeIcon('circle-large-outline');
 const iconChecked   = new vscode.ThemeIcon('pass-filled');
 
+
+
+//
+// Statuses
+//
+
+const statusNoProject  = 0;
+const statusConnecting = 1;
+const statusConnected  = 2;
 
 
 //
@@ -171,24 +182,19 @@ function info(message) {
 	vscode.window.showInformationMessage(`Understand: ${message}`);
 }
 
-function round(n, places=0) {
-	if (places) {
-		const x = 10 ** places;
-		return Math.round((n + Number.EPSILON) * x) / x;
+function changeStatusBar(status) {
+	if (status == statusNoProject) {
+		statusBar.text = '$(search) Understand Project';
+		statusBar.command = 'understand.connectToDatabase';
 	}
-	return Math.round(n);
-}
-
-function formatMilliseconds(ms) {
-	if (ms < 1_000)
-		return `${round(ms, 2)} ms`;
-	if (ms < 60_000)
-		return `${round(ms / 1_000, 2)} sec`;
-	if (ms < 3_600_000)
-		return `${round(ms / 60_000, 2)} min`;
-	if (ms < 86_400_000)
-		return `${round(ms / 3_600_000, 2)} hr`;
-	return 'a LONG time';
+	else if (status == statusConnecting) {
+		statusBar.text = '$(loading~spin) Understand Project';
+		statusBar.command = null;
+	}
+	else if (status == statusConnected) {
+		statusBar.text = '$(refresh) Understand Project';
+		statusBar.command = 'understand.analyzeDatabase';
+	}
 }
 
 function isASelection(selection) {
@@ -446,46 +452,43 @@ async function getDbPathFromUser() {
 //
 
 async function connectToDatabase(calledByUser=true) {
+	changeStatusBar(statusConnecting);
+
 	// Get id from config
 	let dbConfig = getConfig('db');
 	let dbPath = dbConfig.path;
-	let source = 'from config';
 
 	// Get id from searching
-	if (!dbPath && dbConfig.findPathAutomatically) {
-		const t0 = performance.now();
+	if (!dbPath && dbConfig.findPathAutomatically)
 		dbPath = await getDbPathFromSearching(dbConfig.findFirstPathAutomatically);
-		const t1 = performance.now();
-		source = `from searching (${formatMilliseconds(t1 - t0)} to get path)`;
-	}
 
 	// Get id from user
-	if (!dbPath && dbConfig.findPathManually && calledByUser) {
+	if (!dbPath && dbConfig.findPathManually && calledByUser)
 		dbPath = await getDbPathFromUser();
-		source = 'selected manually';
-	}
 
 	// No id
 	if (!dbPath) {
 		dbId = null;
-		return
+		changeStatusBar(statusNoProject);
+		return;
 	}
 
 	// Connect to userver and open db
 	const db = await openDb(dbPath);
 	if (!db) {
 		dbId = null;
+		changeStatusBar(statusNoProject);
 		return error('Database not found by userver');
 	}
 
 	// Remember id in memory
 	dbId = db.id;
-	info(`Connected to DB ${source}`);
+	changeStatusBar(statusConnected);
 }
 
 async function analyzeDatabase() {
 	// TODO
-	info('Feature coming soon');
+	info('Analyze feature coming soon');
 }
 
 
@@ -551,6 +554,12 @@ async function toggleCheckmark(treeItem) {
 //
 
 function activate(context) {
+	// Register status bar
+	statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+	context.subscriptions.push(statusBar);
+	changeStatusBar(statusNoProject);
+	statusBar.show();
+
 	// Connect to database without user input
 	connectToDatabase(false);
 
