@@ -199,18 +199,18 @@ function changeStatusBar(status) {
 			statusBar.text = '$(loading~spin) Understand';
 			statusBar.tooltip = 'Finding Understand Project'
 			statusBar.command = 'understand.connectToDatabase';
-			brea Bar
+			break;
 		case STATUS_CONNECTING:
 			statusBar.text = '$(loading~spin) Understand';
 			statusBar.tooltip = 'Connecting to Understand Server'
 			statusBar.command = null;
 			break;
 		case STATUS_NO_CONNECTION:
-			statusBar.text = STATUS_CONNECTED'$(error) Understand';
+			statusBar.text = '$(error) Understand';
 			statusBar.tooltip = 'Failed to Connect to Understand Server'
 			statusBar.command = 'understand.connectToDatabase';
 			break;
-		case statusConnected:
+		case STATUS_CONNECTED:
 			statusBar.text = '$(refresh) Understand';
 			statusBar.tooltip = 'Analyze Understand Project'
 			statusBar.command = 'understand.analyzeDatabase';
@@ -279,7 +279,7 @@ async function request(options) {
 						} catch (err) {
 							error('Unable to parse JSON from userver', err);
 						}
-				 Bar
+					}
 					resolve(res);
 				});
 			}
