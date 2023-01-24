@@ -17,7 +17,7 @@
 		"Checklist",
 		"Understand"
 	],
-	"icon": "logoColor.png",
+	"icon": "logo/logoColor.png",
 	"activationEvents": [
 		"workspaceContains:**/*.und/id.txt"
 	],
@@ -28,7 +28,7 @@
 				{
 					"id": "understand",
 					"title": "Understand",
-					"icon": "logoMonochrome.svg"
+					"icon": "logo/logoMonochrome.svg"
 				}
 			]
 		},
@@ -49,12 +49,24 @@
 		"menus": {
 			"view/title": [
 				{
-					"command": "understand.hiddenAnalyzeDatabase",
+					"command": "understand.hiddenDatabaseConnect",
+					"when": "view == understand"
+				},
+				{
+					"command": "understand.hiddenDatabaseDisconnect",
+					"when": "view == understand"
+				},
+				{
+					"command": "understand.hiddenAnalyzeAllFiles",
+					"when": "view == understand"
+				},
+				{
+					"command": "understand.hiddenAnalyzeChangedFiles",
 					"group": "navigation",
 					"when": "view == understand"
 				},
 				{
-					"command": "understand.hiddenConnectToDatabase",
+					"command": "understand.hiddenAnalyzeStop",
 					"when": "view == understand"
 				}
 			],
@@ -83,6 +95,27 @@
 			],
 			"commandPalette": [
 				{
+					"command": "understand.hiddenDatabaseConnect",
+					"when": "false"
+				},
+				{
+					"command": "understand.hiddenDatabaseDisconnect",
+					"when": "false"
+				},
+				{
+					"command": "understand.hiddenAnalyzeAllFiles",
+					"when": "false"
+				},
+				{
+					"command": "understand.hiddenAnalyzeChangedFiles",
+					"when": "false"
+				},
+				{
+					"command": "understand.hiddenAnalyzeStop",
+					"when": "false"
+				},
+
+				{
 					"command": "understand.refChecklist.hiddenRemoveEnt",
 					"when": "false"
 				},
@@ -90,7 +123,6 @@
 					"command": "understand.refChecklist.hiddenToggleCheckmarkEnt",
 					"when": "false"
 				},
-
 				{
 					"command": "understand.refChecklist.hiddenSeeRef",
 					"when": "false"
@@ -109,25 +141,49 @@
 		},
 		"commands": [
 			{
-				"command": "understand.connectToDatabase",
+				"command": "understand.databaseConnect",
 				"title": "Understand: Database: Connect"
 			},
 			{
-				"command": "understand.analyzeDatabase",
-				"title": "Understand: Database: Analyze"
+				"command": "understand.databaseDisconnect",
+				"title": "Understand: Database: Disconnect"
+			},
+
+			{
+				"command": "understand.analyzeAllFiles",
+				"title": "Understand: Analyze: All Files"
+			},
+			{
+				"command": "understand.analyzeChangedFiles",
+				"title": "Understand: Analyze: Changed Files"
+			},
+			{
+				"command": "understand.analyzeStop",
+				"title": "Understand: Analyze: Stop"
 			},
 
 
 
 			{
-				"command": "understand.hiddenConnectToDatabase",
-				"title": "Connect to Database",
-				"icon": "$(play)"
+				"command": "understand.hiddenDatabaseConnect",
+				"title": "Connect to Database"
 			},
 			{
-				"command": "understand.hiddenAnalyzeDatabase",
-				"title": "Analyze Database",
+				"command": "understand.hiddenDatabaseDisconnect",
+				"title": "Disconnect from Database"
+			},
+			{
+				"command": "understand.hiddenAnalyzeAllFiles",
+				"title": "Analyze All Files"
+			},
+			{
+				"command": "understand.hiddenAnalyzeChangedFiles",
+				"title": "Analyze Changed Files",
 				"icon": "$(refresh)"
+			},
+			{
+				"command": "understand.hiddenAnalyzeStop",
+				"title": "Stop Analysis"
 			},
 
 
@@ -175,7 +231,7 @@
 				"understand.userver.timeout": {
 					"type": "number",
 					"description": "Timeout in milliseconds of userver",
-					"default": 2000
+					"default": 5000
 				},
 
 				"understand.db.path": {
@@ -196,6 +252,12 @@
 					"type": "boolean",
 					"description": "Find the database path with user input",
 					"default": true
+				},
+
+				"understand.analyze.updatePercentWait": {
+					"type": "number",
+					"description": "Time in milliseconds to wait to update the analysis percent",
+					"default": 1000
 				}
 			}
 		}

@@ -11,7 +11,10 @@ const path = require('node:path');
 //
 
 let dbId = null;
-let statusBar = null;
+
+let statusBar             = null;
+let statusPercentInterval = null;
+
 let refChecklist = null;
 
 
@@ -37,11 +40,13 @@ const ICON_CHECKED   = new vscode.ThemeIcon('pass-filled');
 // Status Bar
 //
 
-const STATUS_NO_PROJECT    = 0;
-const STATUS_SEARCHING     = 1;
-const STATUS_CONNECTING    = 2;
-const STATUS_NO_CONNECTION = 3;
-const STATUS_CONNECTED     = 4;
+const STATUS_NO_PROJECT        = 0;
+const STATUS_SEARCHING         = 1;
+const STATUS_CONNECTING        = 2;
+const STATUS_NO_CONNECTION     = 3;
+const STATUS_CONNECTED         = 4;
+const STATUS_ANALYZING         = 5;
+const STATUS_STOPPING_ANALYSIS = 6;
 
 
 //
@@ -188,32 +193,42 @@ function info(message) {
 	vscode.window.showInformationMessage(`Understand: ${message}`);
 }
 
-function changeStatusBar(status) {
+function changeStatusBar(status, percent=0) {
 	switch (status) {
 		case STATUS_NO_PROJECT:
 			statusBar.text = '$(search) Understand';
-			statusBar.tooltip = 'No Understand Project'
-			statusBar.command = 'understand.connectToDatabase';
+			statusBar.tooltip = 'No Understand Project';
+			statusBar.command = 'understand.databaseConnect';
 			break;
 		case STATUS_SEARCHING:
 			statusBar.text = '$(loading~spin) Understand';
-			statusBar.tooltip = 'Finding Understand Project'
-			statusBar.command = 'understand.connectToDatabase';
+			statusBar.tooltip = 'Finding Understand Project';
+			statusBar.command = 'understand.databaseConnect';
 			break;
 		case STATUS_CONNECTING:
 			statusBar.text = '$(loading~spin) Understand';
-			statusBar.tooltip = 'Connecting to Understand Server'
+			statusBar.tooltip = 'Connecting to Understand Server';
 			statusBar.command = null;
 			break;
 		case STATUS_NO_CONNECTION:
 			statusBar.text = '$(error) Understand';
-			statusBar.tooltip = 'Failed to Connect to Understand Server'
-			statusBar.command = 'understand.connectToDatabase';
+			statusBar.tooltip = 'Failed to Connect to Understand Server';
+			statusBar.command = 'understand.databaseConnect';
 			break;
 		case STATUS_CONNECTED:
 			statusBar.text = '$(refresh) Understand';
-			statusBar.tooltip = 'Analyze Understand Project'
-			statusBar.command = 'understand.analyzeDatabase';
+			statusBar.tooltip = 'Analyze Changed Files';
+			statusBar.command = 'understand.analyzeChangedFiles';
+			break;
+		case STATUS_ANALYZING:
+			statusBar.text = `$(loading~spin) Understand ${percent}%`;
+			statusBar.tooltip = 'Stop Analysis';
+			statusBar.command = 'understand.analyzeStop';
+			break;
+		case STATUS_STOPPING_ANALYSIS:
+			statusBar.text = `$(loading~spin) Understand ${percent}%`;
+			statusBar.tooltip = 'Stopping Analysis';
+			statusBar.command = null;
 			break;
 	}
 }
@@ -307,7 +322,7 @@ async function request(options) {
 }
 
 
-async function openDb(pathStr) {
+async function requestOpenDb(pathStr) {
 	const res = await request({
 		method: 'POST',
 		path: makeURLPath('/databases', {path: pathStr}),
@@ -316,7 +331,16 @@ async function openDb(pathStr) {
 	return res.body;
 }
 
-async function closeDb() {
+async function requestGetDb() {
+	const res = await request({
+		method: 'GET',
+		path: makeURLPath(`/databases/${dbId}`),
+	});
+
+	return res.body;
+}
+
+async function requestCloseDb() {
 	if (!dbId)
 		return;
 
@@ -326,7 +350,28 @@ async function closeDb() {
 	});
 }
 
-async function getEntByRef(ref) {
+async function requestAnalyzeAllFiles() {
+	return request({
+		method: 'POST',
+		path: makeURLPath(`/databases/${dbId}/analysis`, {parse: 'all'}),
+	});
+}
+
+async function requestAnalyzeChangedFiles() {
+	return request({
+		method: 'POST',
+		path: `/databases/${dbId}/analysis`,
+	});
+}
+
+async function requestAnalyzeStop() {
+	return request({
+		method: 'DELETE',
+		path: `/databases/${dbId}/analysis`,
+	});
+}
+
+async function requestGetEntByRef(ref) {
 	const res = await request({
 		method: 'GET',
 		path: makeURLPath(`/databases/${dbId}/ent`, ref),
@@ -335,7 +380,7 @@ async function getEntByRef(ref) {
 	return res.body;
 }
 
-async function getRefsByEnt(ent) {
+async function requestGetRefsByEnt(ent) {
 	const res = await request({
 		method: 'GET',
 		path: makeURLPath(`/databases/${dbId}/ents/${ent.id}/refs`),
@@ -483,7 +528,7 @@ async function getDbPathFromUser() {
 // Extension Commands: General
 //
 
-async function connectToDatabase(calledByUser=true) {
+async function databaseConnect(calledByUser=true) {
 	changeStatusBar(STATUS_SEARCHING);
 
 	// Get id from config
@@ -507,7 +552,7 @@ async function connectToDatabase(calledByUser=true) {
 
 	// Connect to userver and open db
 	changeStatusBar(STATUS_CONNECTING);
-	const db = await openDb(dbPath);
+	const db = await requestOpenDb(dbPath);
 	if (!db) {
 		dbId = null;
 		changeStatusBar(STATUS_NO_PROJECT);
@@ -516,12 +561,68 @@ async function connectToDatabase(calledByUser=true) {
 
 	// Remember id in memory
 	dbId = db.id;
-	changeStatusBar(statusConnected);
+	changeStatusBar(STATUS_CONNECTED);
 }
 
-async function analyzeDatabase() {
-	// TODO
-	info('Analyze feature coming soon');
+async function databaseDisconnect() {
+	return requestCloseDb();
+}
+
+async function updatePercent() {
+	const db = await requestGetDb();
+
+	// Stop if done
+	if (!db || !db.analyzing) {
+		clearInterval(statusPercentInterval);
+		changeStatusBar(STATUS_CONNECTED);
+		return;
+	}
+
+	changeStatusBar(STATUS_ANALYZING, db.percent);
+}
+
+async function analyzeFiles(all) {
+	// Start analysis
+	changeStatusBar(STATUS_ANALYZING);
+	const fn = all ? requestAnalyzeAllFiles : requestAnalyzeChangedFiles;
+	const res = await fn();
+
+	// Error: not found (database not open)
+	if (res.statusCode == 404) {
+		changeStatusBar(STATUS_NO_PROJECT);
+		return error('Database not open');
+	}
+
+	// Error: conflict (already being analyzed)
+	if (res.statusCode == 409) {
+		error('Already being analyzed');
+	}
+
+	// Continously ask for the progress
+	const ms = getConfig('analyze.updatePercentWait');
+	statusPercentInterval = setInterval(updatePercent, ms);
+}
+
+async function analyzeAllFiles() {
+	analyzeFiles(true);
+}
+
+async function analyzeChangedFiles() {
+	analyzeFiles(false);
+}
+
+async function analyzeStop() {
+	changeStatusBar(STATUS_STOPPING_ANALYSIS);
+	const res = await requestAnalyzeStop();
+
+	// Error: not found (database not open or no analysis)
+	if (res.statusCode == 404) {
+		clearInterval(statusPercentInterval);
+		changeStatusBar(STATUS_NO_PROJECT);
+		return error('Failed to stop analysis');
+	}
+
+	changeStatusBar(STATUS_CONNECTED);
 }
 
 
@@ -545,12 +646,12 @@ async function seeRefChecklist() {
 		return error('Selection is only whitespace');
 
 	// Get entity
-	const ent = await getEntByRef(ref);
+	const ent = await requestGetEntByRef(ref);
 	if (!ent)
 		return error('Entity not found');
 
 	// Get references
-	const refs = await getRefsByEnt(ent);
+	const refs = await requestGetRefsByEnt(ent);
 	if (!refs || !refs.length)
 		return error('References not found');
 
@@ -597,7 +698,7 @@ function activate(context) {
 	statusBar.show();
 
 	// Connect to database without user input
-	connectToDatabase(false);
+	databaseConnect(false);
 
 	// Register tree data providers
 	refChecklist = new RefChecklistProvider();
@@ -608,17 +709,23 @@ function activate(context) {
 		// General
 
 		// Command pallette
-		vscode.commands.registerCommand('understand.connectToDatabase', connectToDatabase),
-		vscode.commands.registerCommand('understand.analyzeDatabase', analyzeDatabase),
-		// Hidden
-		vscode.commands.registerCommand('understand.hiddenConnectToDatabase', connectToDatabase),
-		vscode.commands.registerCommand('understand.hiddenAnalyzeDatabase', analyzeDatabase),
+		vscode.commands.registerCommand('understand.databaseConnect', databaseConnect),
+		vscode.commands.registerCommand('understand.databaseDisconnect', databaseDisconnect),
+		vscode.commands.registerCommand('understand.analyzeAllFiles', analyzeAllFiles),
+		vscode.commands.registerCommand('understand.analyzeChangedFiles', analyzeChangedFiles),
+		vscode.commands.registerCommand('understand.analyzeStop', analyzeStop),
+		// Hidden from command pallette
+		vscode.commands.registerCommand('understand.hiddenDatabaseConnect', databaseConnect),
+		vscode.commands.registerCommand('understand.hiddenDatabaseDisconnect', databaseDisconnect),
+		vscode.commands.registerCommand('understand.hiddenAnalyzeAllFiles', analyzeAllFiles),
+		vscode.commands.registerCommand('understand.hiddenAnalyzeChangedFiles', analyzeChangedFiles),
+		vscode.commands.registerCommand('understand.hiddenAnalyzeStop', analyzeStop),
 
 		// Reference checklist
 
 		// Command pallette
 		vscode.commands.registerCommand('understand.refChecklist', seeRefChecklist),
-		// Hidden
+		// Hidden from command pallette
 		vscode.commands.registerCommand('understand.refChecklist.hiddenRemoveEnt', removeEnt),
 		vscode.commands.registerCommand('understand.refChecklist.hiddenToggleCheckmarkEnt', toggleCheckmark),
 		vscode.commands.registerCommand('understand.refChecklist.hiddenSeeRef', seeRef),
@@ -627,7 +734,7 @@ function activate(context) {
 }
 
 function deactivate() {
-	return closeDb();
+	return requestCloseDb();
 }
 
 module.exports = {
