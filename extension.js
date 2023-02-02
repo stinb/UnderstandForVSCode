@@ -565,6 +565,7 @@ async function databaseConnect(calledByUser=true) {
 }
 
 async function databaseDisconnect() {
+	changeStatusBar(STATUS_NO_PROJECT);
 	return requestCloseDb();
 }
 
