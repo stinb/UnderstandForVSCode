@@ -311,7 +311,7 @@ async function request(options) {
 			// Error with connecting
 			match = err.message.match(/connect ECONNREFUSED (.*)/);
 			if (match)
-				return error(`Error communicating with userver (failed to connect to "${match[1]}")`);
+				return changeStatusBar(STATUS_NO_CONNECTION);
 
 			// Other error
 			error(`Error communicating with userver (${err.message})`);
