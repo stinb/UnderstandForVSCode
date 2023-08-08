@@ -1,3 +1,5 @@
+'use strict';
+
 const vscode = require('vscode');
 
 const http = require('node:http');
@@ -53,29 +55,32 @@ const STATUS_STOPPING_ANALYSIS = 6;
 //
 
 class RefChecklistProvider {
-
 	#data;
 	#dataHash;
 
 	_onDidChangeTreeData;
 	onDidChangeTreeData;
 
-	constructor() {
+	constructor()
+	{
 		this.#data = [];
 		this.#dataHash = {};
 		this._onDidChangeTreeData = new vscode.EventEmitter();
 		this.onDidChangeTreeData = this._onDidChangeTreeData.event;
 	}
 
-	update() {
+	update()
+	{
 		this._onDidChangeTreeData.fire();
 	}
 
-	getTreeItem(element) {
+	getTreeItem(element)
+	{
 		return element;
 	}
 
-	getChildren(element) {
+	getChildren(element)
+	{
 		// Ent
 		if (element && element.refs) {
 			return Promise.resolve(element.refs);
@@ -90,7 +95,8 @@ class RefChecklistProvider {
 		}
 	}
 
-	add(ent, refs) {
+	add(ent, refs)
+	{
 		// Skip if already there
 		if (ent.id in this.#dataHash)
 			return;
@@ -102,7 +108,8 @@ class RefChecklistProvider {
 		this.update();
 	}
 
-	remove(entTreeItem) {
+	remove(entTreeItem)
+	{
 		// Remove
 		delete this.#data[this.#data.indexOf(entTreeItem)];
 		delete this.#dataHash[entTreeItem.id];
@@ -125,9 +132,9 @@ class RefChecklistProvider {
 	}
 }
 
-class EntTreeItem extends vscode.TreeItem
-{
-	constructor(ent, refs) {
+class EntTreeItem extends vscode.TreeItem {
+	constructor(ent, refs)
+	{
 		super(ent.name, vscode.TreeItemCollapsibleState.Expanded);
 		this.checked = false;
 		this.refs = [];
@@ -137,11 +144,13 @@ class EntTreeItem extends vscode.TreeItem
 		this.updateIcon();
 	}
 
-	updateIcon() {
+	updateIcon()
+	{
 		this.iconPath = this.checked ? ICON_CHECKED : ICON_UNCHECKED;
 	}
 
-	setChecked(checked=undefined) {
+	setChecked(checked=undefined)
+	{
 		this.checked = (checked === undefined) ? !this.checked : checked;
 
 		for (const ref of this.refs)
@@ -154,7 +163,8 @@ class EntTreeItem extends vscode.TreeItem
 }
 
 class RefTreeItem extends vscode.TreeItem {
-	constructor(ref) {
+	constructor(ref)
+	{
 		super(ref.kindname, vscode.TreeItemCollapsibleState.None);
 		this.checked = false;
 		this.description = `${path.basename(ref.filelongname)} ${ref.line}:${ref.column}`;
@@ -165,11 +175,13 @@ class RefTreeItem extends vscode.TreeItem {
 		this.updateIcon();
 	}
 
-	updateIcon() {
+	updateIcon()
+	{
 		this.iconPath = this.checked ? ICON_CHECKED : ICON_UNCHECKED;
 	}
 
-	setChecked(checked=undefined) {
+	setChecked(checked=undefined)
+	{
 		this.checked = (checked === undefined) ? !this.checked : checked;
 
 		this.updateIcon();
@@ -184,15 +196,18 @@ class RefTreeItem extends vscode.TreeItem {
 // Helper Functions
 //
 
-function error(message) {
+function error(message)
+{
 	vscode.window.showErrorMessage(`Understand: ${message}`);
 }
 
-function info(message) {
+function info(message)
+{
 	vscode.window.showInformationMessage(`Understand: ${message}`);
 }
 
-function changeStatusBar(status, percent=0) {
+function changeStatusBar(status, percent=0)
+{
 	switch (status) {
 		case STATUS_NO_PROJECT:
 			statusBar.text = '$(search) Understand';
@@ -232,15 +247,18 @@ function changeStatusBar(status, percent=0) {
 	}
 }
 
-function isASelection(selection) {
+function isASelection(selection)
+{
 	return selection.start.character != selection.end.character || selection.start.line != selection.end.line;
 }
 
-function getConfig(key=null) {
+function getConfig(key=null)
+{
 	return vscode.workspace.getConfiguration().get(`understand${key ? '.' + key : ''}`);
 }
 
-function selectWordIfNoSelection(document, selection) {
+function selectWordIfNoSelection(document, selection)
+{
 	// Skip if there is a selection
 	if (isASelection(selection))
 		return selection;
@@ -273,7 +291,8 @@ function selectWordIfNoSelection(document, selection) {
 	return new vscode.Selection(document.positionAt(l), document.positionAt(r+1));
 }
 
-async function request(options) {
+async function request(options)
+{
 	// Send request
 	return new Promise((resolve, reject) => {
 		const req = http.request(
@@ -321,7 +340,8 @@ async function request(options) {
 }
 
 
-async function requestOpenDb(pathStr) {
+async function requestOpenDb(pathStr)
+{
 	const res = await request({
 		method: 'POST',
 		path: makeURLPath('/databases', {path: pathStr}),
@@ -330,7 +350,8 @@ async function requestOpenDb(pathStr) {
 	return res.body;
 }
 
-async function requestGetDb() {
+async function requestGetDb()
+{
 	const res = await request({
 		method: 'GET',
 		path: makeURLPath(`/databases/${dbId}`),
@@ -339,7 +360,8 @@ async function requestGetDb() {
 	return res.body;
 }
 
-async function requestCloseDb() {
+async function requestCloseDb()
+{
 	if (!dbId)
 		return;
 
@@ -349,28 +371,32 @@ async function requestCloseDb() {
 	});
 }
 
-async function requestAnalyzeAllFiles() {
+async function requestAnalyzeAllFiles()
+{
 	return request({
 		method: 'POST',
 		path: makeURLPath(`/databases/${dbId}/analysis`, {parse: 'all'}),
 	});
 }
 
-async function requestAnalyzeChangedFiles() {
+async function requestAnalyzeChangedFiles()
+{
 	return request({
 		method: 'POST',
 		path: `/databases/${dbId}/analysis`,
 	});
 }
 
-async function requestAnalyzeStop() {
+async function requestAnalyzeStop()
+{
 	return request({
 		method: 'DELETE',
 		path: `/databases/${dbId}/analysis`,
 	});
 }
 
-async function requestGetEntByRef(ref) {
+async function requestGetEntByRef(ref)
+{
 	const res = await request({
 		method: 'GET',
 		path: makeURLPath(`/databases/${dbId}/ent`, ref),
@@ -379,7 +405,8 @@ async function requestGetEntByRef(ref) {
 	return res.body;
 }
 
-async function requestGetRefsByEnt(ent) {
+async function requestGetRefsByEnt(ent)
+{
 	const res = await request({
 		method: 'GET',
 		path: makeURLPath(`/databases/${dbId}/ents/${ent.id}/refs`),
@@ -388,7 +415,25 @@ async function requestGetRefsByEnt(ent) {
 	return res.body;
 }
 
-function makeURLPath(pathStr, params = {}) {
+async function requestGetAllIssues()
+{
+	const res = await request({
+		method: 'GET',
+		path: makeURLPath(`/databases/${dbId}/issues`),
+	});
+
+	return res.body;
+}
+
+async function updateIssues()
+{
+	for (const issue of await requestGetAllIssues()) {
+
+	}
+}
+
+function makeURLPath(pathStr, params = {})
+{
 	const array = [pathStr];
 	let first = true;
 	for (const [key, value] of Object.entries(params)) {
@@ -399,7 +444,8 @@ function makeURLPath(pathStr, params = {}) {
 	return array.join('');
 }
 
-function makeRefOfSelection(editor) {
+function makeRefOfSelection(editor)
+{
 	const document  = editor.document;
 	const selection = selectWordIfNoSelection(document, editor.selection);
 	const file      = document.fileName;
@@ -438,7 +484,8 @@ function makeRefOfSelection(editor) {
 	};
 }
 
-async function getDbPathFromSearching(returnOnFirstMatch) {
+async function getDbPathFromSearching(returnOnFirstMatch)
+{
 	// Initialize the stacks of folders for a breadth-first search
 	const childrenToCheck = [];
 	const parentsToCheck  = [];
@@ -497,7 +544,8 @@ async function getDbPathFromSearching(returnOnFirstMatch) {
 	return undPath;
 }
 
-async function getDbPathFromUser() {
+async function getDbPathFromUser()
+{
 	// Get database from user input
 	const rootPath = vscode.workspace.rootPath;
 	const rootUri = rootPath ? vscode.Uri.file(rootPath) : undefined;
@@ -527,7 +575,8 @@ async function getDbPathFromUser() {
 // Extension Commands: General
 //
 
-async function databaseConnect(calledByUser=true) {
+async function databaseConnect(calledByUser=true)
+{
 	changeStatusBar(STATUS_SEARCHING);
 
 	// Get id from config
@@ -561,27 +610,32 @@ async function databaseConnect(calledByUser=true) {
 	// Remember id in memory
 	dbId = db.id;
 	changeStatusBar(STATUS_CONNECTED);
+	updateIssues();
 }
 
-async function databaseDisconnect() {
+async function databaseDisconnect()
+{
 	changeStatusBar(STATUS_NO_PROJECT);
 	return requestCloseDb();
 }
 
-async function updatePercent() {
+async function updatePercent()
+{
 	const db = await requestGetDb();
 
 	// Stop if done
 	if (!db || !db.analyzing) {
 		clearInterval(statusPercentInterval);
 		changeStatusBar(STATUS_CONNECTED);
+		updateIssues();
 		return;
 	}
 
 	changeStatusBar(STATUS_ANALYZING, db.percent);
 }
 
-async function analyzeFiles(all) {
+async function analyzeFiles(all)
+{
 	// Start analysis
 	changeStatusBar(STATUS_ANALYZING);
 	const fn = all ? requestAnalyzeAllFiles : requestAnalyzeChangedFiles;
@@ -603,15 +657,18 @@ async function analyzeFiles(all) {
 	statusPercentInterval = setInterval(updatePercent, ms);
 }
 
-async function analyzeAllFiles() {
+async function analyzeAllFiles()
+{
 	analyzeFiles(true);
 }
 
-async function analyzeChangedFiles() {
+async function analyzeChangedFiles()
+{
 	analyzeFiles(false);
 }
 
-async function analyzeStop() {
+async function analyzeStop()
+{
 	changeStatusBar(STATUS_STOPPING_ANALYSIS);
 	const res = await requestAnalyzeStop();
 
@@ -631,7 +688,8 @@ async function analyzeStop() {
 // Extension Commands: Reference Checklist
 //
 
-async function seeRefChecklist() {
+async function seeRefChecklist()
+{
 	if (!dbId)
 		return error('Not connected with userver');
 
@@ -662,7 +720,8 @@ async function seeRefChecklist() {
 	vscode.commands.executeCommand('workbench.view.extension.understand');
 }
 
-async function seeRef(refTreeItem) {
+async function seeRef(refTreeItem)
+{
 	const doc = await vscode.workspace.openTextDocument(refTreeItem.filelongname);
 
 	const line      = refTreeItem.line - 1;
@@ -672,11 +731,13 @@ async function seeRef(refTreeItem) {
 	vscode.window.showTextDocument(doc, {selection:	selection});
 }
 
-async function removeEnt(entTreeItem) {
+async function removeEnt(entTreeItem)
+{
 	refChecklist.remove(entTreeItem);
 }
 
-async function toggleCheckmark(treeItem) {
+async function toggleCheckmark(treeItem)
+{
 	treeItem.setChecked();
 	refChecklist.update();
 }
@@ -687,7 +748,8 @@ async function toggleCheckmark(treeItem) {
 // Extension Initialization
 //
 
-function activate(context) {
+function activate(context)
+{
 	// TODO: Give a unique token to userver with vscode.authentication (generated by oauth)
 	// https://www.eliostruyf.com/create-authentication-provider-visual-studio-code/
 
@@ -733,7 +795,8 @@ function activate(context) {
 	);
 }
 
-function deactivate() {
+function deactivate()
+{
 	return requestCloseDb();
 }
 
