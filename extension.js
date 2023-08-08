@@ -1,6 +1,5 @@
 const vscode = require('vscode');
 
-const fs   = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
 
@@ -31,7 +30,7 @@ let refChecklist = null;
 // Working workaround with web view:
 // https://github.com/microsoft/vscode/blob/main/src/vs/workbench/contrib/debug/browser/breakpointsView.ts
 
-const ICON_UNCKECKED = new vscode.ThemeIcon('circle-large-outline');
+const ICON_UNCHECKED = new vscode.ThemeIcon('circle-large-outline');
 const ICON_CHECKED   = new vscode.ThemeIcon('pass-filled');
 
 
@@ -139,7 +138,7 @@ class EntTreeItem extends vscode.TreeItem
 	}
 
 	updateIcon() {
-		this.iconPath = this.checked ? ICON_CHECKED : ICON_UNCKECKED;
+		this.iconPath = this.checked ? ICON_CHECKED : ICON_UNCHECKED;
 	}
 
 	setChecked(checked=undefined) {
@@ -167,7 +166,7 @@ class RefTreeItem extends vscode.TreeItem {
 	}
 
 	updateIcon() {
-		this.iconPath = this.checked ? ICON_CHECKED : ICON_UNCKECKED;
+		this.iconPath = this.checked ? ICON_CHECKED : ICON_UNCHECKED;
 	}
 
 	setChecked(checked=undefined) {
@@ -440,7 +439,7 @@ function makeRefOfSelection(editor) {
 }
 
 async function getDbPathFromSearching(returnOnFirstMatch) {
-	// Initiailize the stacks of folders for a breadth-first search
+	// Initialize the stacks of folders for a breadth-first search
 	const childrenToCheck = [];
 	const parentsToCheck  = [];
 	for (const folder of vscode.workspace.workspaceFolders)
@@ -599,7 +598,7 @@ async function analyzeFiles(all) {
 		error('Already being analyzed');
 	}
 
-	// Continously ask for the progress
+	// Continuously ask for the progress
 	const ms = getConfig('analyze.updatePercentWait');
 	statusPercentInterval = setInterval(updatePercent, ms);
 }
