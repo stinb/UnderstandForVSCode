@@ -18,6 +18,16 @@ let statusPercentInterval = null;
 
 let refChecklist = null;
 
+let diagnosticCollection = null;
+
+
+
+//
+// Languages
+//
+
+const LANGUAGES = ['ada', 'assembly', 'bat', 'c', 'cobol', 'cpp', 'csharp', 'css', 'cuda', 'delphi', 'fortran', 'html', 'java', 'javascript', 'javascriptreact', 'jovial', 'objective-c', 'objective-cpp', 'pascal', 'perl', 'php', 'python', 'python', 'tcl', 'text', 'typescript', 'typescriptreact', 'vb', 'verilog', 'vhdl', 'xml'];
+
 
 
 //
@@ -427,9 +437,24 @@ async function requestGetAllIssues()
 
 async function updateIssues()
 {
+	const diagnosticMap = new Map();
 	for (const issue of await requestGetAllIssues()) {
+		const range = new vscode.Range(issue.line, issue.column, issue.line, issue.column + 1);
+		const severity = issue.id === 'UND_ERROR' ? vscode.DiagnosticSeverity.Error : vscode.DiagnosticSeverity.Warning;
+		const diagnostic = new vscode.Diagnostic(range, issue.text, severity);
+		diagnostic.source = 'Understand';
+		diagnostic.code = issue.id;
+		const filePath = vscode.Uri.file(issue.file).toString();
 
+		if (!diagnosticMap.has(filePath))
+			diagnosticMap.set(filePath, []);
+
+		diagnosticMap.get(filePath).push(diagnostic);
 	}
+
+	diagnosticCollection.clear();
+	for (const [filePath, diagnostics] of diagnosticMap.entries())
+		diagnosticCollection.set(vscode.Uri.parse(filePath), diagnostics);
 }
 
 function makeURLPath(pathStr, params = {})
@@ -607,7 +632,7 @@ async function databaseConnect(calledByUser=true)
 		return error('Database not found by userver');
 	}
 
-	// Remember id in memory
+	// Remember id, change status bar, and update issues
 	dbId = db.id;
 	changeStatusBar(STATUS_CONNECTED);
 	updateIssues();
@@ -758,6 +783,10 @@ function activate(context)
 	context.subscriptions.push(statusBar);
 	changeStatusBar(STATUS_NO_PROJECT);
 	statusBar.show();
+
+	// Create a diagnostic collection for all languages
+	diagnosticCollection = vscode.languages.createDiagnosticCollection();
+	context.subscriptions.push(diagnosticCollection);
 
 	// Connect to database without user input
 	databaseConnect(false);
