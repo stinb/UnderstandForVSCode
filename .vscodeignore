@@ -1,0 +1,7 @@
+.gitignore
+.vscode
+*.vsix
+Makefile
+node_modules
+package.json
+src

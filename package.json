@@ -3,7 +3,7 @@
 	"displayName": "Understand",
 	"description": "Interact with an Understand database",
 	"version": "1.0.0",
-	"publisher": "scitools",
+	"publisher": "Scientific Toolworks, Inc.",
 	"repository": {},
 	"engines": {
 		"vscode": "^1.64.0"
@@ -18,248 +18,50 @@
 		"Understand"
 	],
 	"icon": "logo/logoColor.png",
-	"activationEvents": [
-		"workspaceContains:**/*.und/id.txt"
-	],
 	"main": "extension.js",
-	"contributes": {
-		"viewsContainers": {
-			"activitybar": [
-				{
-					"id": "understand",
-					"title": "Understand",
-					"icon": "logo/logoMonochrome.svg"
-				}
-			]
-		},
-		"views": {
-			"understand": [
-				{
-					"id": "understand",
-					"name": "Understand"
-				}
-			]
-		},
-		"viewsWelcome": [
-			{
-				"view": "understand",
-				"contents": "Setup:\n• Understand Server should be running.\n• There should be an existing database.\nUsage:\n• Right click on entities in the code.\n• Select an Understand action and see results here."
-			}
-		],
-		"menus": {
-			"view/title": [
-				{
-					"command": "understand.hiddenDatabaseConnect",
-					"when": "view == understand"
-				},
-				{
-					"command": "understand.hiddenDatabaseDisconnect",
-					"when": "view == understand"
-				},
-				{
-					"command": "understand.hiddenAnalyzeAllFiles",
-					"when": "view == understand"
-				},
-				{
-					"command": "understand.hiddenAnalyzeChangedFiles",
-					"group": "navigation",
-					"when": "view == understand"
-				},
-				{
-					"command": "understand.hiddenAnalyzeStop",
-					"when": "view == understand"
-				}
-			],
-			"view/item/context": [
-				{
-					"command": "understand.refChecklist.hiddenRemoveEnt",
-					"when": "view == understand && viewItem == ent",
-					"group": "inline"
-				},
-				{
-					"command": "understand.refChecklist.hiddenToggleCheckmarkEnt",
-					"when": "view == understand && viewItem == ent",
-					"group": "inline"
-				},
-
-				{
-					"command": "understand.refChecklist.hiddenSeeRef",
-					"when": "view == understand && viewItem == ref",
-					"group": "inline"
-				},
-				{
-					"command": "understand.refChecklist.hiddenToggleCheckmarkRef",
-					"when": "view == understand && viewItem == ref",
-					"group": "inline"
-				}
-			],
-			"commandPalette": [
-				{
-					"command": "understand.hiddenDatabaseConnect",
-					"when": "false"
-				},
-				{
-					"command": "understand.hiddenDatabaseDisconnect",
-					"when": "false"
-				},
-				{
-					"command": "understand.hiddenAnalyzeAllFiles",
-					"when": "false"
-				},
-				{
-					"command": "understand.hiddenAnalyzeChangedFiles",
-					"when": "false"
-				},
-				{
-					"command": "understand.hiddenAnalyzeStop",
-					"when": "false"
-				},
-
-				{
-					"command": "understand.refChecklist.hiddenRemoveEnt",
-					"when": "false"
-				},
-				{
-					"command": "understand.refChecklist.hiddenToggleCheckmarkEnt",
-					"when": "false"
-				},
-				{
-					"command": "understand.refChecklist.hiddenSeeRef",
-					"when": "false"
-				},
-				{
-					"command": "understand.refChecklist.hiddenToggleCheckmarkRef",
-					"when": "false"
-				}
-			],
-			"editor/context": [
-				{
-					"command": "understand.refChecklist",
-                    "when": "editorTextFocus"
-				}
-			]
-		},
-		"commands": [
-			{
-				"command": "understand.databaseConnect",
-				"title": "Understand: Database: Connect"
-			},
-			{
-				"command": "understand.databaseDisconnect",
-				"title": "Understand: Database: Disconnect"
-			},
-
-			{
-				"command": "understand.analyzeAllFiles",
-				"title": "Understand: Analyze: All Files"
-			},
-			{
-				"command": "understand.analyzeChangedFiles",
-				"title": "Understand: Analyze: Changed Files"
-			},
-			{
-				"command": "understand.analyzeStop",
-				"title": "Understand: Analyze: Stop"
-			},
-
-
-
-			{
-				"command": "understand.hiddenDatabaseConnect",
-				"title": "Connect to Database"
-			},
-			{
-				"command": "understand.hiddenDatabaseDisconnect",
-				"title": "Disconnect from Database"
-			},
-			{
-				"command": "understand.hiddenAnalyzeAllFiles",
-				"title": "Analyze All Files"
-			},
-			{
-				"command": "understand.hiddenAnalyzeChangedFiles",
-				"title": "Analyze Changed Files",
-				"icon": "$(refresh)"
-			},
-			{
-				"command": "understand.hiddenAnalyzeStop",
-				"title": "Stop Analysis"
-			},
-
-
-
-			{
-				"command": "understand.refChecklist",
-				"title": "Understand: Reference Checklist"
-			},
-
-			{
-				"command": "understand.refChecklist.hiddenRemoveEnt",
-				"title": "Remove Entity",
-				"icon": "$(trash)"
-			},
-			{
-				"command": "understand.refChecklist.hiddenToggleCheckmarkEnt",
-				"title": "Toggle Checkmark",
-				"icon": "$(check-all)"
-			},
-
-			{
-				"command": "understand.refChecklist.hiddenSeeRef",
-				"title": "See Reference",
-				"icon": "$(go-to-file)"
-			},
-			{
-				"command": "understand.refChecklist.hiddenToggleCheckmarkRef",
-				"title": "Toggle Checkmark",
-				"icon": "$(check)"
-			}
-		],
-		"configuration": {
-			"title": "Understand",
-			"properties": {
-				"understand.userver.host": {
-					"type": "string",
-					"description": "IP address or hostname of userver",
-					"default": "127.0.0.1"
-				},
-				"understand.userver.port": {
-					"type": "number",
-					"description": "Port number of userver",
-					"default": 8080
-				},
-				"understand.userver.timeout": {
-					"type": "number",
-					"description": "Timeout in milliseconds of userver",
-					"default": 5000
-				},
-
-				"understand.db.path": {
-					"type": "string",
-					"description": "Full path of database (PROJECT_NAME.und folder)"
-				},
-				"understand.db.findFirstPathAutomatically": {
-					"type": "boolean",
-					"description": "Quickly use the first database path found automatically",
-					"default": true
-				},
-				"understand.db.findPathAutomatically": {
-					"type": "boolean",
-					"description": "Search for database path automatically",
-					"default": true
-				},
-				"understand.db.findPathManually": {
-					"type": "boolean",
-					"description": "Find the database path with user input",
-					"default": true
-				},
-
-				"understand.analyze.updatePercentWait": {
-					"type": "number",
-					"description": "Time in milliseconds to wait to update the analysis percent",
-					"default": 1000
-				}
-			}
-		}
+	"activationEvents": [
+			"onLanguage:ada",
+			"onLanguage:assembly",
+			"onLanguage:bat",
+			"onLanguage:c",
+			"onLanguage:cobol",
+			"onLanguage:cpp",
+			"onLanguage:csharp",
+			"onLanguage:css",
+			"onLanguage:cuda",
+			"onLanguage:delphi",
+			"onLanguage:fortran",
+			"onLanguage:html",
+			"onLanguage:java",
+			"onLanguage:javascript",
+			"onLanguage:javascriptreact",
+			"onLanguage:jovial",
+			"onLanguage:objective-c",
+			"onLanguage:objective-cpp",
+			"onLanguage:pascal",
+			"onLanguage:perl",
+			"onLanguage:php",
+			"onLanguage:python",
+			"onLanguage:python",
+			"onLanguage:tcl",
+			"onLanguage:text",
+			"onLanguage:typescript",
+			"onLanguage:typescriptreact",
+			"onLanguage:vb",
+			"onLanguage:verilog",
+			"onLanguage:vhdl",
+			"onLanguage:xml"
+	],
+	"dependencies": {
+		"vscode-languageclient": "^8.1.0"
+	},
+	"devDependencies": {
+		"esbuild": "^0.19.2"
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run esbuild-base -- --minify",
+		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node",
+		"esbuild": "npm run esbuild-base -- --sourcemap",
+		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
 	}
 }
