@@ -1,3 +1,3 @@
-# Understand
+# Understand for Visual Studio code
 
-*TODO*
+Install this and run Userver to make VSCode communicate with an Understand database.
