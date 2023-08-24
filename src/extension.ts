@@ -3,41 +3,66 @@
 
 const vscode = require('vscode');
 const net = require('node:net');
-const vscodeLanguageClient = require('vscode-languageclient');
+const lc = require('vscode-languageclient');
 
 
 let languageClient;
 let logger;
 
 
-function getConfig(key)
+// Get an option from the user's config, which is user input
+function getConfig(kKey, kExpectedType)
 {
-	return vscode.workspace.getConfiguration().get(`understand.${key}`);
+	const kValue = vscode.workspace.getConfiguration().get(`understand.${kKey}`);
+
+	if (typeof(kValue) != kExpectedType) {
+		switch (kExpectedType) {
+			case 'integer':
+				return parseInt(kValue);
+			case 'string':
+				return kValue.toString();
+			case 'number':
+				return parseFloat(kValue);
+			default:
+				return kValue;
+		}
+	}
+
+	return kValue;
 }
 
 
-// Call this instead of getConfig('tcpPort') because the value could be floating-point
-function getTcpPort()
-{
-	return Math.floor(getConfig('tcpPort'));
-}
-
-
-function log(itemToLog, show=true)
+// Debug: output to log
+function log(kItemToLog, kShow=true)
 {
 	if (logger === undefined)
 		logger = vscode.window.createOutputChannel('Understand');
 
-	logger.appendLine(itemToLog);
+	logger.appendLine(kItemToLog);
 
-	if (show)
+	if (kShow)
 		logger.show();
 }
 
 
-function activate(_context)
+// Debug: info popup
+function info(itemToShow)
 {
-	// TODO: Automatically start userver, perhaps with serverOptions
+	vscode.window.showInformationMessage(itemToShow);
+}
+
+
+// Debug: error popup
+function error(itemToShow)
+{
+	vscode.window.showInformationMessage(itemToShow);
+}
+
+
+// Main function for when the extension is activated
+function activate()
+{
+	// TODO: Automatically start userver, perhaps with kServerOptions
 
 	// TODO: Improve createFileSystemWatcher to allow for an array of include/exclude globe patterns
 
@@ -46,9 +71,9 @@ function activate(_context)
 		// watcherInclude: createFileSystemWatcher
 
 	// Options to start and connect to the language server
-	const serverOptions = () => {
+	const kServerOptions = () => {
 		const host = '127.0.0.1';
-		const port = getTcpPort();
+		const port = getConfig('tcpPort', 'integer');
 		const socket = net.connect({
 			host: host,
 			port: port,
@@ -60,22 +85,48 @@ function activate(_context)
 		return Promise.resolve(result);
 	};
 
+	// // NOTE: Below is an attempt to start userver automatically, but it doesn't work yet
+	// // Configure transport, args, and options for the executable server
+	// const kTransport = {};
+	// const kArgs = [];
+	// const kOptions = {};
+	// const kProtocol = getConfig('protocol', 'string');
+	// switch (kProtocol) {
+	// 	case 'TCP':
+	// 		const kTcpPort = getConfig('tcpPort', 'integer');
+	// 		if (isNaN(kTcpPort))
+	// 			return error(`Value for understand.tcpPort is not a number: ${kTcpPort}`);
+	// 		kTransport.kind = lc.TransportKind.socket;
+	// 		kTransport.port = kTcpPort;
+	// 		kArgs.push(`-tcp true -tcp_port ${kTcpPort}`);
+	// 		break;
+	// 	default:
+	// 		return error(`Value for understand.protocol is not a supported string: ${kProtocol}`);
+	// }
+	// // Options to start and connect to the language server
+	// const kServerOptions = {
+	// 	command: 'userver',
+	// 	transport: kTransport,
+	// 	args: kArgs,
+	// 	options: kOptions,
+	// };
+
 	// Options to control the language client
-	const clientOptions = {
+	const kClientOptions = {
 		synchronize: {
 			// Notify the server about file changes to supported files in the workspace
-			fileEvents: vscode.workspace.createFileSystemWatcher(getConfig('watcherInclude'))
+			fileEvents: vscode.workspace.createFileSystemWatcher(getConfig('watcherInclude', 'string'))
 		}
 	};
 
-	// Create the language client and start the client
-	const clientId = 'UserverVscode';
-	const clientName = 'Userver VS Code';
-	languageClient = new vscodeLanguageClient.LanguageClient(
-		clientId,
-		clientName,
-		serverOptions,
-		clientOptions
+	// Create the language client
+	const kClientId = 'UserverVscode';
+	const kClientName = 'Userver VS Code';
+	languageClient = new lc.LanguageClient(
+		kClientId,
+		kClientName,
+		kServerOptions,
+		kClientOptions
 	);
 
 	// Start the client and also the server if it isn't running
@@ -83,6 +134,7 @@ function activate(_context)
 }
 
 
+// Main function for when the extension is deactivated
 function deactivate()
 {
 	if (languageClient === undefined)
