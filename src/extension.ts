@@ -99,6 +99,7 @@ function activate()
 	// 		kTransport.kind = lc.TransportKind.socket;
 	// 		kTransport.port = kTcpPort;
 	// 		kArgs.push(`-tcp true -tcp_port ${kTcpPort}`);
+	// 		kOptions.detached = true;
 	// 		break;
 	// 	default:
 	// 		return error(`Value for understand.protocol is not a supported string: ${kProtocol}`);
@@ -111,12 +112,51 @@ function activate()
 	// 	options: kOptions,
 	// };
 
+	// File types that will get Language Features like "Go to Definition"
+	const kDocumentSelector = [
+		{ scheme: 'file', language: 'ada' },
+		{ scheme: 'file', language: 'assembly' },
+		{ scheme: 'file', language: 'bat' },
+		{ scheme: 'file', language: 'c' },
+		{ scheme: 'file', language: 'cobol' },
+		{ scheme: 'file', language: 'cpp' },
+		{ scheme: 'file', language: 'csharp' },
+		{ scheme: 'file', language: 'css' },
+		{ scheme: 'file', language: 'cuda' },
+		{ scheme: 'file', language: 'delphi' },
+		{ scheme: 'file', language: 'fortran' },
+		{ scheme: 'file', language: 'html' },
+		{ scheme: 'file', language: 'java' },
+		{ scheme: 'file', language: 'javascript' },
+		{ scheme: 'file', language: 'javascriptreact' },
+		{ scheme: 'file', language: 'jovial' },
+		{ scheme: 'file', language: 'objective' },
+		{ scheme: 'file', language: 'objective' },
+		{ scheme: 'file', language: 'pascal' },
+		{ scheme: 'file', language: 'perl' },
+		{ scheme: 'file', language: 'php' },
+		{ scheme: 'file', language: 'python' },
+		{ scheme: 'file', language: 'python' },
+		{ scheme: 'file', language: 'tcl' },
+		{ scheme: 'file', language: 'text' },
+		{ scheme: 'file', language: 'typescript' },
+		{ scheme: 'file', language: 'typescriptreact' },
+		{ scheme: 'file', language: 'vb' },
+		{ scheme: 'file', language: 'verilog' },
+		{ scheme: 'file', language: 'vhdl' },
+		{ scheme: 'file', language: 'xml' },
+	];
+
+	// File types to watch for to notify the server when they are changed
+	const kFileEventPattern = getConfig('watcherInclude', 'string');
+	const kFileEvents = vscode.workspace.createFileSystemWatcher(kFileEventPattern);
+
 	// Options to control the language client
 	const kClientOptions = {
+		documentSelector: kDocumentSelector,
 		synchronize: {
-			// Notify the server about file changes to supported files in the workspace
-			fileEvents: vscode.workspace.createFileSystemWatcher(getConfig('watcherInclude', 'string'))
-		}
+			fileEvents: kFileEvents,
+		},
 	};
 
 	// Create the language client
