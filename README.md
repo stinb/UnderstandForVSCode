@@ -27,6 +27,5 @@ code --install-extension understand-1.0.0.vsix
 
 1. Open VS Code
 2. Extensions > (3 Dot Menu) > Install from VSIX...
-3.
 
 ### [Installation Guide](https://code.visualstudio.com/docs/editor/extension-marketplace#_install-from-a-vsix)
