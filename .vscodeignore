@@ -1,4 +1,5 @@
 .gitignore
+*.js.map
 .vscode
 *.vsix
 Makefile

@@ -1,6 +1,6 @@
 # Commands
 release: node_modules
-	npm run vscode:prepublish
+	vsce package
 watch: node_modules
 	npm run esbuild-watch
 clean:
