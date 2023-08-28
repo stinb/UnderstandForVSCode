@@ -4,15 +4,19 @@ Install this and run Userver to make VSCode communicate with an Understand datab
 
 ## Building the Extension
 
-### Build with a shortcut
+### Release version
 ```
 make
 ```
 
-### Build with all commands
+### Debug version that continuously checks for file changes
 ```
-npm install
-vsce package
+make watch
+```
+
+### Remove the extension
+```
+make clean
 ```
 
 ## Installation
