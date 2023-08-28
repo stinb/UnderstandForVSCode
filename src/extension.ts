@@ -2,7 +2,10 @@
 
 
 const vscode = require('vscode');
-const net = require('node:net');
+
+const child_process = require('node:child_process');
+const net           = require('node:net');
+
 const lc = require('vscode-languageclient');
 
 
@@ -32,85 +35,135 @@ function getConfig(kKey, kExpectedType)
 }
 
 
+// Debug: stringify item for log or popup
+function stringify(kItem)
+{
+	switch (typeof(kItem)) {
+		case 'undefined':
+			return 'undefined';
+		case 'object':
+			return JSON.stringify(kItem);
+		case 'string':
+			return kItem;
+		case 'number':
+		case 'boolean':
+		default:
+			return kItem.toString(kItem);
+	}
+}
+
+
 // Debug: output to log
-function log(kItemToLog, kShow=true)
+function log(kItemToLog)
 {
 	if (logger === undefined)
 		logger = vscode.window.createOutputChannel('Understand');
 
-	logger.appendLine(kItemToLog);
-
-	if (kShow)
-		logger.show();
+	logger.appendLine(stringify(kItemToLog));
+	logger.show();
 }
 
 
 // Debug: info popup
-function info(itemToShow)
+function info(kItemToShow)
 {
-	vscode.window.showInformationMessage(itemToShow);
+	vscode.window.showInformationMessage(stringify(kItemToShow));
 }
 
 
 // Debug: error popup
-function error(itemToShow)
+function error(kItemToShow)
 {
-	vscode.window.showInformationMessage(itemToShow);
+	vscode.window.showErrorMessage(stringify(kItemToShow));
 }
 
 
 // Main function for when the extension is activated
 function activate()
 {
-	// TODO: Automatically start userver, perhaps with kServerOptions
+	// Arguments to start the language server
+	const kProtocol = getConfig('protocol', 'string');
+	const kCommand = 'userver';
+	const kDetached = false;
+	const kArgs = [];
+	let host;
+	let port;
+	switch (kProtocol) {
+		case 'TCP':
+			host = '127.0.0.1';
+			port = getConfig('tcpPort', 'integer');
+			kArgs.push('-tcp true');
+			kArgs.push(`-tcp_port ${port}`);
+			break;
+		default:
+			return error(`Value for understand.protocol is not a supported string: ${kProtocol}`);
+	}
 
-	// TODO: Improve createFileSystemWatcher to allow for an array of include/exclude globe patterns
+	// NOTE: To understand the LanguageClient class, see the following file
+	// node_modules/vscode-languageclient/lib/node/main.d.ts
 
-	// TODO: If the user changes the option, then change something
-		// tcpPort: disconnect and restart
-		// watcherInclude: createFileSystemWatcher
+	// Options to connect to the language server
+	const kServerOptions = function() {
+		return new Promise(function(resolve, reject) {
+			// Start to spawn the language server process
+			const kChildProcess = child_process.spawn(kCommand, kArgs, {
+				env: {},
+				stdio: 'ignore',
+				detached: kDetached,
+			});
 
-	// Options to start and connect to the language server
-	const kServerOptions = () => {
-		const host = '127.0.0.1';
-		const port = getConfig('tcpPort', 'integer');
-		const socket = net.connect({
-			host: host,
-			port: port,
+			// Fail if userver isn't installed
+			kChildProcess.on('error', function(err) {
+				if (err.errno === -4058)
+					error('The command userver is not installed or not in your path');
+				reject();
+			});
+
+			// Wait until the language server is spawned
+			kChildProcess.on('spawn', function() {
+
+				// Wait a bit for userver to create the socket
+				let connected = false;
+				let connectAttempts = 0;
+				const kMaxConnectAttempts = 5;
+				const kConnectWaitMilliseconds = 50;
+				const kInterval = setInterval(function() {
+					// Start to connect to the language server
+					const kSocket = net.connect({
+						host: host,
+						port: port,
+					});
+
+					// Wait until the socket is connected
+					kSocket.on('connect', function() {
+						// Destroy a duplicate socket and stop
+						if (connected) {
+							kSocket.destroy();
+							return;
+						}
+						connected = true;
+
+						// Successfully connected
+						const kStreamInfo = {
+							writer: kSocket,
+							reader: kSocket,
+							detached: kDetached,
+						};
+						clearInterval(kInterval);
+						resolve(kStreamInfo);
+					});
+
+					// Stop trying
+					if (connectAttempts >= kMaxConnectAttempts) {
+						error(`Tried to connect to userver ${kMaxConnectAttempts} times, waiting for ${kConnectWaitMilliseconds} ms each time`);
+						clearInterval(kInterval);
+						reject();
+					}
+					connectAttempts += 1;
+				}, kConnectWaitMilliseconds);
+			});
 		});
-		const result = {
-			writer: socket,
-			reader: socket
-		};
-		return Promise.resolve(result);
 	};
-
-	// // NOTE: Below is an attempt to start userver automatically, but it doesn't work yet
-	// // Configure transport, args, and options for the executable server
-	// const kTransport = {};
-	// const kArgs = [];
-	// const kOptions = {};
-	// const kProtocol = getConfig('protocol', 'string');
-	// switch (kProtocol) {
-	// 	case 'TCP':
-	// 		const kTcpPort = getConfig('tcpPort', 'integer');
-	// 		if (isNaN(kTcpPort))
-	// 			return error(`Value for understand.tcpPort is not a number: ${kTcpPort}`);
-	// 		kTransport.kind = lc.TransportKind.socket;
-	// 		kTransport.port = kTcpPort;
-	// 		kArgs.push(`-tcp true -tcp_port ${kTcpPort}`);
-	// 		kOptions.detached = true;
-	// 		break;
-	// 	default:
-	// 		return error(`Value for understand.protocol is not a supported string: ${kProtocol}`);
-	// }
-	// // Options to start and connect to the language server
-	// const kServerOptions = {
-	// 	command: 'userver',
-	// 	transport: kTransport,
-	// 	args: kArgs,
-	// 	options: kOptions,
-	// };
 
 	// File types that will get Language Features like "Go to Definition"
 	const kDocumentSelector = [
@@ -146,6 +199,12 @@ function activate()
 		{ scheme: 'file', language: 'vhdl' },
 		{ scheme: 'file', language: 'xml' },
 	];
+
+	// TODO: Improve createFileSystemWatcher to allow for an array of include/exclude globe patterns
+
+	// TODO: If the user changes the option, then change something
+		// tcpPort: disconnect and restart
+		// watcherInclude: createFileSystemWatcher
 
 	// File types to watch for to notify the server when they are changed
 	const kFileEventPattern = getConfig('watcherInclude', 'string');
