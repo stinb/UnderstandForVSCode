@@ -5,6 +5,8 @@ const vscode = require('vscode');
 
 const child_process = require('node:child_process');
 const net           = require('node:net');
+const path          = require('node:path');
+const process       = require('node:process');
 
 const lc = require('vscode-languageclient');
 
@@ -14,67 +16,67 @@ let logger;
 
 
 // Get an option from the user's config, which is user input
-function getConfig(kKey, kExpectedType)
+function getConfig(key, expectedType)
 {
-	const kValue = vscode.workspace.getConfiguration().get(`understand.${kKey}`);
+	const value = vscode.workspace.getConfiguration().get(`understand.${key}`);
 
-	if (typeof(kValue) != kExpectedType) {
-		switch (kExpectedType) {
+	if (typeof(value) != expectedType) {
+		switch (expectedType) {
 			case 'integer':
-				return parseInt(kValue);
+				return parseInt(value);
 			case 'string':
-				return kValue.toString();
+				return value.toString();
 			case 'number':
-				return parseFloat(kValue);
+				return parseFloat(value);
 			default:
-				return kValue;
+				return value;
 		}
 	}
 
-	return kValue;
+	return value;
 }
 
 
 // Debug: stringify item for log or popup
-function stringify(kItem)
+function stringify(item)
 {
-	switch (typeof(kItem)) {
+	switch (typeof(item)) {
 		case 'undefined':
 			return 'undefined';
 		case 'object':
-			return JSON.stringify(kItem);
+			return JSON.stringify(item);
 		case 'string':
-			return kItem;
+			return item;
 		case 'number':
 		case 'boolean':
 		default:
-			return kItem.toString(kItem);
+			return item.toString(item);
 	}
 }
 
 
 // Debug: output to log
-function log(kItemToLog)
+function log(itemToLog)
 {
 	if (logger === undefined)
 		logger = vscode.window.createOutputChannel('Understand');
 
-	logger.appendLine(stringify(kItemToLog));
+	logger.appendLine(stringify(itemToLog));
 	logger.show();
 }
 
 
 // Debug: info popup
-function info(kItemToShow)
+function info(iemToShow)
 {
-	vscode.window.showInformationMessage(stringify(kItemToShow));
+	vscode.window.showInformationMessage(stringify(iemToShow));
 }
 
 
 // Debug: error popup
-function error(kItemToShow)
+function error(iemToShow)
 {
-	vscode.window.showErrorMessage(stringify(kItemToShow));
+	vscode.window.showErrorMessage(stringify(iemToShow));
 }
 
 
@@ -82,91 +84,101 @@ function error(kItemToShow)
 function activate()
 {
 	// Arguments to start the language server
-	const kProtocol = getConfig('protocol', 'string');
-	const kCommand = 'userver';
-	const kDetached = false;
-	const kArgs = [];
+	const protocol = getConfig('protocol', 'string');
+	const command = 'userver';
+	const detached = false;
+	const args = [];
+	const connectionOptions = {};
 	let host;
 	let port;
-	switch (kProtocol) {
+	switch (protocol) {
+		case 'Local':
+			const name = getConfig('localSocketName', 'string');
+			switch (process.platform) {
+				case 'win32':
+					connectionOptions.path = path.join('\\\\.\\pipe', name);
+					break;
+				default:
+					error(`Platform is not currently supported for local socket path: ${process.platform}`);
+			}
+			args.push('-local true');
+			args.push(`-local_name ${connectionOptions.path}`);
+			break;
 		case 'TCP':
-			host = '127.0.0.1';
-			port = getConfig('tcpPort', 'integer');
-			kArgs.push('-tcp true');
-			kArgs.push(`-tcp_port ${port}`);
+			connectionOptions.host = '127.0.0.1';
+			connectionOptions.port = getConfig('tcpSocketPort', 'integer');
+			args.push('-tcp true');
+			args.push(`-tcp_port ${connectionOptions.port}`);
 			break;
 		default:
-			return error(`Value for understand.protocol is not a supported string: ${kProtocol}`);
+			return error(`Value for understand.protocol is not a supported string: ${protocol}`);
 	}
 
 	// NOTE: To understand the LanguageClient class, see the following file
 	// node_modules/vscode-languageclient/lib/node/main.d.ts
 
 	// Options to connect to the language server
-	const kServerOptions = function() {
+	const serverOptions = function() {
 		return new Promise(function(resolve, reject) {
 			// Start to spawn the language server process
-			const kChildProcess = child_process.spawn(kCommand, kArgs, {
+			const childProcess = child_process.spawn(command, args, {
 				env: {},
 				stdio: 'ignore',
-				detached: kDetached,
+				detached: detached,
 			});
 
 			// Fail if userver isn't installed
-			kChildProcess.on('error', function(err) {
+			childProcess.on('error', function(err) {
 				if (err.errno === -4058)
 					error('The command userver is not installed or not in your path');
 				reject();
 			});
 
 			// Wait until the language server is spawned
-			kChildProcess.on('spawn', function() {
+			childProcess.on('spawn', function() {
 
 				// Wait a bit for userver to create the socket
 				let connected = false;
 				let connectAttempts = 0;
-				const kMaxConnectAttempts = 5;
-				const kConnectWaitMilliseconds = 50;
-				const kInterval = setInterval(function() {
+				const maxConnectAttempts = 5;
+				const connectWaitMilliseconds = 50;
+				const interval = setInterval(function() {
 					// Start to connect to the language server
-					const kSocket = net.connect({
-						host: host,
-						port: port,
-					});
+					const socket = net.connect(connectionOptions);
 
 					// Wait until the socket is connected
-					kSocket.on('connect', function() {
+					socket.on('connect', function() {
 						// Destroy a duplicate socket and stop
 						if (connected) {
-							kSocket.destroy();
+							socket.destroy();
 							return;
 						}
 						connected = true;
 
 						// Successfully connected
-						const kStreamInfo = {
-							writer: kSocket,
-							reader: kSocket,
-							detached: kDetached,
+						const streamInfo = {
+							writer: socket,
+							reader: socket,
+							detached: detached,
 						};
-						clearInterval(kInterval);
-						resolve(kStreamInfo);
+						clearInterval(interval);
+						resolve(streamInfo);
 					});
 
 					// Stop trying
-					if (connectAttempts >= kMaxConnectAttempts) {
-						error(`Tried to connect to userver ${kMaxConnectAttempts} times, waiting for ${kConnectWaitMilliseconds} ms each time`);
-						clearInterval(kInterval);
+					if (connectAttempts >= maxConnectAttempts) {
+						error(`Tried to connect to userver ${maxConnectAttempts} times, waiting for ${connectWaitMilliseconds} ms each time`);
+						clearInterval(interval);
 						reject();
 					}
 					connectAttempts += 1;
-				}, kConnectWaitMilliseconds);
+				}, connectWaitMilliseconds);
 			});
 		});
 	};
 
 	// File types that will get Language Features like "Go to Definition"
-	const kDocumentSelector = [
+	const documentSelector = [
 		{ scheme: 'file', language: 'ada' },
 		{ scheme: 'file', language: 'assembly' },
 		{ scheme: 'file', language: 'bat' },
@@ -203,29 +215,30 @@ function activate()
 	// TODO: Improve createFileSystemWatcher to allow for an array of include/exclude globe patterns
 
 	// TODO: If the user changes the option, then change something
-		// tcpPort: disconnect and restart
+		// localSocketName: disconnect and restart
+		// tcpSocketPort: disconnect and restart
 		// watcherInclude: createFileSystemWatcher
 
 	// File types to watch for to notify the server when they are changed
-	const kFileEventPattern = getConfig('watcherInclude', 'string');
-	const kFileEvents = vscode.workspace.createFileSystemWatcher(kFileEventPattern);
+	const fileEventPattern = getConfig('watcherInclude', 'string');
+	const fileEvents = vscode.workspace.createFileSystemWatcher(fileEventPattern);
 
 	// Options to control the language client
-	const kClientOptions = {
-		documentSelector: kDocumentSelector,
+	const clientOptions = {
+		documentSelector: documentSelector,
 		synchronize: {
-			fileEvents: kFileEvents,
+			fileEvents: fileEvents,
 		},
 	};
 
 	// Create the language client
-	const kClientId = 'UserverVscode';
-	const kClientName = 'Userver VS Code';
+	const clientId = 'UserverVscode';
+	const clientName = 'Userver VS Code';
 	languageClient = new lc.LanguageClient(
-		kClientId,
-		kClientName,
-		kServerOptions,
-		kClientOptions
+		clientId,
+		clientName,
+		serverOptions,
+		clientOptions
 	);
 
 	// Start the client and also the server if it isn't running

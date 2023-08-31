@@ -65,11 +65,16 @@
 				},
 				"understand.protocol": {
 					"type": "string",
-					"default": "TCP",
-					"enum": ["TCP"],
+					"default": "Local",
+					"enum": ["Local", "TCP"],
 					"description": "Protocol to communicate with the language server"
 				},
-				"understand.tcpPort": {
+				"understand.localSocketName": {
+					"type": "string",
+					"default": "userver",
+					"description": "Name of local socket to communicate with the language server"
+				},
+				"understand.tcpSocketPort": {
 					"type": "number",
 					"default": 6789,
 					"minimum": 0,
