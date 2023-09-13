@@ -25,7 +25,7 @@ function getConfig(key, expectedType)
 			case 'integer':
 				return parseInt(value);
 			case 'string':
-				return value.toString();
+				return value;
 			case 'number':
 				return parseFloat(value);
 			default:
@@ -50,7 +50,7 @@ function stringify(item)
 		case 'number':
 		case 'boolean':
 		default:
-			return item.toString(item);
+			return item.toString();
 	}
 }
 
@@ -67,16 +67,16 @@ function log(itemToLog)
 
 
 // Debug: info popup
-function info(iemToShow)
+function info(itemToShow)
 {
-	vscode.window.showInformationMessage(stringify(iemToShow));
+	vscode.window.showInformationMessage(stringify(itemToShow));
 }
 
 
 // Debug: error popup
-function error(iemToShow)
+function error(itemToShow)
 {
-	vscode.window.showErrorMessage(stringify(iemToShow));
+	vscode.window.showErrorMessage(stringify(itemToShow));
 }
 
 
@@ -106,13 +106,14 @@ function activate()
 				else
 					connectionOptions.path = path.join('/tmp', name);
 			}
-			args.push(`-local true -local_name ${connectionOptions.path}`);
+			args.push('-local');
+			args.push(connectionOptions.path);
 			break;
 		case 'TCP':
 			connectionOptions.host = '127.0.0.1';
 			connectionOptions.port = getConfig('tcpSocketPort', 'integer');
-			args.push('-tcp true');
-			args.push(`-tcp_port ${connectionOptions.port}`);
+			args.push('-tcp');
+			args.push(connectionOptions.port.toString());
 			break;
 		default:
 			return error(`Value for understand.protocol is not a supported string: ${protocol}`);
@@ -131,17 +132,16 @@ function activate()
 				detached: detached,
 			});
 
-			// Fail if userver isn't installed
+			// Fail if the language server isn't installed
 			childProcess.on('error', function(err) {
-				if (err.errno === -4058)
-					error('The command userver is not installed or not in your path');
+				if (err.code === 'ENOENT')
+					error(`The command ${command} is not installed `);
 				reject();
 			});
 
 			// Wait until the language server is spawned
 			childProcess.on('spawn', function() {
-
-				// Wait a bit for userver to create the socket
+				// Wait a bit for the language server to create the socket
 				let connected = false;
 				let connectAttempts = 0;
 				const maxConnectAttempts = 5;
@@ -171,7 +171,7 @@ function activate()
 
 					// Stop trying
 					if (connectAttempts >= maxConnectAttempts) {
-						error(`Tried to connect to userver ${maxConnectAttempts} times, waiting for ${connectWaitMilliseconds} ms each time`);
+						error(`Tried to connect to ${command} ${maxConnectAttempts} times, waiting for ${connectWaitMilliseconds} ms each time`);
 						clearInterval(interval);
 						reject();
 					}
