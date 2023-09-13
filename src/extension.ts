@@ -94,15 +94,19 @@ function activate()
 	switch (protocol) {
 		case 'Local':
 			const name = getConfig('localSocketName', 'string');
-			switch (process.platform) {
-				case 'win32':
+			if (process.platform === 'win32') {
+				if (/^\\\\[.?]\\pipe\\/.test(name))
+					connectionOptions.path = name;
+				else
 					connectionOptions.path = path.join('\\\\.\\pipe', name);
-					break;
-				default:
-					error(`Platform is not currently supported for local socket path: ${process.platform}`);
 			}
-			args.push('-local true');
-			args.push(`-local_name ${connectionOptions.path}`);
+			else {
+				if (/^\/tmp\//.test(name))
+					connectionOptions.path = name;
+				else
+					connectionOptions.path = path.join('/tmp', name);
+			}
+			args.push(`-local true -local_name ${connectionOptions.path}`);
 			break;
 		case 'TCP':
 			connectionOptions.host = '127.0.0.1';
