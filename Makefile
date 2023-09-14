@@ -1,12 +1,10 @@
 # Commands
 release: node_modules
+	rm -f *.vsix
 	vsce package
 watch: node_modules
 	npm run esbuild-watch
-clean:
-	rm *.vsix
 
 # Targets
 node_modules:
 	npm install
-

@@ -2,21 +2,34 @@
 
 Install this and run Userver to make VSCode communicate with an Understand database.
 
-## Building the Extension
+## Setup for Building
 
-### Release version
+Install `npm` on Windows
+```
+winget install Node.js
+echo Add "C:\Program Files\nodejs" to your path and start a new terminal
+```
+
+Install `npm` on Ubuntu/Debian
+```
+apt install nodejs
+```
+
+Install `vsce`
+```
+npm install -g @vscode/vsce
+```
+
+## Building
+
+### Build the release version
 ```
 make
 ```
 
-### Debug version that continuously checks for file changes
+### Continuously build the debug version when source files change
 ```
 make watch
-```
-
-### Remove the extension
-```
-make clean
 ```
 
 ## Installation
