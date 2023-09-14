@@ -89,11 +89,19 @@ function activate()
 	const detached = false;
 	const args = [];
 	const connectionOptions = {};
+	const childProcessEnv = {};
 	let host;
 	let port;
+	childProcessEnv.PATH = getConfig('executable.path', 'string');
+	if (childProcessEnv.PATH === '') {
+		if (process.platform === 'win32')
+			childProcessEnv.PATH = undefined;
+		else
+			childProcessEnv.PATH = '/usr/bin:/usr/local/bin';
+	}
 	switch (protocol) {
-		case 'Local':
-			const name = getConfig('localSocketName', 'string');
+		case 'Local Socket':
+			const name = getConfig('protocols.localSocket.name', 'string');
 			if (process.platform === 'win32') {
 				if (/^\\\\[.?]\\pipe\\/.test(name))
 					connectionOptions.path = name;
@@ -109,9 +117,9 @@ function activate()
 			args.push('-local');
 			args.push(connectionOptions.path);
 			break;
-		case 'TCP':
+		case 'TCP Socket':
 			connectionOptions.host = '127.0.0.1';
-			connectionOptions.port = getConfig('tcpSocketPort', 'integer');
+			connectionOptions.port = getConfig('protocols.tcpSocket.port', 'integer');
 			args.push('-tcp');
 			args.push(connectionOptions.port.toString());
 			break;
@@ -127,7 +135,7 @@ function activate()
 		return new Promise(function(resolve, reject) {
 			// Start to spawn the language server process
 			const childProcess = child_process.spawn(command, args, {
-				env: {},
+				env: childProcessEnv,
 				stdio: 'ignore',
 				detached: detached,
 			});
@@ -224,7 +232,7 @@ function activate()
 		// watcherInclude: createFileSystemWatcher
 
 	// File types to watch for to notify the server when they are changed
-	const fileEventPattern = getConfig('watcherInclude', 'string');
+	const fileEventPattern = getConfig('files.watch', 'string');
 	const fileEvents = vscode.workspace.createFileSystemWatcher(fileEventPattern);
 
 	// Options to control the language client
