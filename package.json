@@ -80,7 +80,7 @@
 				"understand.protocols.localSocket.name": {
 					"type": "string",
 					"default": "userver",
-					"description": "Name or path of local socket to communicate with the language server (default for Windows: \\\\.\\pipe\\userver, default for other: /tmp/userver)"
+					"description": "Name or path of local socket to communicate with the language server (default for Windows: \\\\.\\pipe\\userver\\RANDOM_UUID_HERE, default for other: /tmp/userver/RANDOM_UUID_HERE)"
 				},
 				"understand.protocols.tcpSocket.port": {
 					"type": "number",

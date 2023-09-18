@@ -3,6 +3,7 @@
 
 const vscode = require('vscode');
 
+const crypto        = require('node:crypto');
 const child_process = require('node:child_process');
 const net           = require('node:net');
 const path          = require('node:path');
@@ -102,17 +103,18 @@ function activate()
 	switch (protocol) {
 		case 'Local Socket':
 			const name = getConfig('protocols.localSocket.name', 'string');
+			const uuid = crypto.randomUUID();
 			if (process.platform === 'win32') {
 				if (/^\\\\[.?]\\pipe\\/.test(name))
 					connectionOptions.path = name;
 				else
-					connectionOptions.path = path.join('\\\\.\\pipe', name);
+					connectionOptions.path = path.join('\\\\.\\pipe', name, uuid);
 			}
 			else {
 				if (/^\/tmp\//.test(name))
 					connectionOptions.path = name;
 				else
-					connectionOptions.path = path.join('/tmp', name);
+					connectionOptions.path = path.join('/tmp', name, uuid);
 			}
 			args.push('-local');
 			args.push(connectionOptions.path);
