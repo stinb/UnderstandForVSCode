@@ -14,6 +14,7 @@ const lc = require('vscode-languageclient');
 
 let languageClient;
 let logger;
+let statusBarItem;
 
 
 // Get an option from the user's config, which is user input
@@ -81,9 +82,62 @@ function error(itemToShow)
 }
 
 
-// Main function for when the extension is activated
-function activate()
+// Statuses
+const STATUS_CONNECTING        = 0;
+const STATUS_CONNECTED         = 1;
+const STATUS_NO_CONNECTION     = 2;
+const STATUS_ANALYZING         = 3;
+
+// Status bar
+function changeStatusBar(status, percent = 0)
 {
+	switch (status) {
+		case STATUS_CONNECTING:
+			statusBarItem.text = 'Understand $(loading~spin)';
+			statusBarItem.tooltip = 'Connecting to Understand Language Server';
+			break;
+		case STATUS_CONNECTED:
+			statusBarItem.text = 'Understand';
+			statusBarItem.tooltip = 'Connected to Understand Language Server';
+			break;
+		case STATUS_NO_CONNECTION:
+			statusBarItem.text = 'Understand $(error)';
+			statusBarItem.tooltip = 'Failed to connect to Understand Language Server';
+			break;
+		case STATUS_ANALYZING:
+			statusBarItem.text = `Understand $(loading~spin) ${percent}%`;
+			statusBarItem.tooltip = 'Analyzing';
+			break;
+	}
+}
+
+
+// Handler: create progress
+function handleWindowWorkDoneProgressCreate(params)
+{
+	changeStatusBar(STATUS_ANALYZING, 0);
+}
+
+
+// Handler: update progress
+function handleProgress(params)
+{
+	log(params);
+	if (typeof(params.value?.percentage) === 'number')
+		changeStatusBar(STATUS_ANALYZING, params.value.percentage);
+	else if (params.value?.kind === 'end')
+		changeStatusBar(STATUS_CONNECTED);
+}
+
+
+// Main function for when the extension is activated
+async function activate(context)
+{
+	// Create status bar item
+	statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+	changeStatusBar(STATUS_CONNECTING);
+	statusBarItem.show();
+
 	// Arguments to start the language server
 	const protocol = getConfig('protocol', 'string');
 	const command = 'userver';
@@ -177,6 +231,7 @@ function activate()
 						};
 						clearInterval(interval);
 						resolve(streamInfo);
+						changeStatusBar(STATUS_CONNECTED);
 					});
 
 					// Stop trying
@@ -256,7 +311,12 @@ function activate()
 	);
 
 	// Start the client and also the server if it isn't running
-	languageClient.start();
+	await languageClient.start();
+
+	// Custom handlers
+	languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
+	languageClient.onNotification('window/createWorkDoneProgress', handleWindowWorkDoneProgressCreate);
+	languageClient.onNotification('$/progress', handleProgress);
 }
 
 
