@@ -6,7 +6,6 @@ const vscode = require('vscode');
 const crypto        = require('node:crypto');
 const child_process = require('node:child_process');
 const net           = require('node:net');
-const path          = require('node:path');
 const process       = require('node:process');
 
 const lc = require('vscode-languageclient');
@@ -89,7 +88,7 @@ function error(itemToShow)
 const STATUS_CONNECTING        = 0;
 const STATUS_CONNECTED         = 1;
 const STATUS_NO_CONNECTION     = 2;
-const STATUS_PROGRESS         = 3;
+const STATUS_PROGRESS          = 3;
 
 // Create new text of status bar item
 function titleAndPercent(title, percentage)
@@ -182,20 +181,14 @@ async function activate(context)
 	}
 	switch (protocol) {
 		case 'Local Socket':
-			const name = getConfig('protocols.localSocket.name', 'string');
-			const uuid = crypto.randomUUID();
-			if (process.platform === 'win32') {
-				if (/^\\\\[.?]\\pipe\\/.test(name))
-					connectionOptions.path = name;
+			connectionOptions.path = getConfig('protocols.localSocket.path', 'string');
+			if (connectionOptions.path.length === 0) {
+				if (process.platform === 'win32')
+					connectionOptions.path = '\\\\.\\pipe\\userver-{uuid}';
 				else
-					connectionOptions.path = path.join('\\\\.\\pipe', name, uuid);
+					connectionOptions.path = '/tmp/userver-{uuid}';
 			}
-			else {
-				if (/^\/tmp\//.test(name))
-					connectionOptions.path = name;
-				else
-					connectionOptions.path = path.join('/tmp', name, uuid);
-			}
+			connectionOptions.path = connectionOptions.path.replaceAll('{uuid}', crypto.randomUUID());
 			args.push('-local');
 			args.push(connectionOptions.path);
 			break;
@@ -262,9 +255,9 @@ async function activate(context)
 
 					// Stop trying
 					if (connectAttempts >= maxConnectAttempts) {
-						error(`Tried to connect to ${command} ${maxConnectAttempts} times, waiting for ${connectWaitMilliseconds} ms each time`);
 						clearInterval(interval);
 						reject();
+						changeStatusBar(STATUS_NO_CONNECTION);
 					}
 					connectAttempts += 1;
 				}, connectWaitMilliseconds);
@@ -327,8 +320,8 @@ async function activate(context)
 	};
 
 	// Create the language client
-	const clientId = 'UserverVscode';
-	const clientName = 'Userver VS Code';
+	const clientId = 'understand';
+	const clientName = 'Understand';
 	languageClient = new lc.LanguageClient(
 		clientId,
 		clientName,
@@ -337,7 +330,11 @@ async function activate(context)
 	);
 
 	// Start the client and also the server if it isn't running
-	await languageClient.start();
+	try {
+		await languageClient.start();
+	} catch (_) {
+		return;
+	}
 
 	// Custom handlers
 	languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);

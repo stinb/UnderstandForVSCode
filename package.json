@@ -77,10 +77,10 @@
 					],
 					"description": "Protocol to communicate with the language server"
 				},
-				"understand.protocols.localSocket.name": {
+				"understand.protocols.localSocket.path": {
 					"type": "string",
-					"default": "userver",
-					"description": "Name or path of local socket to communicate with the language server (default for Windows: \\\\.\\pipe\\userver\\RANDOM_UUID_HERE, default for other: /tmp/userver/RANDOM_UUID_HERE)"
+					"default": "",
+					"description": "Path of local socket to communicate with the language server, where {uuid} is replaced with a randomly generated UUID\nDefault for Windows: \\\\.\\pipe\\userver-{uuid}\nDefault for other: /tmp/userver-{uuid}"
 				},
 				"understand.protocols.tcpSocket.port": {
 					"type": "number",
