@@ -122,7 +122,6 @@ function handleWindowWorkDoneProgressCreate(params)
 // Handler: update progress
 function handleProgress(params)
 {
-	log(params);
 	if (typeof(params.value?.percentage) === 'number')
 		changeStatusBar(STATUS_ANALYZING, params.value.percentage);
 	else if (params.value?.kind === 'end')
