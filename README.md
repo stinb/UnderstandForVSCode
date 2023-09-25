@@ -37,7 +37,7 @@ make watch
 ### Install in CLI
 
 ```
-code --install-extension understand-1.0.0.vsix
+make install
 ```
 
 ### Install in GUI

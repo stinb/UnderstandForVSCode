@@ -13,8 +13,11 @@ const lc = require('vscode-languageclient');
 
 
 let languageClient;
+
 let logger;
-let statusBarItem;
+
+let mainStatusBarItem;
+let progressStatusBarItem;
 
 
 // Get an option from the user's config, which is user input
@@ -86,27 +89,48 @@ function error(itemToShow)
 const STATUS_CONNECTING        = 0;
 const STATUS_CONNECTED         = 1;
 const STATUS_NO_CONNECTION     = 2;
-const STATUS_ANALYZING         = 3;
+const STATUS_PROGRESS         = 3;
 
-// Status bar
-function changeStatusBar(status, percent = 0)
+// Create new text of status bar item
+function titleAndPercent(title, percentage)
 {
+	if (percentage === undefined || percentage === null)
+		return title;
+	else
+		return `${title} ${percentage}%`;
+}
+
+// Change status bar item
+function changeStatusBar(status, progress = {})
+{
+	// TODO: consider a different tooltip for mainStatusBarItem: status and available actions, just like rust-analyzer
 	switch (status) {
 		case STATUS_CONNECTING:
-			statusBarItem.text = 'Understand $(loading~spin)';
-			statusBarItem.tooltip = 'Connecting to Understand Language Server';
+			mainStatusBarItem.text = '$(sync~spin) Understand';
+			mainStatusBarItem.tooltip = 'Connecting to Understand Language Server';
+			progressStatusBarItem.hide();
 			break;
 		case STATUS_CONNECTED:
-			statusBarItem.text = 'Understand';
-			statusBarItem.tooltip = 'Connected to Understand Language Server';
+			mainStatusBarItem.text = '$(search-view-icon) Understand';
+			mainStatusBarItem.tooltip = 'Connected to Understand Language Server';
+			progressStatusBarItem.hide();
 			break;
 		case STATUS_NO_CONNECTION:
-			statusBarItem.text = 'Understand $(error)';
-			statusBarItem.tooltip = 'Failed to connect to Understand Language Server';
+			mainStatusBarItem.text = '$(error) Understand';
+			mainStatusBarItem.tooltip = 'Failed to connect to Understand Language Server';
+			progressStatusBarItem.hide();
 			break;
-		case STATUS_ANALYZING:
-			statusBarItem.text = `Understand $(loading~spin) ${percent}%`;
-			statusBarItem.tooltip = 'Analyzing';
+		case STATUS_PROGRESS:
+			mainStatusBarItem.text = '$(sync~spin) Understand';
+			if (progress.title) {
+				mainStatusBarItem.tooltip = progress.title;
+				progressStatusBarItem.text = titleAndPercent(progress.title, progress.percentage);
+				progressStatusBarItem._title = progress.title;
+			}
+			else if (progress.percentage !== undefined && progress.percentage !== null) {
+				progressStatusBarItem.text = titleAndPercent(progressStatusBarItem._title, progress.percentage);
+			}
+			progressStatusBarItem.show();
 			break;
 	}
 }
@@ -115,27 +139,30 @@ function changeStatusBar(status, percent = 0)
 // Handler: create progress
 function handleWindowWorkDoneProgressCreate(params)
 {
-	changeStatusBar(STATUS_ANALYZING, 0);
+	// Ignore since the actual value of the progress is received later with $/progress
 }
 
 
 // Handler: update progress
 function handleProgress(params)
 {
-	if (typeof(params.value?.percentage) === 'number')
-		changeStatusBar(STATUS_ANALYZING, params.value.percentage);
-	else if (params.value?.kind === 'end')
+	if (params.value?.kind === 'end')
 		changeStatusBar(STATUS_CONNECTED);
+	else
+		changeStatusBar(STATUS_PROGRESS, params.value);
 }
 
 
 // Main function for when the extension is activated
 async function activate(context)
 {
-	// Create status bar item
-	statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+	// Create status bar items
+	mainStatusBarItem = vscode.window.createStatusBarItem('main', vscode.StatusBarAlignment.Left, 100);
+	mainStatusBarItem.name = 'Understand';
+	progressStatusBarItem = vscode.window.createStatusBarItem('progress', vscode.StatusBarAlignment.Left, 99);
+	progressStatusBarItem.name = 'Understand Progress';
 	changeStatusBar(STATUS_CONNECTING);
-	statusBarItem.show();
+	mainStatusBarItem.show();
 
 	// Arguments to start the language server
 	const protocol = getConfig('protocol', 'string');
