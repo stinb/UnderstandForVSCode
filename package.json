@@ -88,6 +88,17 @@
 					"minimum": 0,
 					"maximum": 65535,
 					"description": "Port to communicate with the language server over TCP (integer 0 to 65535)"
+				},
+				"understand.trace.server": {
+					"type": "string",
+					"default": "Off",
+					"enum": [
+						"Off",
+						"Messages",
+						"Compact",
+						"Verbose"
+					],
+					"description": "Log trace for communication with the language server"
 				}
 			}
 		}

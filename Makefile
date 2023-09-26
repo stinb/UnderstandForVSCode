@@ -1,5 +1,5 @@
 # Variables
-SOURCE := $(wildcard src/*.ts)
+SOURCE := $(wildcard src/*.ts) package.json
 OUTPUT := understand.vsix
 
 # Targets
