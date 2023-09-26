@@ -60,8 +60,8 @@
 			"properties": {
 				"understand.executable.path": {
 					"type": "string",
-					"default": "",
-					"description": "Search path(s) of the executable for the language server (default for Windows: %PATH%, default for other: /usr/bin:/usr/local/bin)"
+					"default": "userver",
+					"description": "Command or full path of the executable for the language server"
 				},
 				"understand.files.watch": {
 					"type": "string",

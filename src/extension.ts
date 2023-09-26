@@ -102,7 +102,6 @@ function titleAndPercent(title, percentage)
 // Change status bar item
 function changeStatusBar(status, progress = {})
 {
-	// TODO: consider a different tooltip for mainStatusBarItem: status and available actions, just like rust-analyzer
 	switch (status) {
 		case STATUS_CONNECTING:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
@@ -165,20 +164,13 @@ async function activate(context)
 
 	// Arguments to start the language server
 	const protocol = getConfig('protocol', 'string');
-	const command = 'userver';
+	const command = getConfig('executable.path', 'string');
 	const detached = false;
 	const args = [];
 	const connectionOptions = {};
-	const childProcessEnv = {};
+	const childProcessEnv = process.env; // NOTE: this is important for avoiding a bad analysis
 	let host;
 	let port;
-	childProcessEnv.PATH = getConfig('executable.path', 'string');
-	if (childProcessEnv.PATH === '') {
-		if (process.platform === 'win32')
-			childProcessEnv.PATH = undefined;
-		else
-			childProcessEnv.PATH = '/usr/bin:/usr/local/bin';
-	}
 	switch (protocol) {
 		case 'Local Socket':
 			connectionOptions.path = getConfig('protocols.localSocket.path', 'string');
@@ -215,10 +207,10 @@ async function activate(context)
 				detached: detached,
 			});
 
-			// Fail if the language server isn't installed
+			// Fail if the language server wasn't found
 			childProcess.on('error', function(err) {
 				if (err.code === 'ENOENT')
-					error(`The command ${command} is not installed `);
+					error(`The command "${command}" wasn't found `);
 				reject();
 			});
 
