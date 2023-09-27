@@ -11,7 +11,19 @@ const process       = require('node:process');
 const lc = require('vscode-languageclient');
 
 
+const GENERAL_STATE_CONNECTING    = 0;
+const GENERAL_STATE_CONNECTED     = 1;
+const GENERAL_STATE_NO_CONNECTION = 2;
+const GENERAL_STATE_PROGRESS      = 3;
+
+const DATABASE_STATE_FINDING      = 0;
+const DATABASE_STATE_RESOLVED     = 1;
+const DATABASE_STATE_NOT_RESOLVED = 2;
+
+
 let languageClient;
+
+let databaseState = DATABASE_STATE_FINDING;
 
 let logger;
 
@@ -84,12 +96,6 @@ function error(itemToShow)
 }
 
 
-// Statuses
-const STATUS_CONNECTING        = 0;
-const STATUS_CONNECTED         = 1;
-const STATUS_NO_CONNECTION     = 2;
-const STATUS_PROGRESS          = 3;
-
 // Create new text of status bar item
 function titleAndPercent(title, percentage)
 {
@@ -103,22 +109,34 @@ function titleAndPercent(title, percentage)
 function changeStatusBar(status, progress = {})
 {
 	switch (status) {
-		case STATUS_CONNECTING:
+		case GENERAL_STATE_CONNECTING:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
-			mainStatusBarItem.tooltip = 'Connecting to Understand Language Server';
+			mainStatusBarItem.tooltip = 'Connecting to the Understand language server';
 			progressStatusBarItem.hide();
 			break;
-		case STATUS_CONNECTED:
-			mainStatusBarItem.text = '$(search-view-icon) Understand';
-			mainStatusBarItem.tooltip = 'Connected to Understand Language Server';
+		case GENERAL_STATE_CONNECTED:
+			switch (databaseState) {
+				case DATABASE_STATE_FINDING:
+					mainStatusBarItem.text = '$(sync~spin) Understand';
+					mainStatusBarItem.tooltip = 'Finding and resolving database(s)';
+					break;
+				case DATABASE_STATE_RESOLVED:
+					mainStatusBarItem.text = '$(search-view-icon) Understand';
+					mainStatusBarItem.tooltip = 'Connected to the Understand language server';
+					break;
+				case DATABASE_STATE_NOT_RESOLVED:
+					mainStatusBarItem.text = '$(error) Understand';
+					mainStatusBarItem.tooltip = 'No resolved database found by the Understand language server';
+					break;
+			}
 			progressStatusBarItem.hide();
 			break;
-		case STATUS_NO_CONNECTION:
+		case GENERAL_STATE_NO_CONNECTION:
 			mainStatusBarItem.text = '$(error) Understand';
-			mainStatusBarItem.tooltip = 'Failed to connect to Understand Language Server';
+			mainStatusBarItem.tooltip = 'Failed to connect to the Understand language server';
 			progressStatusBarItem.hide();
 			break;
-		case STATUS_PROGRESS:
+		case GENERAL_STATE_PROGRESS:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
 			if (progress.title) {
 				mainStatusBarItem.tooltip = progress.title;
@@ -145,9 +163,9 @@ function handleWindowWorkDoneProgressCreate(params)
 function handleProgress(params)
 {
 	if (params.value?.kind === 'end')
-		changeStatusBar(STATUS_CONNECTED);
+		changeStatusBar(GENERAL_STATE_CONNECTED);
 	else
-		changeStatusBar(STATUS_PROGRESS, params.value);
+		changeStatusBar(GENERAL_STATE_PROGRESS, params.value);
 }
 
 
@@ -159,7 +177,7 @@ async function activate(context)
 	mainStatusBarItem.name = 'Understand';
 	progressStatusBarItem = vscode.window.createStatusBarItem('progress', vscode.StatusBarAlignment.Left, 99);
 	progressStatusBarItem.name = 'Understand Progress';
-	changeStatusBar(STATUS_CONNECTING);
+	changeStatusBar(GENERAL_STATE_CONNECTING);
 	mainStatusBarItem.show();
 
 	// Arguments to start the language server
@@ -242,14 +260,14 @@ async function activate(context)
 						};
 						clearInterval(interval);
 						resolve(streamInfo);
-						changeStatusBar(STATUS_CONNECTED);
+						changeStatusBar(GENERAL_STATE_CONNECTED);
 					});
 
 					// Stop trying
 					if (connectAttempts >= maxConnectAttempts) {
 						clearInterval(interval);
 						reject();
-						changeStatusBar(STATUS_NO_CONNECTION);
+						changeStatusBar(GENERAL_STATE_NO_CONNECTION);
 					}
 					connectAttempts += 1;
 				}, connectWaitMilliseconds);
@@ -328,9 +346,15 @@ async function activate(context)
 		return;
 	}
 
+	// See if the database was found, which is useful for the status bar item
+	if (Object.keys(languageClient._initializeResult.capabilities).length > 1)
+		databaseState = DATABASE_STATE_RESOLVED;
+	else
+		databaseState = DATABASE_STATE_NOT_RESOLVED;
+	changeStatusBar(GENERAL_STATE_CONNECTED);
+
 	// Custom handlers
 	languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
-	languageClient.onNotification('window/createWorkDoneProgress', handleWindowWorkDoneProgressCreate);
 	languageClient.onNotification('$/progress', handleProgress);
 }
 
