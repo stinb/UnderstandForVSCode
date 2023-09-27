@@ -347,7 +347,7 @@ async function activate(context)
 	}
 
 	// See if the database was found, which is useful for the status bar item
-	if (Object.keys(languageClient._initializeResult.capabilities).length > 1)
+	if (Object.keys(languageClient._initializeResult.capabilities).length)
 		databaseState = DATABASE_STATE_RESOLVED;
 	else
 		databaseState = DATABASE_STATE_NOT_RESOLVED;
