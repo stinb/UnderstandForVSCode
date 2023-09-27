@@ -1,48 +1,15 @@
 # Understand for Visual Studio Code
 
-Install this and run Userver to make VSCode communicate with an Understand database.
+The Software Developer's Multi-Tool, for Visual Studio Code
 
-## Setup for Building
+![Understand logo: magnifying lens inspecting a world of code](https://github.com/stinb/UserverVscode/blob/main/logo/logoColor.png "Understand: The Software Developer's Multi-Tool")
 
-Install `npm` on Windows
-```
-winget install Node.js
-echo Add "C:\Program Files\nodejs" to your path and start a new terminal
-```
+## Features
 
-Install `npm` on Ubuntu/Debian
-```
-apt install nodejs
-```
+* See violations in the editor
+	* Errors from compiling and analyzing
+	* Warnings from your selected CodeCheck configurations
 
-Install `vsce`
-```
-npm install -g @vscode/vsce
-```
-
-## Building
-
-### Build the release version
-```
-make
-```
-
-### Continuously build the debug version when source files change
-```
-make watch
-```
-
-## Installation
-
-### Install in CLI
-
-```
-make install
-```
-
-### Install in GUI
-
-1. Open VS Code
-2. Extensions > (3 Dot Menu) > Install from VSIX...
-
-### [Installation Guide](https://code.visualstudio.com/docs/editor/extension-marketplace#_install-from-a-vsix)
+* Analyze files when you want to
+	* Automatically analyze files on save... or
+	* Manually analyze files with a keyboard shortcut
