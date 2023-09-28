@@ -1,9 +1,9 @@
 # Variables
-SOURCE := $(wildcard src/*.ts) package.json
+WATCH  := $(wildcard src/*.ts) package.json $(wildcard logo/*) $(wildcard *.md) Makefile
 OUTPUT := understand.vsix
 
 # Targets
-$(OUTPUT): node_modules $(SOURCE)
+$(OUTPUT): node_modules $(WATCH)
 	vsce package -o $(OUTPUT)
 node_modules:
 	npm install

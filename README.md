@@ -1,8 +1,6 @@
 # Understand for Visual Studio Code
 
-The Software Developer's Multi-Tool, for Visual Studio Code
-
-![Understand logo: magnifying lens inspecting a world of code](https://github.com/stinb/UserverVscode/blob/main/logo/logoColor.png "Understand: The Software Developer's Multi-Tool")
+The Software Developer's Multi-Tool for Visual Studio Code
 
 ## Features
 
