@@ -45,3 +45,10 @@ The Software Developer's Multi-Tool for Visual Studio Code
 	* If the file is a supported language, then the Understand language server is started
 	* If there's a .und folder somewhere in the file [explorer](https://code.visualstudio.com/docs/getstarted/userinterface#_explorer), it will be selected automatically by the language server
 	* On the bottom status bar on the left, hover and see that it's connected
+
+
+## FAQ
+
+> Why aren't my results accurate after creating or deleting a file?
+
+If your project uses [compile_commands.json](https://support.scitools.com/support/solutions/articles/70000582648-building-projects-with-json), then you must build after creating or deleting files.
