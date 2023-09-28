@@ -16,13 +16,19 @@ const GENERAL_STATE_CONNECTED     = 1;
 const GENERAL_STATE_NO_CONNECTION = 2;
 const GENERAL_STATE_PROGRESS      = 3;
 
-const DATABASE_STATE_FINDING      = 0;
-const DATABASE_STATE_RESOLVED     = 1;
-const DATABASE_STATE_NOT_RESOLVED = 2;
+const DATABASE_STATE_FINDING       = -3; // the server is finding the db
+const DATABASE_STATE_NOT_FOUND     = -2; // the server failed to open the db
+const DATABASE_STATE_NOT_OPENED    = -1; // the server failed to open the db
+const DATABASE_STATE_EMPTY         = 0;  // the db is unresolved and empty (from a new sample)
+const DATABASE_STATE_RESOLVED      = 1;  // the db is resolved
+const DATABASE_STATE_RESOLVING     = 2;  // the db is in the middle of a resolve operation
+const DATABASE_STATE_UNRESOLVED    = 3;  // the db is not resolved
+const DATABASE_STATE_WRONG_VERSION = 4;  // the db is not resolved due to an old parse version
 
 
 let languageClient;
 
+// TODO: add client side support for multiple databases
 let databaseState = DATABASE_STATE_FINDING;
 
 let logger;
@@ -124,7 +130,7 @@ function changeStatusBar(status, progress = {})
 					mainStatusBarItem.text = '$(search-view-icon) Understand';
 					mainStatusBarItem.tooltip = 'Connected to the Understand language server';
 					break;
-				case DATABASE_STATE_NOT_RESOLVED:
+				default:
 					mainStatusBarItem.text = '$(error) Understand';
 					mainStatusBarItem.tooltip = 'No resolved database found by the Understand language server';
 					break;
@@ -347,10 +353,19 @@ async function activate(context)
 	}
 
 	// See if the database was found, which is useful for the status bar item
-	if (Object.keys(languageClient._initializeResult.capabilities).length)
-		databaseState = DATABASE_STATE_RESOLVED;
-	else
-		databaseState = DATABASE_STATE_NOT_RESOLVED;
+	const databases = languageClient._initializeResult.serverInfo.databases;
+	if (databases === undefined || databases.length === 0) {
+		databaseState = DATABASE_STATE_NOT_FOUND;
+	}
+	else {
+		for (const database of databases) {
+			log(database);
+			if (database.state !== undefined) {
+				databaseState = database.state;
+				break;
+			}
+		}
+	}
 	changeStatusBar(GENERAL_STATE_CONNECTED);
 
 	// Custom handlers
