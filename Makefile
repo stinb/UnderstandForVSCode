@@ -1,10 +1,10 @@
 # Variables
-WATCH  := $(wildcard src/*.ts) package.json $(wildcard logo/*) $(wildcard *.md) Makefile
+WATCH  := $(wildcard src/*.ts) package.json $(wildcard res/*) $(wildcard *.md) Makefile
 OUTPUT := understand.vsix
 
 # Targets
 $(OUTPUT): node_modules $(WATCH)
-	vsce package -o $(OUTPUT)
+	vsce package -o $(OUTPUT) --baseContentUrl https://raw.githubusercontent.com/stinb/UserverVscode/main/res/
 node_modules:
 	npm install
 

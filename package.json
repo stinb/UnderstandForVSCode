@@ -19,7 +19,7 @@
 		"Problems",
 		"Analysis"
 	],
-	"icon": "logo/logoColor.png",
+	"icon": "res/logoColor.png",
 	"main": "extension.js",
 	"activationEvents": [
 		"onLanguage:ada",
