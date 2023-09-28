@@ -359,7 +359,6 @@ async function activate(context)
 	}
 	else {
 		for (const database of databases) {
-			log(database);
 			if (database.state !== undefined) {
 				databaseState = database.state;
 				break;
