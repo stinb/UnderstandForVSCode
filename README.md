@@ -9,7 +9,7 @@ The Software Developer's Multi-Tool for Visual Studio Code
 
 * See violations in the editor
 	* Errors from compiling and analyzing
-	* Warnings from your selected [CodeCheck](https://support.scitools.com/support/solutions/articles/70000583282-codecheck-overview) configurations
+	* Warnings from your selected [CodeCheck](https://support.scitools.com/support/solutions/articles/70000583282-codecheck-overview) groups (CodeCheck configurations)
 
 * Analyze files when you want to
 	* Automatically analyze files on save... or
