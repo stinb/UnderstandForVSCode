@@ -5,7 +5,7 @@ The Software Developer's Multi-Tool for Visual Studio Code
 
 ## Features
 
-![Screenshot of an analysis error violation in the editor](res/screenshotErrorInEditor.png)
+![Screenshot of an analysis error violation in the editor](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/res/screenshotErrorInEditor.png)
 
 * See violations in the editor
 	* Errors from compiling and analyzing
@@ -32,7 +32,7 @@ The Software Developer's Multi-Tool for Visual Studio Code
 
 ## Setup
 
-![Screenshot of the status item showing "Connected to the Understand language server"](res/screenshotConnected.png)
+![Screenshot of the status item showing "Connected to the Understand language server"](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/res/screenshotConnected.png)
 
 1. [Install Understand](https://licensing.scitools.com/download), which comes with UServer, the language server
 
