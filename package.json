@@ -3,7 +3,7 @@
 	"displayName": "Understand",
 	"description": "The Software Developer's Multi-Tool",
 	"version": "1.0.0",
-	"publisher": "Scientific Toolworks, Inc.",
+	"publisher": "scitools",
 	"repository": {},
 	"engines": {
 		"vscode": "^1.64.0"
@@ -55,9 +55,38 @@
 		"onLanguage:xml"
 	],
 	"contributes": {
+		"commands": [
+			{
+				"command": "understand.settings.showSettings",
+				"title": "Show Settings",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.settings.showSettingProjectPaths",
+				"title": "Show Setting: Project Paths",
+				"category": "Understand"
+			}
+		],
 		"configuration": {
 			"title": "Understand",
 			"properties": {
+				"understand.project.paths": {
+					"type": "array",
+					"default": [],
+					"items": {
+						"type": "string"
+					},
+					"description": "Absolute path of each Understand project (PROJECT_NAME.und folder, most likely should be configured in Workspace/Folder Settings)"
+				},
+				"understand.project.pathFindingMethod": {
+					"type": "string",
+					"default": "Automatic",
+					"enum": [
+						"Automatic",
+						"Manual"
+					],
+					"description": "Either allow the language server to find the Understand project(s) automatically, or manually set it once"
+				},
 				"understand.executable.path": {
 					"type": "string",
 					"default": "userver",

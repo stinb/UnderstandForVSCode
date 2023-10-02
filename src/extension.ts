@@ -50,7 +50,9 @@ function getConfig(key, expectedType)
 {
 	const value = vscode.workspace.getConfiguration().get(`understand.${key}`);
 
-	if (typeof(value) != expectedType) {
+	const actualType = Array.isArray(value) ? 'array' : typeof(value);
+
+	if (actualType != expectedType) {
 		switch (expectedType) {
 			case 'integer':
 				return parseInt(value);
@@ -58,6 +60,8 @@ function getConfig(key, expectedType)
 				return value;
 			case 'number':
 				return parseFloat(value);
+			case 'array':
+				return [];
 			default:
 				return value;
 		}
@@ -96,17 +100,17 @@ function log(itemToLog)
 }
 
 
-// Debug: info popup
-function info(itemToShow)
+// Show info popup to user
+function popupInfo(message)
 {
-	vscode.window.showInformationMessage(stringify(itemToShow));
+	vscode.window.showInformationMessage(stringify(message));
 }
 
 
-// Debug: error popup
-function error(itemToShow)
+// Show error popup to user
+function popupError(message)
 {
-	vscode.window.showErrorMessage(stringify(itemToShow));
+	vscode.window.showErrorMessage(stringify(message));
 }
 
 
@@ -197,17 +201,56 @@ function handleProgress(params)
 }
 
 
-// Main function for when the extension is activated
-async function activate(context)
-{
-	// Create status bar items
-	mainStatusBarItem = vscode.window.createStatusBarItem('main', vscode.StatusBarAlignment.Left, 100);
-	mainStatusBarItem.name = 'Understand';
-	progressStatusBarItem = vscode.window.createStatusBarItem('progress', vscode.StatusBarAlignment.Left, 99);
-	progressStatusBarItem.name = 'Understand Progress';
-	changeStatusBar(GENERAL_STATE_CONNECTING);
-	mainStatusBarItem.show();
+// Get a .und database from user input
+async function getUndPathFromUser() {
+	// Get database from user input
+	const rootPath = vscode.workspace.rootPath;
+	const rootUri = rootPath ? vscode.Uri.file(rootPath) : undefined;
+	const uris = await vscode.window.showOpenDialog({
+		canSelectFolders: true,
+		defaultUri: rootUri,
+		openLabel: 'Select',
+		title: 'Select .und Folder',
+	});
 
+	// Error: not selected
+	if (!uris)
+		return popupError('No folder selected');
+
+	// Error: not .und
+	const uri = uris[0];
+	if (!(/\.und$/.test(uri.fsPath)))
+		return popupError('Selected folder is not .und');
+
+	return uri.fsPath;
+}
+
+
+// Show a specific setting in the Settings UI
+function showSetting(setting)
+{
+	vscode.commands.executeCommand('workbench.action.openSettings', `@id:understand.${setting}`);
+}
+
+
+// Command: Show setting for for the extension in the Settings UI
+function showSettingProjectPaths()
+{
+	showSetting('project.paths');
+}
+
+
+// Command: Show all settings for the extension in the Settings UI
+function showSettings()
+{
+	vscode.commands.executeCommand('workbench.action.openSettings', `@ext:scitools.understand`);
+}
+
+
+
+// Activation: try connect to the language server
+async function connectToLanguageServer()
+{
 	// Arguments to start the language server
 	const protocol = getConfig('protocol', 'string');
 	const command = getConfig('executable.path', 'string');
@@ -237,7 +280,7 @@ async function activate(context)
 			args.push(connectionOptions.port.toString());
 			break;
 		default:
-			return error(`Value for understand.protocol is not a supported string: ${protocol}`);
+			return popupError(`Value for understand.protocol is not a supported string: ${protocol}`);
 	}
 
 	// NOTE: To understand the LanguageClient class, see the following file
@@ -256,7 +299,7 @@ async function activate(context)
 			// Fail if the language server wasn't found
 			childProcess.on('error', function(err) {
 				if (err.code === 'ENOENT')
-					error(`The command "${command}" wasn't found `);
+					popupError(`The command "${command}" wasn't found `);
 				reject();
 			});
 
@@ -338,6 +381,21 @@ async function activate(context)
 		{ scheme: 'file', language: 'xml' },
 	];
 
+	// Custom options for initializing
+	const initializationOptions = {};
+	// If the user wants to override the .und project path
+	if (getConfig('project.pathFindingMethod', 'string') === 'Manual') {
+		const projectPaths = getConfig('project.paths', 'array');
+		if (projectPaths.length === 0)
+			return vscode.window.showInformationMessage('Select the path of each .und project', 'Show setting')
+				.then(function(choice) {
+					if (choice === 'Show setting')
+						showSetting('project.paths');
+				});
+		else
+			initializationOptions['projectPaths'] = projectPaths;
+	}
+
 	// TODO: Improve createFileSystemWatcher to allow for an array of include/exclude globe patterns
 
 	// TODO: If the user changes the option, then change something
@@ -352,6 +410,7 @@ async function activate(context)
 	// Options to control the language client
 	const clientOptions = {
 		documentSelector: documentSelector,
+		initializationOptions: initializationOptions,
 		synchronize: {
 			fileEvents: fileEvents,
 		},
@@ -392,6 +451,27 @@ async function activate(context)
 	// Custom handlers
 	languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
 	languageClient.onNotification('$/progress', handleProgress);
+}
+
+
+// Main function for when the extension is activated
+function activate(context)
+{
+	// Set up commands that were created in package.json
+	context.subscriptions.push(
+		vscode.commands.registerCommand('understand.settings.showSettings', showSettings),
+		vscode.commands.registerCommand('understand.settings.showSettingProjectPaths', showSettingProjectPaths),
+	);
+
+	// Create status bar items
+	mainStatusBarItem = vscode.window.createStatusBarItem('main', vscode.StatusBarAlignment.Left, 100);
+	mainStatusBarItem.name = 'Understand';
+	progressStatusBarItem = vscode.window.createStatusBarItem('progress', vscode.StatusBarAlignment.Left, 99);
+	progressStatusBarItem.name = 'Understand Progress';
+	changeStatusBar(GENERAL_STATE_CONNECTING);
+	mainStatusBarItem.show();
+
+	return connectToLanguageServer();
 }
 
 
