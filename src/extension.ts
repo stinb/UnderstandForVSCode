@@ -11,11 +11,14 @@ const process       = require('node:process');
 const lc = require('vscode-languageclient');
 
 
-const GENERAL_STATE_CONNECTING    = 0;
-const GENERAL_STATE_CONNECTED     = 1;
-const GENERAL_STATE_NO_CONNECTION = 2;
-const GENERAL_STATE_PROGRESS      = 3;
+// Enum for general state of the language server & client
+const GENERAL_STATE_NEED_CONFIG   = 0;
+const GENERAL_STATE_CONNECTING    = 1;
+const GENERAL_STATE_CONNECTED     = 2;
+const GENERAL_STATE_NO_CONNECTION = 3;
+const GENERAL_STATE_PROGRESS      = 4;
 
+// Enum for database state
 const DATABASE_STATE_FINDING       = -3; // the server is finding the db
 const DATABASE_STATE_NOT_FOUND     = -2; // the server failed to open the db
 const DATABASE_STATE_NOT_OPENED    = -1; // the server failed to open the db
@@ -24,14 +27,6 @@ const DATABASE_STATE_RESOLVED      = 1;  // the db is resolved
 const DATABASE_STATE_RESOLVING     = 2;  // the db is in the middle of a resolve operation
 const DATABASE_STATE_UNRESOLVED    = 3;  // the db is not resolved
 const DATABASE_STATE_WRONG_VERSION = 4;  // the db is not resolved due to an old parse version
-
-// NOTE: keep COMMAND_NAMES and COMMANDS synchronized
-const COMMAND_NAMES = [
-	'Focus on Violations',
-];
-const COMMANDS = [
-	'workbench.action.problems.focus',
-];
 
 
 let languageClient;
@@ -125,13 +120,47 @@ function statusBarItemTitleAndPercent(title, percentage)
 
 
 // Create text of status bar item: status and commands
-function statusBarItemStatusAndCommands(title)
+function statusBarItemStatusAndCommands(status, title)
 {
 	const markdownString = new vscode.MarkdownString(title);
 
-	markdownString.isTrusted = { enabledCommands: COMMANDS };
-	for (let i = 0; i < COMMANDS.length; i++)
-		markdownString.appendMarkdown(`\n\n[${COMMAND_NAMES[i]}](command:${COMMANDS[i]})`);
+	// TODO add commands
+
+	// Select commands to display
+	const commands = [];
+	commands.push({ name: 'Select .und project(s)', command: 'understand.settings.settingsSowSettingProjectPaths', });
+	switch (status) {
+		case GENERAL_STATE_NEED_CONFIG:
+			// ...
+			break;
+		case GENERAL_STATE_CONNECTING:
+			// ...
+			break;
+		case GENERAL_STATE_CONNECTED:
+			switch (databaseState) {
+				case DATABASE_STATE_FINDING:
+					// ...
+					break;
+				case DATABASE_STATE_RESOLVED:
+					// ...
+					break;
+				default:
+					// ...
+					break;
+			}
+			break;
+		case GENERAL_STATE_NO_CONNECTION:
+			// ...
+			break;
+		case GENERAL_STATE_PROGRESS:
+			// ...
+			break;
+	}
+
+	// Display commands
+	markdownString.isTrusted = true;
+	for (const commandObj of commands)
+		markdownString.appendMarkdown(`\n\n[${commandObj.name}](command:${commandObj.command})`);
 
 	return markdownString;
 }
@@ -141,37 +170,42 @@ function statusBarItemStatusAndCommands(title)
 function changeStatusBar(status, progress = {})
 {
 	switch (status) {
+		case GENERAL_STATE_NEED_CONFIG:
+			mainStatusBarItem.text = '$(gear) Understand';
+			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Manual configuration needed');
+			progressStatusBarItem.hide();
+			break;
 		case GENERAL_STATE_CONNECTING:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
-			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands('Connecting to the Understand language server');
+			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connecting to the Understand language server');
 			progressStatusBarItem.hide();
 			break;
 		case GENERAL_STATE_CONNECTED:
 			switch (databaseState) {
 				case DATABASE_STATE_FINDING:
 					mainStatusBarItem.text = '$(sync~spin) Understand';
-					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands('Finding and resolving database(s)');
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Finding and resolving database(s)');
 					break;
 				case DATABASE_STATE_RESOLVED:
 					mainStatusBarItem.text = '$(search-view-icon) Understand';
-					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands('Connected to the Understand language server');
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server');
 					break;
 				default:
 					mainStatusBarItem.text = '$(error) Understand';
-					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands('No resolved database found by the Understand language server');
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'No resolved database found by the Understand language server');
 					break;
 			}
 			progressStatusBarItem.hide();
 			break;
 		case GENERAL_STATE_NO_CONNECTION:
 			mainStatusBarItem.text = '$(error) Understand';
-			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands('Failed to connect to the Understand language server');
+			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Failed to connect to the Understand language server');
 			progressStatusBarItem.hide();
 			break;
 		case GENERAL_STATE_PROGRESS:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
 			if (progress.title) {
-				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(progress.title);
+				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, progress.title);
 				progressStatusBarItem.text = statusBarItemTitleAndPercent(progress.title, progress.percentage);
 				progressStatusBarItem._title = progress.title;
 			}
@@ -234,23 +268,104 @@ function showSetting(setting)
 
 
 // Command: Show setting for for the extension in the Settings UI
-function showSettingProjectPaths()
+function settingsSowSettingProjectPaths()
 {
 	showSetting('project.paths');
 }
 
 
 // Command: Show all settings for the extension in the Settings UI
-function showSettings()
+function settingsShowSettings()
 {
 	vscode.commands.executeCommand('workbench.action.openSettings', `@ext:scitools.understand`);
 }
 
 
+// Command: Go to next error in all files
+function violationsGoToNextErrorInAllFiles()
+{
+	popupInfo('TODO');
+}
+
+
+// Command: Go to previous error in all files
+function violationsGoToPreviousErrorInAllFiles()
+{
+	popupInfo('TODO');
+}
+
+
+// Command: Go to next warning in all files
+function violationsGoToNextWarningInAllFiles()
+{
+	popupInfo('TODO');
+}
+
+
+// Command: Go to previous warning in all files
+function violationsGoToPreviousWarningInAllFiles()
+{
+	popupInfo('TODO');
+}
+
+
+// Command: Go to next error in current file
+function violationsGoToNextErrorInCurrentFile()
+{
+	popupInfo('TODO');
+}
+
+
+// Command: Go to previous error in current file
+function violationsGoToPreviousErrorInCurrentFile()
+{
+	popupInfo('TODO');
+}
+
+
+// Command: Go to next warning in current file
+function violationsGoToNextWarningInCurrentFile()
+{
+	popupInfo('TODO');
+}
+
+
+// Command: Go to previous warning in current file
+function violationsGoToPreviousWarningInCurrentFile()
+{
+	popupInfo('TODO');
+}
+
+
+// Command: Toggle whether the Violations panel is focused
+function violationsToggleFocus()
+{
+	popupInfo('TODO');
+}
+
+
+// Command: Toggle whether the Violations panel is shown
+function violationsToggleShow()
+{
+	popupInfo('TODO');
+}
+
 
 // Activation: try connect to the language server
 async function connectToLanguageServer()
 {
+	// Custom options for initializing
+	const initializationOptions = {};
+	// If the user wants to override the .und project path
+	if (getConfig('project.pathFindingMethod', 'string') === 'Manual') {
+		const projectPaths = getConfig('project.paths', 'array');
+		if (projectPaths.length === 0)
+			return;
+		else
+			initializationOptions['projectPaths'] = projectPaths;
+	}
+	changeStatusBar(GENERAL_STATE_CONNECTING);
+
 	// Arguments to start the language server
 	const protocol = getConfig('protocol', 'string');
 	const command = getConfig('executable.path', 'string');
@@ -381,21 +496,6 @@ async function connectToLanguageServer()
 		{ scheme: 'file', language: 'xml' },
 	];
 
-	// Custom options for initializing
-	const initializationOptions = {};
-	// If the user wants to override the .und project path
-	if (getConfig('project.pathFindingMethod', 'string') === 'Manual') {
-		const projectPaths = getConfig('project.paths', 'array');
-		if (projectPaths.length === 0)
-			return vscode.window.showInformationMessage('Select the path of each .und project', 'Show setting')
-				.then(function(choice) {
-					if (choice === 'Show setting')
-						showSetting('project.paths');
-				});
-		else
-			initializationOptions['projectPaths'] = projectPaths;
-	}
-
 	// TODO: Improve createFileSystemWatcher to allow for an array of include/exclude globe patterns
 
 	// TODO: If the user changes the option, then change something
@@ -459,8 +559,18 @@ function activate(context)
 {
 	// Set up commands that were created in package.json
 	context.subscriptions.push(
-		vscode.commands.registerCommand('understand.settings.showSettings', showSettings),
-		vscode.commands.registerCommand('understand.settings.showSettingProjectPaths', showSettingProjectPaths),
+		vscode.commands.registerCommand('understand.settings.settingsShowSettings', settingsShowSettings),
+		vscode.commands.registerCommand('understand.settings.settingsSowSettingProjectPaths', settingsSowSettingProjectPaths),
+		vscode.commands.registerCommand('understand.violations.goToNextErrorInAllFiles', violationsGoToNextErrorInAllFiles),
+		vscode.commands.registerCommand('understand.violations.goToPreviousErrorInAllFiles', violationsGoToPreviousErrorInAllFiles),
+		vscode.commands.registerCommand('understand.violations.goToNextWarningInAllFiles', violationsGoToNextWarningInAllFiles),
+		vscode.commands.registerCommand('understand.violations.goToPreviousWarningInAllFiles', violationsGoToPreviousWarningInAllFiles),
+		vscode.commands.registerCommand('understand.violations.goToNextErrorInCurrentFile', violationsGoToNextErrorInCurrentFile),
+		vscode.commands.registerCommand('understand.violations.goToPreviousErrorInCurrentFile', violationsGoToPreviousErrorInCurrentFile),
+		vscode.commands.registerCommand('understand.violations.goToNextWarningInCurrentFile', violationsGoToNextWarningInCurrentFile),
+		vscode.commands.registerCommand('understand.violations.goToPreviousWarningInCurrentFile', violationsGoToPreviousWarningInCurrentFile),
+		vscode.commands.registerCommand('understand.violations.toggleFocus', violationsToggleFocus),
+		vscode.commands.registerCommand('understand.violations.toggleShow', violationsToggleShow),
 	);
 
 	// Create status bar items
@@ -468,7 +578,7 @@ function activate(context)
 	mainStatusBarItem.name = 'Understand';
 	progressStatusBarItem = vscode.window.createStatusBarItem('progress', vscode.StatusBarAlignment.Left, 99);
 	progressStatusBarItem.name = 'Understand Progress';
-	changeStatusBar(GENERAL_STATE_CONNECTING);
+	changeStatusBar(GENERAL_STATE_NEED_CONFIG);
 	mainStatusBarItem.show();
 
 	return connectToLanguageServer();
