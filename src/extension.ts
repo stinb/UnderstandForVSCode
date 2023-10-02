@@ -25,6 +25,14 @@ const DATABASE_STATE_RESOLVING     = 2;  // the db is in the middle of a resolve
 const DATABASE_STATE_UNRESOLVED    = 3;  // the db is not resolved
 const DATABASE_STATE_WRONG_VERSION = 4;  // the db is not resolved due to an old parse version
 
+// NOTE: keep COMMAND_NAMES and COMMANDS synchronized
+const COMMAND_NAMES = [
+	'Focus on Violations',
+];
+const COMMANDS = [
+	'workbench.action.problems.focus',
+];
+
 
 let languageClient;
 
@@ -102,8 +110,8 @@ function error(itemToShow)
 }
 
 
-// Create new text of status bar item
-function titleAndPercent(title, percentage)
+// Create text of status bar item: title and percent
+function statusBarItemTitleAndPercent(title, percentage)
 {
 	if (percentage === undefined || percentage === null)
 		return title;
@@ -111,46 +119,60 @@ function titleAndPercent(title, percentage)
 		return `${title} ${percentage}%`;
 }
 
+
+// Create text of status bar item: status and commands
+function statusBarItemStatusAndCommands(title)
+{
+	const markdownString = new vscode.MarkdownString(title);
+
+	markdownString.isTrusted = { enabledCommands: COMMANDS };
+	for (let i = 0; i < COMMANDS.length; i++)
+		markdownString.appendMarkdown(`\n\n[${COMMAND_NAMES[i]}](command:${COMMANDS[i]})`);
+
+	return markdownString;
+}
+
+
 // Change status bar item
 function changeStatusBar(status, progress = {})
 {
 	switch (status) {
 		case GENERAL_STATE_CONNECTING:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
-			mainStatusBarItem.tooltip = 'Connecting to the Understand language server';
+			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands('Connecting to the Understand language server');
 			progressStatusBarItem.hide();
 			break;
 		case GENERAL_STATE_CONNECTED:
 			switch (databaseState) {
 				case DATABASE_STATE_FINDING:
 					mainStatusBarItem.text = '$(sync~spin) Understand';
-					mainStatusBarItem.tooltip = 'Finding and resolving database(s)';
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands('Finding and resolving database(s)');
 					break;
 				case DATABASE_STATE_RESOLVED:
 					mainStatusBarItem.text = '$(search-view-icon) Understand';
-					mainStatusBarItem.tooltip = 'Connected to the Understand language server';
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands('Connected to the Understand language server');
 					break;
 				default:
 					mainStatusBarItem.text = '$(error) Understand';
-					mainStatusBarItem.tooltip = 'No resolved database found by the Understand language server';
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands('No resolved database found by the Understand language server');
 					break;
 			}
 			progressStatusBarItem.hide();
 			break;
 		case GENERAL_STATE_NO_CONNECTION:
 			mainStatusBarItem.text = '$(error) Understand';
-			mainStatusBarItem.tooltip = 'Failed to connect to the Understand language server';
+			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands('Failed to connect to the Understand language server');
 			progressStatusBarItem.hide();
 			break;
 		case GENERAL_STATE_PROGRESS:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
 			if (progress.title) {
-				mainStatusBarItem.tooltip = progress.title;
-				progressStatusBarItem.text = titleAndPercent(progress.title, progress.percentage);
+				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(progress.title);
+				progressStatusBarItem.text = statusBarItemTitleAndPercent(progress.title, progress.percentage);
 				progressStatusBarItem._title = progress.title;
 			}
 			else if (progress.percentage !== undefined && progress.percentage !== null) {
-				progressStatusBarItem.text = titleAndPercent(progressStatusBarItem._title, progress.percentage);
+				progressStatusBarItem.text = statusBarItemTitleAndPercent(progressStatusBarItem._title, progress.percentage);
 			}
 			progressStatusBarItem.show();
 			break;
