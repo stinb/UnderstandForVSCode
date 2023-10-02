@@ -6,7 +6,7 @@
 	"publisher": "scitools",
 	"repository": {},
 	"engines": {
-		"vscode": "^1.64.0"
+		"vscode": "^1.82.0"
 	},
 	"categories": [
 		"Data Science",
@@ -67,53 +67,18 @@
 				"category": "Understand"
 			},
 			{
-				"command": "understand.violations.goToNextErrorInAllFiles",
-				"title": "Violations: Go to Next Error in All Files",
+				"command": "understand.violations.goToNextViolation",
+				"title": "Violations: Go to Next Violation",
 				"category": "Understand"
 			},
 			{
-				"command": "understand.violations.goToPreviousErrorInAllFiles",
-				"title": "Violations: Go to Previous Error in All Files",
+				"command": "understand.violations.goToPreviousViolation",
+				"title": "Violations: Go to Previous Violation",
 				"category": "Understand"
 			},
 			{
-				"command": "understand.violations.goToNextWarningInAllFiles",
-				"title": "Violations: Go to Next Warning in All Files",
-				"category": "Understand"
-			},
-			{
-				"command": "understand.violations.goToPreviousWarningInAllFiles",
-				"title": "Violations: Go to Previous Warning in All Files",
-				"category": "Understand"
-			},
-			{
-				"command": "understand.violations.goToNextErrorInCurrentFile",
-				"title": "Violations: Go to Next Error in Current File",
-				"category": "Understand"
-			},
-			{
-				"command": "understand.violations.goToPreviousErrorInCurrentFile",
-				"title": "Violations: Go to Previous Error in Current File",
-				"category": "Understand"
-			},
-			{
-				"command": "understand.violations.goToNextWarningInCurrentFile",
-				"title": "Violations: Go to Next Warning in Current File",
-				"category": "Understand"
-			},
-			{
-				"command": "understand.violations.goToPreviousWarningInCurrentFile",
-				"title": "Violations: Go to Previous Warning in Current File",
-				"category": "Understand"
-			},
-			{
-				"command": "understand.violations.toggleFocus",
-				"title": "Violations: Toggle Focus",
-				"category": "Understand"
-			},
-			{
-				"command": "understand.violations.toggleShow",
-				"title": "Violations: Toggle Show",
+				"command": "understand.violations.toggleFocusAndVisibility",
+				"title": "Violations: Toggle Focus and Visibility",
 				"category": "Understand"
 			}
 		],

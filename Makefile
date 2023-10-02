@@ -13,3 +13,5 @@ watch: node_modules
 	npm run esbuild-watch
 install: $(OUTPUT)
 	code --install-extension $(OUTPUT)
+run: $(OUTPUT)
+	code --install-extension $(OUTPUT) && code

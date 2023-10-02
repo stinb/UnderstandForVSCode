@@ -281,73 +281,26 @@ function settingsShowSettings()
 }
 
 
-// Command: Go to next error in all files
-function violationsGoToNextErrorInAllFiles()
-{
-	popupInfo('TODO');
-}
-
-
-// Command: Go to previous error in all files
-function violationsGoToPreviousErrorInAllFiles()
-{
-	popupInfo('TODO');
-}
-
-
-// Command: Go to next warning in all files
-function violationsGoToNextWarningInAllFiles()
-{
-	popupInfo('TODO');
-}
-
-
-// Command: Go to previous warning in all files
-function violationsGoToPreviousWarningInAllFiles()
-{
-	popupInfo('TODO');
-}
-
-
-// Command: Go to next error in current file
-function violationsGoToNextErrorInCurrentFile()
-{
-	popupInfo('TODO');
-}
-
-
-// Command: Go to previous error in current file
-function violationsGoToPreviousErrorInCurrentFile()
-{
-	popupInfo('TODO');
-}
-
-
 // Command: Go to next warning in current file
-function violationsGoToNextWarningInCurrentFile()
+function violationsGoToNextViolation(args)
 {
 	popupInfo('TODO');
+	log(args);
 }
 
 
 // Command: Go to previous warning in current file
-function violationsGoToPreviousWarningInCurrentFile()
+function violationsGoToPreviousViolation(args)
 {
 	popupInfo('TODO');
+	log(args);
 }
 
 
-// Command: Toggle whether the Violations panel is focused
-function violationsToggleFocus()
+// Command: Toggle whether the Problems panel (Violations) is focused and visible
+function violationsToggleFocusAndVisibility()
 {
-	popupInfo('TODO');
-}
-
-
-// Command: Toggle whether the Violations panel is shown
-function violationsToggleShow()
-{
-	popupInfo('TODO');
+	vscode.commands.executeCommand('workbench.action.problems.focus');
 }
 
 
@@ -561,16 +514,9 @@ function activate(context)
 	context.subscriptions.push(
 		vscode.commands.registerCommand('understand.settings.settingsShowSettings', settingsShowSettings),
 		vscode.commands.registerCommand('understand.settings.settingsSowSettingProjectPaths', settingsSowSettingProjectPaths),
-		vscode.commands.registerCommand('understand.violations.goToNextErrorInAllFiles', violationsGoToNextErrorInAllFiles),
-		vscode.commands.registerCommand('understand.violations.goToPreviousErrorInAllFiles', violationsGoToPreviousErrorInAllFiles),
-		vscode.commands.registerCommand('understand.violations.goToNextWarningInAllFiles', violationsGoToNextWarningInAllFiles),
-		vscode.commands.registerCommand('understand.violations.goToPreviousWarningInAllFiles', violationsGoToPreviousWarningInAllFiles),
-		vscode.commands.registerCommand('understand.violations.goToNextErrorInCurrentFile', violationsGoToNextErrorInCurrentFile),
-		vscode.commands.registerCommand('understand.violations.goToPreviousErrorInCurrentFile', violationsGoToPreviousErrorInCurrentFile),
-		vscode.commands.registerCommand('understand.violations.goToNextWarningInCurrentFile', violationsGoToNextWarningInCurrentFile),
-		vscode.commands.registerCommand('understand.violations.goToPreviousWarningInCurrentFile', violationsGoToPreviousWarningInCurrentFile),
-		vscode.commands.registerCommand('understand.violations.toggleFocus', violationsToggleFocus),
-		vscode.commands.registerCommand('understand.violations.toggleShow', violationsToggleShow),
+		vscode.commands.registerCommand('understand.violations.goToNextViolation', violationsGoToNextViolation),
+		vscode.commands.registerCommand('understand.violations.goToPreviousViolation', violationsGoToPreviousViolation),
+		vscode.commands.registerCommand('understand.violations.toggleFocusAndVisibility', violationsToggleFocusAndVisibility),
 	);
 
 	// Create status bar items
