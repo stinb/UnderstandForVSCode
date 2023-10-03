@@ -28,6 +28,9 @@ const DATABASE_STATE_RESOLVING     = 2;  // the db is in the middle of a resolve
 const DATABASE_STATE_UNRESOLVED    = 3;  // the db is not resolved
 const DATABASE_STATE_WRONG_VERSION = 4;  // the db is not resolved due to an old parse version
 
+// Milliseconds to wait after receiving violations, to then process them
+const MIDDLEWARE_VIOLATIONS_DELAY_MS = 1000;
+
 
 let languageClient;
 
@@ -38,6 +41,9 @@ let logger;
 
 let mainStatusBarItem;
 let progressStatusBarItem;
+
+let violations;
+let violationsTimestamp;
 
 
 // Get an option from the user's config, which is user input
@@ -281,19 +287,66 @@ function settingsShowSettings()
 }
 
 
-// Command: Go to next warning in current file
-function violationsGoToNextViolation(args)
+// Middleware: 'textDocument/publishDiagnostics' method
+function middlewareHandleDiagnostics(params)
 {
-	popupInfo('TODO');
-	log(args);
+	// TODO improve this so that it's not called twice
+
+	// log('Got violations');
+
+	// If the current timestamp is the same millisecond as previous, then stop
+	const now = Date.now();
+	if (now === violationsTimestamp)
+		return;
+
+	// Call the block below after a bit
+	violationsTimestamp = now;
+	setTimeout(function() {
+		// Stop if the violations are still coming
+		if (violationsTimestamp + MIDDLEWARE_VIOLATIONS_DELAY_MS > Date.now())
+			return;
+
+		// Process the violations
+		// log('Process the violations');
+	}, MIDDLEWARE_VIOLATIONS_DELAY_MS);
 }
 
 
-// Command: Go to previous warning in current file
+// Helper: go to next/previous violation
+function goToViolationHelper(next, args)
+{
+	// Stop if there are no violations
+	if (violations === undefined)
+		return;
+
+	// Get argument from user keybinding or revert to default
+	const error    = (args?.error    !== undefined) ? args.error    : true;
+	const warning  = (args?.warning  !== undefined) ? args.warning  : true;
+	const info     = (args?.info     !== undefined) ? args.info     : false;
+	const allFiles = (args?.allFiles !== undefined) ? args.allFiles : false;
+
+	// Stop if the user wants the current file and there's no editor
+	const editor = vscode.window.activeTextEditor;
+	if (!allFiles && editor === undefined)
+		return;
+
+	// log(violations);
+	// violations.sort(violationComparator);
+	// log(violations);
+}
+
+
+// Command: Go to next violation
+function violationsGoToNextViolation(args)
+{
+	goToViolationHelper(true, args);
+}
+
+
+// Command: Go to previous violation
 function violationsGoToPreviousViolation(args)
 {
-	popupInfo('TODO');
-	log(args);
+	goToViolationHelper(false, args);
 }
 
 
@@ -449,6 +502,11 @@ async function connectToLanguageServer()
 		{ scheme: 'file', language: 'xml' },
 	];
 
+	// Custom middleware for certain methods
+	const middleware = {
+		handleDiagnostics: middlewareHandleDiagnostics,
+	};
+
 	// TODO: Improve createFileSystemWatcher to allow for an array of include/exclude globe patterns
 
 	// TODO: If the user changes the option, then change something
@@ -464,6 +522,7 @@ async function connectToLanguageServer()
 	const clientOptions = {
 		documentSelector: documentSelector,
 		initializationOptions: initializationOptions,
+		middleware: middleware,
 		synchronize: {
 			fileEvents: fileEvents,
 		},
