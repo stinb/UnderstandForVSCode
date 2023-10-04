@@ -28,9 +28,6 @@ const DATABASE_STATE_RESOLVING     = 2;  // the db is in the middle of a resolve
 const DATABASE_STATE_UNRESOLVED    = 3;  // the db is not resolved
 const DATABASE_STATE_WRONG_VERSION = 4;  // the db is not resolved due to an old parse version
 
-// Milliseconds to wait after receiving violations, to then process them
-const MIDDLEWARE_VIOLATIONS_DELAY_MS = 1000;
-
 
 let languageClient;
 
@@ -41,9 +38,6 @@ let logger;
 
 let mainStatusBarItem;
 let progressStatusBarItem;
-
-let violations;
-let violationsTimestamp;
 
 
 // Get an option from the user's config, which is user input
@@ -134,7 +128,7 @@ function statusBarItemStatusAndCommands(status, title)
 
 	// Select commands to display
 	const commands = [];
-	commands.push({ name: 'Select .und project(s)', command: 'understand.settings.settingsSowSettingProjectPaths', });
+	commands.push({ name: 'Select .und project(s)', command: 'understand.settings.showSettingProjectPaths', });
 	switch (status) {
 		case GENERAL_STATE_NEED_CONFIG:
 			// ...
@@ -274,86 +268,51 @@ function showSetting(setting)
 
 
 // Command: Show setting for for the extension in the Settings UI
-function settingsSowSettingProjectPaths()
+function showSettingProjectPaths()
 {
 	showSetting('project.paths');
 }
 
 
 // Command: Show all settings for the extension in the Settings UI
-function settingsShowSettings()
+function showSettings()
 {
 	vscode.commands.executeCommand('workbench.action.openSettings', `@ext:scitools.understand`);
 }
 
 
-// Middleware: 'textDocument/publishDiagnostics' method
-function middlewareHandleDiagnostics(params)
+// Command: Go to next violation in all files
+function goToNextViolationInAllFiles()
 {
-	// TODO improve this so that it's not called twice
-
-	// log('Got violations');
-
-	// If the current timestamp is the same millisecond as previous, then stop
-	const now = Date.now();
-	if (now === violationsTimestamp)
-		return;
-
-	// Call the block below after a bit
-	violationsTimestamp = now;
-	setTimeout(function() {
-		// Stop if the violations are still coming
-		if (violationsTimestamp + MIDDLEWARE_VIOLATIONS_DELAY_MS > Date.now())
-			return;
-
-		// Process the violations
-		// log('Process the violations');
-	}, MIDDLEWARE_VIOLATIONS_DELAY_MS);
+	vscode.commands.executeCommand('editor.action.marker.nextInFiles');
 }
 
 
-// Helper: go to next/previous violation
-function goToViolationHelper(next, args)
+// Command: Go to next violation in current file
+function goToNextViolationInCurrentFile()
 {
-	// Stop if there are no violations
-	if (violations === undefined)
-		return;
-
-	// Get argument from user keybinding or revert to default
-	const error    = (args?.error    !== undefined) ? args.error    : true;
-	const warning  = (args?.warning  !== undefined) ? args.warning  : true;
-	const info     = (args?.info     !== undefined) ? args.info     : false;
-	const allFiles = (args?.allFiles !== undefined) ? args.allFiles : false;
-
-	// Stop if the user wants the current file and there's no editor
-	const editor = vscode.window.activeTextEditor;
-	if (!allFiles && editor === undefined)
-		return;
-
-	// log(violations);
-	// violations.sort(violationComparator);
-	// log(violations);
+	vscode.commands.executeCommand('editor.action.marker.next');
 }
 
 
-// Command: Go to next violation
-function violationsGoToNextViolation(args)
+// Command: Go to previous violation in all files
+function goToPreviousViolationInAllFiles()
 {
-	goToViolationHelper(true, args);
+	vscode.commands.executeCommand('editor.action.marker.prevInFiles');
 }
 
 
-// Command: Go to previous violation
-function violationsGoToPreviousViolation(args)
+// Command: Go to previous violation in current file
+function goToPreviousViolationInCurrentFile()
 {
-	goToViolationHelper(false, args);
+	vscode.commands.executeCommand('editor.action.marker.prev');
 }
 
 
 // Command: Toggle whether the Problems panel (Violations) is focused and visible
-function violationsToggleFocusAndVisibility()
+function toggleVisibilityAndFocus()
 {
-	vscode.commands.executeCommand('workbench.action.problems.focus');
+	vscode.commands.executeCommand('workbench.actions.view.problems');
 }
 
 
@@ -502,11 +461,6 @@ async function connectToLanguageServer()
 		{ scheme: 'file', language: 'xml' },
 	];
 
-	// Custom middleware for certain methods
-	const middleware = {
-		handleDiagnostics: middlewareHandleDiagnostics,
-	};
-
 	// TODO: Improve createFileSystemWatcher to allow for an array of include/exclude globe patterns
 
 	// TODO: If the user changes the option, then change something
@@ -522,7 +476,6 @@ async function connectToLanguageServer()
 	const clientOptions = {
 		documentSelector: documentSelector,
 		initializationOptions: initializationOptions,
-		middleware: middleware,
 		synchronize: {
 			fileEvents: fileEvents,
 		},
@@ -571,11 +524,16 @@ function activate(context)
 {
 	// Set up commands that were created in package.json
 	context.subscriptions.push(
-		vscode.commands.registerCommand('understand.settings.settingsShowSettings', settingsShowSettings),
-		vscode.commands.registerCommand('understand.settings.settingsSowSettingProjectPaths', settingsSowSettingProjectPaths),
-		vscode.commands.registerCommand('understand.violations.goToNextViolation', violationsGoToNextViolation),
-		vscode.commands.registerCommand('understand.violations.goToPreviousViolation', violationsGoToPreviousViolation),
-		vscode.commands.registerCommand('understand.violations.toggleFocusAndVisibility', violationsToggleFocusAndVisibility),
+		// Settings
+		vscode.commands.registerCommand('understand.settings.showSettings', showSettings),
+		vscode.commands.registerCommand('understand.settings.showSettingProjectPaths', showSettingProjectPaths),
+
+		// Violations
+		vscode.commands.registerCommand('understand.violations.goToNextViolationInAllFiles', goToNextViolationInAllFiles),
+		vscode.commands.registerCommand('understand.violations.goToNextViolationInCurrentFile', goToNextViolationInCurrentFile),
+		vscode.commands.registerCommand('understand.violations.goToPreviousViolationInAllFiles', goToPreviousViolationInAllFiles),
+		vscode.commands.registerCommand('understand.violations.goToPreviousViolationInCurrentFile', goToPreviousViolationInCurrentFile),
+		vscode.commands.registerCommand('understand.violations.toggleVisibilityAndFocus', toggleVisibilityAndFocus),
 	);
 
 	// Create status bar items

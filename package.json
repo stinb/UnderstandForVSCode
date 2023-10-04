@@ -67,18 +67,28 @@
 				"category": "Understand"
 			},
 			{
-				"command": "understand.violations.goToNextViolation",
-				"title": "Violations: Go to Next Violation",
+				"command": "understand.violations.goToNextViolationInAllFiles",
+				"title": "Violations: Go to Next Violation in All Files (Error/Warning/Info)",
 				"category": "Understand"
 			},
 			{
-				"command": "understand.violations.goToPreviousViolation",
-				"title": "Violations: Go to Previous Violation",
+				"command": "understand.violations.goToNextViolationInCurrentFile",
+				"title": "Violations: Go to Next Violation in Current File (Error/Warning/Info)",
 				"category": "Understand"
 			},
 			{
-				"command": "understand.violations.toggleFocusAndVisibility",
-				"title": "Violations: Toggle Focus and Visibility",
+				"command": "understand.violations.goToPreviousViolationInAllFiles",
+				"title": "Violations: Go to Previous Violation in All Files (Error/Warning/Info)",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.violations.goToPreviousViolationInCurrentFile",
+				"title": "Violations: Go to Previous Violation in Current File (Error/Warning/Info)",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.violations.toggleVisibilityAndFocus",
+				"title": "Violations: Toggle Visibility and Focus",
 				"category": "Understand"
 			}
 		],
