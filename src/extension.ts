@@ -609,7 +609,7 @@ async function startLanguageServer(newConnectionOptions=true)
 	}
 
 	// Remember the databases and the status bar (array of objects {path, status})
-	databases = languageClient._initializeResult.serverInfo.databases;
+	databases = languageClient._initializeResult.databases;
 	changeStatusBar(GENERAL_STATE_READY);
 
 	// Custom handlers
