@@ -95,6 +95,16 @@
 		"configuration": {
 			"title": "Understand",
 			"properties": {
+				"understand.executable.path": {
+					"type": "string",
+					"default": "userver",
+					"description": "Command or full path of the executable for the language server"
+				},
+				"understand.files.watch": {
+					"type": "string",
+					"default": "**/*.{C,F,F90,H,TXT,a,ada,adb,ads,asm,bat,c,cbl,cc,cgi,cob,cpl,cpp,cpy,cs,css,cu,cuh,cxx,dfm,dpr,f,f03,f77,f90,f95,fmx,for,ftn,gpr,h,hh,hpp,htm,html,hxx,inl,java,jov,js,m,mm,pas,php,pl,plm,pm,py,s,sp,sql,tcl,ts,tsx,txt,upy,v,vb,vh,vhd,vhdl,xml}",
+					"markdownDescription": "[Glob pattern](https://aka.ms/vscode-glob-patterns) of files to watch, to notify the server when they are changed/created/deleted"
+				},
 				"understand.project.paths": {
 					"type": "array",
 					"default": [],
@@ -111,16 +121,6 @@
 						"Manual"
 					],
 					"description": "Either allow the language server to find the Understand project(s) automatically, or manually set it once"
-				},
-				"understand.executable.path": {
-					"type": "string",
-					"default": "userver",
-					"description": "Command or full path of the executable for the language server"
-				},
-				"understand.files.watch": {
-					"type": "string",
-					"default": "**/*.{C,F,F90,H,TXT,a,ada,adb,ads,asm,bat,c,cbl,cc,cgi,cob,cpl,cpp,cpy,cs,css,cu,cuh,cxx,dfm,dpr,f,f03,f77,f90,f95,fmx,for,ftn,gpr,h,hh,hpp,htm,html,hxx,inl,java,jov,js,m,mm,pas,php,pl,plm,pm,py,s,sp,sql,tcl,ts,tsx,txt,upy,v,vb,vh,vhd,vhdl,xml}",
-					"markdownDescription": "[Glob pattern](https://aka.ms/vscode-glob-patterns) of files to watch, to notify the server when they are changed/created/deleted"
 				},
 				"understand.protocol": {
 					"type": "string",

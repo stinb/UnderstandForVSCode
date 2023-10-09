@@ -28,7 +28,10 @@ const DATABASE_STATE_RESOLVING     = 2;  // the db is in the middle of a resolve
 const DATABASE_STATE_UNRESOLVED    = 3;  // the db is not resolved
 const DATABASE_STATE_WRONG_VERSION = 4;  // the db is not resolved due to an old parse version
 
+let args;
+let connectionOptions;
 
+let languageServer;
 let languageClient;
 
 // TODO: add client side support for multiple databases
@@ -316,8 +319,71 @@ function toggleVisibilityAndFocus()
 }
 
 
-// Activation: try connect to the language server
-async function connectToLanguageServer()
+// Stop the language client and possibly the language server too
+async function stop(stopLanguageServer=false)
+{
+	if (languageServer !== undefined && stopLanguageServer) {
+		await languageServer.kill();
+		languageServer = undefined;
+	}
+
+	if (languageClient !== undefined && languageClient.needsStop()) {
+		try {
+			await languageClient.stop();
+		} catch (_) {
+
+		}
+		languageClient = undefined;
+	}
+}
+
+
+// Handle a setting that changed
+async function onDidChangeConfiguration(configurationChangeEvent)
+{
+	// Skip settings that aren't in this extension
+	if (!configurationChangeEvent.affectsConfiguration('understand'))
+		return;
+
+	// Decide whether to stop both the server and the client
+	const settingsToStopServerAndClient = [
+		'understand.executable',
+		'understand.protocol',
+		'understand.protocols',
+	];
+	let stopServerAndClient = false;
+	for (const setting of settingsToStopServerAndClient) {
+		if (configurationChangeEvent.affectsConfiguration(setting)) {
+			stopServerAndClient = true;
+			break;
+		}
+	}
+
+	// Decide whether to stop only the client
+	const settingsToStopClientOnly = [
+		'understand.files',
+		'understand.project',
+	];
+	let stopClientOnly = false;
+	if (!stopServerAndClient) {
+		for (const setting of settingsToStopClientOnly) {
+			if (configurationChangeEvent.affectsConfiguration(setting)) {
+				stopClientOnly = true;
+				break;
+			}
+		}
+	}
+
+	if (!stopServerAndClient && !stopClientOnly)
+		return;
+
+	await stop(stopServerAndClient);
+	return startLanguageServer(stopServerAndClient);
+}
+
+
+// Activation: try to connect to the language server
+async function startLanguageServer(newConnectionOptions=true)
 {
 	// Custom options for initializing
 	const initializationOptions = {};
@@ -335,32 +401,32 @@ async function connectToLanguageServer()
 	const protocol = getConfig('protocol', 'string');
 	const command = getConfig('executable.path', 'string');
 	const detached = false;
-	const args = [];
-	const connectionOptions = {};
 	const childProcessEnv = process.env; // NOTE: this is important for avoiding a bad analysis
-	let host;
-	let port;
-	switch (protocol) {
-		case 'Local Socket':
-			connectionOptions.path = getConfig('protocols.localSocket.path', 'string');
-			if (connectionOptions.path.length === 0) {
-				if (process.platform === 'win32')
-					connectionOptions.path = '\\\\.\\pipe\\userver-{uuid}';
-				else
-					connectionOptions.path = '/tmp/userver-{uuid}';
-			}
-			connectionOptions.path = connectionOptions.path.replaceAll('{uuid}', crypto.randomUUID());
-			args.push('-local');
-			args.push(connectionOptions.path);
-			break;
-		case 'TCP Socket':
-			connectionOptions.host = '127.0.0.1';
-			connectionOptions.port = getConfig('protocols.tcpSocket.port', 'integer');
-			args.push('-tcp');
-			args.push(connectionOptions.port.toString());
-			break;
-		default:
-			return popupError(`Value for understand.protocol is not a supported string: ${protocol}`);
+	if (newConnectionOptions) {
+		args = [];
+		connectionOptions = {};
+		switch (protocol) {
+			case 'Local Socket':
+				connectionOptions.path = getConfig('protocols.localSocket.path', 'string');
+				if (connectionOptions.path.length === 0) {
+					if (process.platform === 'win32')
+						connectionOptions.path = '\\\\.\\pipe\\userver-{uuid}';
+					else
+						connectionOptions.path = '/tmp/userver-{uuid}';
+				}
+				connectionOptions.path = connectionOptions.path.replaceAll('{uuid}', crypto.randomUUID());
+				args.push('-local');
+				args.push(connectionOptions.path);
+				break;
+			case 'TCP Socket':
+				connectionOptions.host = '127.0.0.1';
+				connectionOptions.port = getConfig('protocols.tcpSocket.port', 'integer');
+				args.push('-tcp');
+				args.push(connectionOptions.port.toString());
+				break;
+			default:
+				return popupError(`Value for understand.protocol is not a supported string: ${protocol}`);
+		}
 	}
 
 	// NOTE: To understand the LanguageClient class, see the following file
@@ -369,22 +435,7 @@ async function connectToLanguageServer()
 	// Options to connect to the language server
 	const serverOptions = function() {
 		return new Promise(function(resolve, reject) {
-			// Start to spawn the language server process
-			const childProcess = child_process.spawn(command, args, {
-				env: childProcessEnv,
-				stdio: 'ignore',
-				detached: detached,
-			});
-
-			// Fail if the language server wasn't found
-			childProcess.on('error', function(err) {
-				if (err.code === 'ENOENT')
-					popupError(`The command "${command}" wasn't found `);
-				reject();
-			});
-
-			// Wait until the language server is spawned
-			childProcess.on('spawn', function() {
+			const connectToServer = function() {
 				// Wait a bit for the language server to create the socket
 				let connected = false;
 				let connectAttempts = 0;
@@ -422,7 +473,31 @@ async function connectToLanguageServer()
 					}
 					connectAttempts += 1;
 				}, connectWaitMilliseconds);
-			});
+			};
+
+			// Connect to the process if it already exists
+			if (languageServer !== undefined) {
+				return connectToServer();
+			}
+			// Spawn the process and connect to it
+			else {
+				// Start to spawn the language server process
+				languageServer = child_process.spawn(command, args, {
+					env: childProcessEnv,
+					stdio: 'ignore',
+					detached: detached,
+				});
+
+				// Fail if the language server wasn't found
+				languageServer.on('error', function(err) {
+					if (err.code === 'ENOENT')
+						popupError(`The command "${command}" wasn't found `);
+					reject();
+				});
+
+				// Wait until the language server is spawned
+				languageServer.on('spawn', connectToServer);
+			}
 		});
 	};
 
@@ -544,7 +619,10 @@ function activate(context)
 	changeStatusBar(GENERAL_STATE_NEED_CONFIG);
 	mainStatusBarItem.show();
 
-	return connectToLanguageServer();
+	// Watch for settings changes, which should prompt the user to re-connect
+	vscode.workspace.onDidChangeConfiguration(onDidChangeConfiguration);
+
+	return startLanguageServer();
 }
 
 
@@ -554,7 +632,7 @@ function deactivate()
 	if (languageClient === undefined)
 		return undefined;
 
-	return languageClient.stop();
+	return stop(true);
 }
 
 
