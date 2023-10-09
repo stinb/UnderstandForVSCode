@@ -14,13 +14,12 @@ const lc = require('vscode-languageclient');
 // Enum for general state of the language server & client
 const GENERAL_STATE_NEED_CONFIG   = 0;
 const GENERAL_STATE_CONNECTING    = 1;
-const GENERAL_STATE_CONNECTED     = 2;
-const GENERAL_STATE_NO_CONNECTION = 3;
-const GENERAL_STATE_PROGRESS      = 4;
+const GENERAL_STATE_RESOLVING     = 2;
+const GENERAL_STATE_READY         = 3;
+const GENERAL_STATE_NO_CONNECTION = 4;
+const GENERAL_STATE_PROGRESS      = 5;
 
 // Enum for database state
-const DATABASE_STATE_FINDING       = -3; // the server is finding the db
-const DATABASE_STATE_NOT_FOUND     = -2; // the server failed to open the db
 const DATABASE_STATE_NOT_OPENED    = -1; // the server failed to open the db
 const DATABASE_STATE_EMPTY         = 0;  // the db is unresolved and empty (from a new sample)
 const DATABASE_STATE_RESOLVED      = 1;  // the db is resolved
@@ -34,8 +33,7 @@ let connectionOptions;
 let languageServer;
 let languageClient;
 
-// TODO: add client side support for multiple databases
-let databaseState = DATABASE_STATE_FINDING;
+let databases;
 
 let logger;
 
@@ -122,10 +120,50 @@ function statusBarItemTitleAndPercent(title, percentage)
 }
 
 
+function databaseToString(database)
+{
+	let stateString;
+	switch (database.state) {
+		case DATABASE_STATE_NOT_OPENED:
+			stateString = 'Not opened';
+			break;
+		case DATABASE_STATE_EMPTY:
+			stateString = 'Empty';
+			break;
+		case DATABASE_STATE_RESOLVED:
+			// (Empty to imply success)
+			break;
+		case DATABASE_STATE_RESOLVING:
+			stateString = 'Resolving';
+			break;
+		case DATABASE_STATE_UNRESOLVED:
+			stateString = 'Resolving';
+			break;
+		case DATABASE_STATE_WRONG_VERSION:
+			stateString = 'Wrong version';
+			break;
+		default:
+			stateString = 'Unknown state';
+			break;
+	}
+
+	if (stateString === undefined)
+		return database.path;
+	else
+		return `${database.path} (${stateString})`;
+}
+
+
 // Create text of status bar item: status and commands
 function statusBarItemStatusAndCommands(status, title)
 {
+	// Add status title
 	const markdownString = new vscode.MarkdownString(title);
+
+	// Add each database
+	if (databases !== undefined)
+		for (const database of databases)
+			markdownString.appendText(`\n\n${databaseToString(database)}`);
 
 	// TODO add commands
 
@@ -139,18 +177,11 @@ function statusBarItemStatusAndCommands(status, title)
 		case GENERAL_STATE_CONNECTING:
 			// ...
 			break;
-		case GENERAL_STATE_CONNECTED:
-			switch (databaseState) {
-				case DATABASE_STATE_FINDING:
-					// ...
-					break;
-				case DATABASE_STATE_RESOLVED:
-					// ...
-					break;
-				default:
-					// ...
-					break;
-			}
+		case GENERAL_STATE_RESOLVING:
+			// ...
+			break;
+		case GENERAL_STATE_READY:
+			// ...
 			break;
 		case GENERAL_STATE_NO_CONNECTION:
 			// ...
@@ -183,20 +214,28 @@ function changeStatusBar(status, progress = {})
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connecting to the Understand language server');
 			progressStatusBarItem.hide();
 			break;
-		case GENERAL_STATE_CONNECTED:
-			switch (databaseState) {
-				case DATABASE_STATE_FINDING:
-					mainStatusBarItem.text = '$(sync~spin) Understand';
-					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Finding and resolving database(s)');
-					break;
-				case DATABASE_STATE_RESOLVED:
-					mainStatusBarItem.text = '$(search-view-icon) Understand';
-					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server');
-					break;
-				default:
-					mainStatusBarItem.text = '$(error) Understand';
-					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'No resolved database found by the Understand language server');
-					break;
+		case GENERAL_STATE_RESOLVING:
+			mainStatusBarItem.text = '$(sync~spin) Understand';
+			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'The Understand language server is finding and resolving the database(s)');
+			progressStatusBarItem.hide();
+			break;
+		case GENERAL_STATE_READY:
+			let resolvedDatabases = 0;
+			const totalDatabases = databases?.length || 0;
+			if (databases !== undefined)
+				for (const database of databases)
+					resolvedDatabases += database.state === DATABASE_STATE_RESOLVED;
+			if (totalDatabases > 0 && resolvedDatabases === totalDatabases) {
+				mainStatusBarItem.text = '$(search-view-icon) Understand';
+				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server and ready');
+			}
+			else if (totalDatabases === 0) {
+				mainStatusBarItem.text = '$(error) Understand';
+				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'No database found by the Understand language server');
+			}
+			else {
+				mainStatusBarItem.text = '$(error) Understand';
+				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Only ${resolvedDatabases} / ${totalDatabases} databases were resolved by the Understand language server`);
 			}
 			progressStatusBarItem.hide();
 			break;
@@ -232,7 +271,7 @@ function handleWindowWorkDoneProgressCreate(params)
 function handleProgress(params)
 {
 	if (params.value?.kind === 'end')
-		changeStatusBar(GENERAL_STATE_CONNECTED);
+		changeStatusBar(GENERAL_STATE_READY);
 	else
 		changeStatusBar(GENERAL_STATE_PROGRESS, params.value);
 }
@@ -465,7 +504,7 @@ async function startLanguageServer(newConnectionOptions=true)
 						};
 						clearInterval(interval);
 						resolve(streamInfo);
-						changeStatusBar(GENERAL_STATE_CONNECTED);
+						changeStatusBar(GENERAL_STATE_RESOLVING);
 					});
 
 					// Stop trying
@@ -539,13 +578,6 @@ async function startLanguageServer(newConnectionOptions=true)
 		{ scheme: 'file', language: 'xml' },
 	];
 
-	// TODO: Improve createFileSystemWatcher to allow for an array of include/exclude globe patterns
-
-	// TODO: If the user changes the option, then change something
-		// localSocketName: disconnect and restart
-		// tcpSocketPort: disconnect and restart
-		// watcherInclude: createFileSystemWatcher
-
 	// File types to watch for to notify the server when they are changed
 	const fileEventPattern = getConfig('files.watch', 'string');
 	const fileEvents = vscode.workspace.createFileSystemWatcher(fileEventPattern);
@@ -576,20 +608,9 @@ async function startLanguageServer(newConnectionOptions=true)
 		return;
 	}
 
-	// See if the database was found, which is useful for the status bar item
-	const databases = languageClient._initializeResult.serverInfo.databases;
-	if (databases === undefined || databases.length === 0) {
-		databaseState = DATABASE_STATE_NOT_FOUND;
-	}
-	else {
-		for (const database of databases) {
-			if (database.state !== undefined) {
-				databaseState = database.state;
-				break;
-			}
-		}
-	}
-	changeStatusBar(GENERAL_STATE_CONNECTED);
+	// Remember the databases and the status bar (array of objects {path, status})
+	databases = languageClient._initializeResult.serverInfo.databases;
+	changeStatusBar(GENERAL_STATE_READY);
 
 	// Custom handlers
 	languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
