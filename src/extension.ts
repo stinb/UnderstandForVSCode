@@ -395,6 +395,9 @@ async function startLanguageServer(newConnectionOptions=true)
 		else
 			initializationOptions['projectPaths'] = projectPaths;
 	}
+	// Warn the user if any path is set and ignored
+	else if (getConfig('project.paths', 'array').length)
+		popupInfo('Project path(s) ignored because setting "project.pathFindingMethod" is not "Manual"');
 	changeStatusBar(GENERAL_STATE_CONNECTING);
 
 	// Arguments to start the language server
