@@ -40,7 +40,11 @@ The Software Developer's Multi-Tool for Visual Studio Code
 
 3. If you want to see violations from CodeCheck, [make your CodeCheck configuration(s) run in the background](https://support.scitools.com/support/solutions/articles/70000641317-background-static-analysis-codechecks)
 
-4. In Visual Studio Code, open a folder/[workspace](https://code.visualstudio.com/docs/editor/workspaces) with those source code files
+4. Open Visual Studio Code and install this extension.
+
+5. If you have an atypical installation path for Understand, then see the "Why is the language server executable not found?" section below in FAQ.
+
+6. In Visual Studio Code, open a folder/[workspace](https://code.visualstudio.com/docs/editor/workspaces) with those source code files
 * What happens next, automatically
 	* If the file is a supported language, then the Understand language server is started
 	* If there's a .und folder somewhere in the file [explorer](https://code.visualstudio.com/docs/getstarted/userinterface#_explorer), it will be selected automatically by the language server
@@ -48,6 +52,12 @@ The Software Developer's Multi-Tool for Visual Studio Code
 
 
 ## FAQ
+
+> Why is the language server executable not found?
+
+Make sure that you can run `userver` in your terminal.
+	* Windows: The folder of its installation should be added to the PATH environment variable.
+	* Other: Run `sudo ln -s /your/path/to/userver /usr/bin` to make a link to the executable (because PATH is ignored by Node.js).
 
 > Why aren't my results accurate after creating or deleting a file?
 
