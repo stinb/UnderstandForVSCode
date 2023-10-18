@@ -6,7 +6,7 @@
 	"publisher": "scitools",
 	"repository": {},
 	"engines": {
-		"vscode": "^1.82.0"
+		"vscode": "^1.83.0"
 	},
 	"categories": [
 		"Data Science",
@@ -161,6 +161,8 @@
 		"vscode-languageclient": "^9.0.0"
 	},
 	"devDependencies": {
+		"@types/node": "^20.8.6",
+		"@types/vscode": "^1.83.0",
 		"esbuild": "^0.19.2"
 	},
 	"scripts": {

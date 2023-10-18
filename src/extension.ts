@@ -1,14 +1,20 @@
 'use strict';
 
 
-const vscode = require('vscode');
+import crypto        from 'node:crypto';
+import child_process from 'node:child_process';
+import net           from 'node:net';
+import process       from 'node:process';
 
-const crypto        = require('node:crypto');
-const child_process = require('node:child_process');
-const net           = require('node:net');
-const process       = require('node:process');
-
-const lc = require('vscode-languageclient');
+import vscode from 'vscode';
+import {
+	LanguageClient,
+	LanguageClientOptions,
+	ServerOptions,
+	WorkDoneProgressBegin,
+	WorkDoneProgressReport,
+	WorkDoneProgressEnd
+} from 'vscode-languageclient/node';
 
 
 // Enum for general state of the language server & client
@@ -42,28 +48,24 @@ let progressStatusBarItem;
 
 
 // Get an option from the user's config, which is user input
-function getConfig(key, expectedType)
+function getArrayFromConfig(key: string, defaultValue: any[] = []): any[]
 {
-	const value = vscode.workspace.getConfiguration().get(`understand.${key}`);
-
-	const actualType = Array.isArray(value) ? 'array' : typeof(value);
-
-	if (actualType != expectedType) {
-		switch (expectedType) {
-			case 'integer':
-				return parseInt(value);
-			case 'string':
-				return value;
-			case 'number':
-				return parseFloat(value);
-			case 'array':
-				return [];
-			default:
-				return value;
-		}
-	}
-
-	return value;
+	const value = helperGetAnyFromConfig(key);
+	return Array.isArray(value) ? value : defaultValue;
+}
+function getIntFromConfig(key: string, defaultValue: number = NaN): number
+{
+	const value = helperGetAnyFromConfig(key);
+	return (typeof value === 'number') ? Math.floor(value) : defaultValue;
+}
+function getStringFromConfig(key: string, defaultValue: string = ''): string
+{
+	const value = helperGetAnyFromConfig(key);
+	return (typeof value === 'string') ? value : defaultValue;
+}
+function helperGetAnyFromConfig(key: string)
+{
+	return vscode.workspace.getConfiguration().get(`understand.${key}`);
 }
 
 
@@ -165,10 +167,15 @@ function statusBarItemStatusAndCommands(status, title)
 		for (const database of databases)
 			markdownString.appendText(`\n\n${databaseToString(database)}`);
 
-	// TODO add commands
+	interface StatusBarCommand {
+		name: string,
+		command: string,
+	};
+
+	// TODO add more commands
 
 	// Select commands to display
-	const commands = [];
+	const commands: StatusBarCommand[] = [];
 	commands.push({ name: 'Select .und project(s)', command: 'understand.settings.showSettingProjectPaths', });
 	switch (status) {
 		case GENERAL_STATE_NEED_CONFIG:
@@ -201,7 +208,7 @@ function statusBarItemStatusAndCommands(status, title)
 
 
 // Change status bar item
-function changeStatusBar(status, progress = {})
+function changeStatusBar(status, progress: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd | undefined = undefined)
 {
 	switch (status) {
 		case GENERAL_STATE_NEED_CONFIG:
@@ -224,7 +231,7 @@ function changeStatusBar(status, progress = {})
 			const totalDatabases = databases?.length || 0;
 			if (databases !== undefined)
 				for (const database of databases)
-					resolvedDatabases += database.state === DATABASE_STATE_RESOLVED;
+					resolvedDatabases += (database.state === DATABASE_STATE_RESOLVED) ? 1 : 0;
 			if (totalDatabases > 0 && resolvedDatabases === totalDatabases) {
 				mainStatusBarItem.text = '$(search-view-icon) Understand';
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server and ready');
@@ -246,13 +253,15 @@ function changeStatusBar(status, progress = {})
 			break;
 		case GENERAL_STATE_PROGRESS:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
-			if (progress.title) {
-				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, progress.title);
-				progressStatusBarItem.text = statusBarItemTitleAndPercent(progress.title, progress.percentage);
-				progressStatusBarItem._title = progress.title;
-			}
-			else if (progress.percentage !== undefined && progress.percentage !== null) {
-				progressStatusBarItem.text = statusBarItemTitleAndPercent(progressStatusBarItem._title, progress.percentage);
+			if (progress !== undefined) {
+				if ('title' in progress) {
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, progress.title);
+					progressStatusBarItem.text = statusBarItemTitleAndPercent(progress.title, progress.percentage);
+					progressStatusBarItem._title = progress.title;
+				}
+				else if ('percentage' in progress) {
+					progressStatusBarItem.text = statusBarItemTitleAndPercent(progressStatusBarItem._title, progress.percentage);
+				}
 			}
 			progressStatusBarItem.show();
 			break;
@@ -268,7 +277,7 @@ function handleWindowWorkDoneProgressCreate(params)
 
 
 // Handler: update progress
-function handleProgress(params)
+function handleProgress(params: {value: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd})
 {
 	if (params.value?.kind === 'end')
 		changeStatusBar(GENERAL_STATE_READY);
@@ -426,22 +435,23 @@ async function startLanguageServer(newConnectionOptions=true)
 {
 	// Custom options for initializing
 	const initializationOptions = {};
+	const projectPaths = getArrayFromConfig('project.paths');
 	// If the user wants to override the .und project path
-	if (getConfig('project.pathFindingMethod', 'string') === 'Manual') {
-		const projectPaths = getConfig('project.paths', 'array');
+	if (getStringFromConfig('project.pathFindingMethod') === 'Manual') {
 		if (projectPaths.length === 0)
 			return;
 		else
 			initializationOptions['projectPaths'] = projectPaths;
 	}
 	// Warn the user if any path is set and ignored
-	else if (getConfig('project.paths', 'array').length)
+	else if (projectPaths.length > 0) {
 		popupInfo('Project path(s) ignored because setting "project.pathFindingMethod" is not "Manual"');
+	}
 	changeStatusBar(GENERAL_STATE_CONNECTING);
 
 	// Arguments to start the language server
-	const protocol = getConfig('protocol', 'string');
-	const command = getConfig('executable.path', 'string');
+	const protocol = getStringFromConfig('protocol', 'Local Socket');
+	const command = getStringFromConfig('executable.path', 'userver');
 	const detached = false;
 	const childProcessEnv = process.env; // NOTE: this is important for avoiding a bad analysis
 	if (newConnectionOptions) {
@@ -449,7 +459,7 @@ async function startLanguageServer(newConnectionOptions=true)
 		connectionOptions = {};
 		switch (protocol) {
 			case 'Local Socket':
-				connectionOptions.path = getConfig('protocols.localSocket.path', 'string');
+				connectionOptions.path = getStringFromConfig('protocols.localSocket.path');
 				if (connectionOptions.path.length === 0) {
 					if (process.platform === 'win32')
 						connectionOptions.path = '\\\\.\\pipe\\userver-{uuid}';
@@ -462,7 +472,7 @@ async function startLanguageServer(newConnectionOptions=true)
 				break;
 			case 'TCP Socket':
 				connectionOptions.host = '127.0.0.1';
-				connectionOptions.port = getConfig('protocols.tcpSocket.port', 'integer');
+				connectionOptions.port = getIntFromConfig('protocols.tcpSocket.port', 6789);
 				args.push('-tcp');
 				args.push(connectionOptions.port.toString());
 				break;
@@ -475,7 +485,7 @@ async function startLanguageServer(newConnectionOptions=true)
 	// node_modules/vscode-languageclient/lib/node/main.d.ts
 
 	// Options to connect to the language server
-	const serverOptions = function() {
+	const serverOptions: ServerOptions = function() {
 		return new Promise(function(resolve, reject) {
 			const connectToServer = function() {
 				// Wait a bit for the language server to create the socket
@@ -579,11 +589,11 @@ async function startLanguageServer(newConnectionOptions=true)
 	];
 
 	// File types to watch for to notify the server when they are changed
-	const fileEventPattern = getConfig('files.watch', 'string');
+	const fileEventPattern = getStringFromConfig('files.watch');
 	const fileEvents = vscode.workspace.createFileSystemWatcher(fileEventPattern);
 
 	// Options to control the language client
-	const clientOptions = {
+	const clientOptions: LanguageClientOptions = {
 		documentSelector: documentSelector,
 		initializationOptions: initializationOptions,
 		synchronize: {
@@ -594,7 +604,7 @@ async function startLanguageServer(newConnectionOptions=true)
 	// Create the language client
 	const clientId = 'understand';
 	const clientName = 'Understand';
-	languageClient = new lc.LanguageClient(
+	languageClient = new LanguageClient(
 		clientId,
 		clientName,
 		serverOptions,
@@ -619,7 +629,7 @@ async function startLanguageServer(newConnectionOptions=true)
 
 
 // Main function for when the extension is activated
-function activate(context)
+function activate(context: vscode.ExtensionContext)
 {
 	// Set up commands that were created in package.json
 	context.subscriptions.push(
