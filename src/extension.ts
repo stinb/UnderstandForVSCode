@@ -12,39 +12,49 @@ import {
 	LanguageClientOptions,
 	ServerOptions,
 	WorkDoneProgressBegin,
+	WorkDoneProgressCreateParams,
+	WorkDoneProgressEnd,
 	WorkDoneProgressReport,
-	WorkDoneProgressEnd
 } from 'vscode-languageclient/node';
 
 
-// Enum for general state of the language server & client
-const GENERAL_STATE_NEED_CONFIG   = 0;
-const GENERAL_STATE_CONNECTING    = 1;
-const GENERAL_STATE_RESOLVING     = 2;
-const GENERAL_STATE_READY         = 3;
-const GENERAL_STATE_NO_CONNECTION = 4;
-const GENERAL_STATE_PROGRESS      = 5;
+// General state of the language server & client
+enum GeneralState {
+	NeedConfig,
+	Connecting,
+	Resolving,
+	Ready,
+	NoConnection,
+	Progress,
+}
 
-// Enum for database state
-const DATABASE_STATE_NOT_OPENED    = -1; // the server failed to open the db
-const DATABASE_STATE_EMPTY         = 0;  // the db is unresolved and empty (from a new sample)
-const DATABASE_STATE_RESOLVED      = 1;  // the db is resolved
-const DATABASE_STATE_RESOLVING     = 2;  // the db is in the middle of a resolve operation
-const DATABASE_STATE_UNRESOLVED    = 3;  // the db is not resolved
-const DATABASE_STATE_WRONG_VERSION = 4;  // the db is not resolved due to an old parse version
+// Database state from the server, with NotOpened added
+enum DatabaseState {
+	NotOpened = -1, // the server failed to open the db
+	Empty,          // the db will not be ready (unresolved and empty from a new sample)
+	Resolved,       // the db is ready
+	Resolving,      // the db is not ready yet
+	Unresolved,     // the db will not be ready
+	WrongVersion,   // the db will not be ready (not resolved due to an old parse version)
+}
 
-let args;
+interface Database {
+	path: string,
+	state: DatabaseState,
+}
+
+
+let args: string[];
+let databases: Database[];
+
 let connectionOptions;
 
 let languageServer;
 let languageClient;
 
-let databases;
-
-let logger;
-
-let mainStatusBarItem;
-let progressStatusBarItem;
+let mainStatusBarItem: vscode.StatusBarItem;
+let progressStatusBarItem: vscode.StatusBarItem;
+let progressStatusBarItemOriginalTitle: string;
 
 
 // Get an option from the user's config, which is user input
@@ -69,79 +79,50 @@ function helperGetAnyFromConfig(key: string)
 }
 
 
-// Debug: stringify item for log or popup
-function stringify(item)
-{
-	switch (typeof(item)) {
-		case 'undefined':
-			return 'undefined';
-		case 'object':
-			return JSON.stringify(item);
-		case 'string':
-			return item;
-		case 'number':
-		case 'boolean':
-		default:
-			return item.toString();
-	}
-}
-
-
-// Debug: output to log
-function log(itemToLog)
-{
-	if (logger === undefined)
-		logger = vscode.window.createOutputChannel('Understand');
-
-	logger.appendLine(stringify(itemToLog));
-	logger.show();
-}
-
-
 // Show info popup to user
-function popupInfo(message)
+function popupInfo(message: string)
 {
-	vscode.window.showInformationMessage(stringify(message));
+	vscode.window.showInformationMessage(message);
 }
 
 
 // Show error popup to user
-function popupError(message)
+function popupError(message: string)
 {
-	vscode.window.showErrorMessage(stringify(message));
+	vscode.window.showErrorMessage(message);
 }
 
 
 // Create text of status bar item: title and percent
-function statusBarItemTitleAndPercent(title, percentage)
+function statusBarItemTitleAndPercent(title: string, percentage: number | undefined)
 {
-	if (percentage === undefined || percentage === null)
+	if (percentage === undefined)
 		return title;
 	else
 		return `${title} ${percentage}%`;
 }
 
 
-function databaseToString(database)
+function databaseToString(database: Database)
 {
-	let stateString;
+	let stateString = '';
 	switch (database.state) {
-		case DATABASE_STATE_NOT_OPENED:
+		case DatabaseState.NotOpened:
 			stateString = 'Not opened';
 			break;
-		case DATABASE_STATE_EMPTY:
+		case DatabaseState.Empty:
 			stateString = 'Empty';
 			break;
-		case DATABASE_STATE_RESOLVED:
-			// (Empty to imply success)
+		case DatabaseState.Resolved:
+			stateString = ''; // (Empty to imply success)
 			break;
-		case DATABASE_STATE_RESOLVING:
+		case DatabaseState.Resolving:
 			stateString = 'Resolving';
 			break;
-		case DATABASE_STATE_UNRESOLVED:
+		case DatabaseState.Unresolved:
 			stateString = 'Resolving';
 			break;
-		case DATABASE_STATE_WRONG_VERSION:
+		case DatabaseState.WrongVersion:
 			stateString = 'Wrong version';
 			break;
 		default:
@@ -149,7 +130,7 @@ function databaseToString(database)
 			break;
 	}
 
-	if (stateString === undefined)
+	if (stateString.length === 0)
 		return database.path;
 	else
 		return `${database.path} (${stateString})`;
@@ -157,7 +138,7 @@ function databaseToString(database)
 
 
 // Create text of status bar item: status and commands
-function statusBarItemStatusAndCommands(status, title)
+function statusBarItemStatusAndCommands(status: GeneralState, title: string)
 {
 	// Add status title
 	const markdownString = new vscode.MarkdownString(title);
@@ -178,22 +159,22 @@ function statusBarItemStatusAndCommands(status, title)
 	const commands: StatusBarCommand[] = [];
 	commands.push({ name: 'Select .und project(s)', command: 'understand.settings.showSettingProjectPaths', });
 	switch (status) {
-		case GENERAL_STATE_NEED_CONFIG:
+		case GeneralState.NeedConfig:
 			// ...
 			break;
-		case GENERAL_STATE_CONNECTING:
+		case GeneralState.Connecting:
 			// ...
 			break;
-		case GENERAL_STATE_RESOLVING:
+		case GeneralState.Resolving:
 			// ...
 			break;
-		case GENERAL_STATE_READY:
+		case GeneralState.Ready:
 			// ...
 			break;
-		case GENERAL_STATE_NO_CONNECTION:
+		case GeneralState.NoConnection:
 			// ...
 			break;
-		case GENERAL_STATE_PROGRESS:
+		case GeneralState.Progress:
 			// ...
 			break;
 	}
@@ -208,59 +189,58 @@ function statusBarItemStatusAndCommands(status, title)
 
 
 // Change status bar item
-function changeStatusBar(status, progress: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd | undefined = undefined)
+function changeStatusBar(status: GeneralState, progress: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd | undefined = undefined)
 {
 	switch (status) {
-		case GENERAL_STATE_NEED_CONFIG:
+		case GeneralState.NeedConfig:
 			mainStatusBarItem.text = '$(gear) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Manual configuration needed');
 			progressStatusBarItem.hide();
 			break;
-		case GENERAL_STATE_CONNECTING:
+		case GeneralState.Connecting:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connecting to the Understand language server');
 			progressStatusBarItem.hide();
 			break;
-		case GENERAL_STATE_RESOLVING:
+		case GeneralState.Resolving:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'The Understand language server is finding and resolving the database(s)');
 			progressStatusBarItem.hide();
 			break;
-		case GENERAL_STATE_READY:
+		case GeneralState.Ready:
 			let resolvedDatabases = 0;
-			const totalDatabases = databases?.length || 0;
 			if (databases !== undefined)
 				for (const database of databases)
-					resolvedDatabases += (database.state === DATABASE_STATE_RESOLVED) ? 1 : 0;
-			if (totalDatabases > 0 && resolvedDatabases === totalDatabases) {
+					resolvedDatabases += (database.state === DatabaseState.Resolved) ? 1 : 0;
+			if (databases.length > 0 && resolvedDatabases === databases.length) {
 				mainStatusBarItem.text = '$(search-view-icon) Understand';
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server and ready');
 			}
-			else if (totalDatabases === 0) {
+			else if (databases.length === 0) {
 				mainStatusBarItem.text = '$(error) Understand';
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'No database found by the Understand language server');
 			}
 			else {
 				mainStatusBarItem.text = '$(error) Understand';
-				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Only ${resolvedDatabases} / ${totalDatabases} databases were resolved by the Understand language server`);
+				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Only ${resolvedDatabases} / ${databases.length} databases were resolved by the Understand language server`);
 			}
 			progressStatusBarItem.hide();
 			break;
-		case GENERAL_STATE_NO_CONNECTION:
+		case GeneralState.NoConnection:
 			mainStatusBarItem.text = '$(error) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Failed to connect to the Understand language server');
 			progressStatusBarItem.hide();
 			break;
-		case GENERAL_STATE_PROGRESS:
+		case GeneralState.Progress:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
 			if (progress !== undefined) {
 				if ('title' in progress) {
 					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, progress.title);
 					progressStatusBarItem.text = statusBarItemTitleAndPercent(progress.title, progress.percentage);
-					progressStatusBarItem._title = progress.title;
+					progressStatusBarItemOriginalTitle = progress.title;
 				}
 				else if ('percentage' in progress) {
-					progressStatusBarItem.text = statusBarItemTitleAndPercent(progressStatusBarItem._title, progress.percentage);
+					progressStatusBarItem.text = statusBarItemTitleAndPercent(progressStatusBarItemOriginalTitle, progress.percentage);
 				}
 			}
 			progressStatusBarItem.show();
@@ -270,7 +250,7 @@ function changeStatusBar(status, progress: WorkDoneProgressBegin | WorkDoneProgr
 
 
 // Handler: create progress
-function handleWindowWorkDoneProgressCreate(params)
+function handleWindowWorkDoneProgressCreate(_params: WorkDoneProgressCreateParams)
 {
 	// Ignore since the actual value of the progress is received later with $/progress
 }
@@ -280,39 +260,14 @@ function handleWindowWorkDoneProgressCreate(params)
 function handleProgress(params: {value: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd})
 {
 	if (params.value?.kind === 'end')
-		changeStatusBar(GENERAL_STATE_READY);
+		changeStatusBar(GeneralState.Ready);
 	else
-		changeStatusBar(GENERAL_STATE_PROGRESS, params.value);
-}
-
-
-// Get a .und database from user input
-async function getUndPathFromUser() {
-	// Get database from user input
-	const rootPath = vscode.workspace.rootPath;
-	const rootUri = rootPath ? vscode.Uri.file(rootPath) : undefined;
-	const uris = await vscode.window.showOpenDialog({
-		canSelectFolders: true,
-		defaultUri: rootUri,
-		openLabel: 'Select',
-		title: 'Select .und Folder',
-	});
-
-	// Error: not selected
-	if (!uris)
-		return popupError('No folder selected');
-
-	// Error: not .und
-	const uri = uris[0];
-	if (!(/\.und$/.test(uri.fsPath)))
-		return popupError('Selected folder is not .und');
-
-	return uri.fsPath;
+		changeStatusBar(GeneralState.Progress, params.value);
 }
 
 
 // Show a specific setting in the Settings UI
-function showSetting(setting)
+function showSetting(setting: string)
 {
 	vscode.commands.executeCommand('workbench.action.openSettings', `@id:understand.${setting}`);
 }
@@ -371,7 +326,7 @@ function toggleVisibilityAndFocus()
 async function stop(stopLanguageServer=false)
 {
 	if (languageServer !== undefined && stopLanguageServer) {
-		await languageServer.kill();
+		languageServer.kill();
 		languageServer = undefined;
 	}
 
@@ -387,7 +342,7 @@ async function stop(stopLanguageServer=false)
 
 
 // Handle a setting that changed
-async function onDidChangeConfiguration(configurationChangeEvent)
+async function onDidChangeConfiguration(configurationChangeEvent: vscode.ConfigurationChangeEvent)
 {
 	// Skip settings that aren't in this extension
 	if (!configurationChangeEvent.affectsConfiguration('understand'))
@@ -447,7 +402,7 @@ async function startLanguageServer(newConnectionOptions=true)
 	else if (projectPaths.length > 0) {
 		popupInfo('Project path(s) ignored because setting "project.pathFindingMethod" is not "Manual"');
 	}
-	changeStatusBar(GENERAL_STATE_CONNECTING);
+	changeStatusBar(GeneralState.Connecting);
 
 	// Arguments to start the language server
 	const protocol = getStringFromConfig('protocol', 'Local Socket');
@@ -481,9 +436,6 @@ async function startLanguageServer(newConnectionOptions=true)
 		}
 	}
 
-	// NOTE: To understand the LanguageClient class, see the following file
-	// node_modules/vscode-languageclient/lib/node/main.d.ts
-
 	// Options to connect to the language server
 	const serverOptions: ServerOptions = function() {
 		return new Promise(function(resolve, reject) {
@@ -514,14 +466,14 @@ async function startLanguageServer(newConnectionOptions=true)
 						};
 						clearInterval(interval);
 						resolve(streamInfo);
-						changeStatusBar(GENERAL_STATE_RESOLVING);
+						changeStatusBar(GeneralState.Resolving);
 					});
 
 					// Stop trying
 					if (connectAttempts >= maxConnectAttempts) {
 						clearInterval(interval);
 						reject();
-						changeStatusBar(GENERAL_STATE_NO_CONNECTION);
+						changeStatusBar(GeneralState.NoConnection);
 					}
 					connectAttempts += 1;
 				}, connectWaitMilliseconds);
@@ -541,7 +493,7 @@ async function startLanguageServer(newConnectionOptions=true)
 				});
 
 				// Fail if the language server wasn't found
-				languageServer.on('error', function(err) {
+				languageServer.on('error', function(err: {code: string}) {
 					if (err.code === 'ENOENT')
 						popupError(`The command "${command}" wasn't found `);
 					reject();
@@ -603,7 +555,7 @@ async function startLanguageServer(newConnectionOptions=true)
 
 	// Create the language client
 	const clientId = 'understand';
-	const clientName = 'Understand';
+	const clientName = 'Understand - Trace';
 	languageClient = new LanguageClient(
 		clientId,
 		clientName,
@@ -618,9 +570,9 @@ async function startLanguageServer(newConnectionOptions=true)
 		return;
 	}
 
-	// Remember the databases and the status bar (array of objects {path, status})
+	// Remember the databases and update the status bar
 	databases = languageClient._initializeResult.databases;
-	changeStatusBar(GENERAL_STATE_READY);
+	changeStatusBar(GeneralState.Ready);
 
 	// Custom handlers
 	languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
@@ -650,7 +602,7 @@ function activate(context: vscode.ExtensionContext)
 	mainStatusBarItem.name = 'Understand';
 	progressStatusBarItem = vscode.window.createStatusBarItem('progress', vscode.StatusBarAlignment.Left, 99);
 	progressStatusBarItem.name = 'Understand Progress';
-	changeStatusBar(GENERAL_STATE_NEED_CONFIG);
+	changeStatusBar(GeneralState.NeedConfig);
 	mainStatusBarItem.show();
 
 	// Watch for settings changes, which should prompt the user to re-connect
