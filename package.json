@@ -87,8 +87,8 @@
 				"category": "Understand"
 			},
 			{
-				"command": "understand.violations.toggleVisibilityAndFocus",
-				"title": "Violations: Toggle Visibility and Focus",
+				"command": "understand.violations.togglePanelVisibilityAndFocus",
+				"title": "Violations: Toggle Panel Visibility and Focus",
 				"category": "Understand"
 			}
 		],

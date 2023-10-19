@@ -316,7 +316,7 @@ function goToPreviousViolationInCurrentFile()
 
 
 // Command: Toggle whether the Problems panel (Violations) is focused and visible
-function toggleVisibilityAndFocus()
+function togglePanelVisibilityAndFocus()
 {
 	vscode.commands.executeCommand('workbench.actions.view.problems');
 }
@@ -583,7 +583,7 @@ async function startLanguageServer(newConnectionOptions=true)
 // Main function for when the extension is activated
 function activate(context: vscode.ExtensionContext)
 {
-	// Set up commands that were created in package.json
+	// Register commands (created in package.json)
 	context.subscriptions.push(
 		// Settings
 		vscode.commands.registerCommand('understand.settings.showSettings', showSettings),
@@ -594,7 +594,7 @@ function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.violations.goToNextViolationInCurrentFile', goToNextViolationInCurrentFile),
 		vscode.commands.registerCommand('understand.violations.goToPreviousViolationInAllFiles', goToPreviousViolationInAllFiles),
 		vscode.commands.registerCommand('understand.violations.goToPreviousViolationInCurrentFile', goToPreviousViolationInCurrentFile),
-		vscode.commands.registerCommand('understand.violations.toggleVisibilityAndFocus', toggleVisibilityAndFocus),
+		vscode.commands.registerCommand('understand.violations.togglePanelVisibilityAndFocus', togglePanelVisibilityAndFocus),
 	);
 
 	// Create status bar items
