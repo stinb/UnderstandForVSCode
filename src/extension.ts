@@ -44,6 +44,43 @@ interface Database {
 }
 
 
+// File types that can get the following features if they are implemented:
+	// LSP "Language Features" like go to definition
+	// VSCode "HoverProvider" like a detailed description of a violation
+const documentSelector = [
+	{ scheme: 'file', language: 'ada' },
+	{ scheme: 'file', language: 'assembly' },
+	{ scheme: 'file', language: 'bat' },
+	{ scheme: 'file', language: 'c' },
+	{ scheme: 'file', language: 'cobol' },
+	{ scheme: 'file', language: 'cpp' },
+	{ scheme: 'file', language: 'csharp' },
+	{ scheme: 'file', language: 'css' },
+	{ scheme: 'file', language: 'cuda' },
+	{ scheme: 'file', language: 'delphi' },
+	{ scheme: 'file', language: 'fortran' },
+	{ scheme: 'file', language: 'html' },
+	{ scheme: 'file', language: 'java' },
+	{ scheme: 'file', language: 'javascript' },
+	{ scheme: 'file', language: 'javascriptreact' },
+	{ scheme: 'file', language: 'jovial' },
+	{ scheme: 'file', language: 'objective' },
+	{ scheme: 'file', language: 'objective' },
+	{ scheme: 'file', language: 'pascal' },
+	{ scheme: 'file', language: 'perl' },
+	{ scheme: 'file', language: 'php' },
+	{ scheme: 'file', language: 'python' },
+	{ scheme: 'file', language: 'python' },
+	{ scheme: 'file', language: 'tcl' },
+	{ scheme: 'file', language: 'text' },
+	{ scheme: 'file', language: 'typescript' },
+	{ scheme: 'file', language: 'typescriptreact' },
+	{ scheme: 'file', language: 'vb' },
+	{ scheme: 'file', language: 'verilog' },
+	{ scheme: 'file', language: 'vhdl' },
+	{ scheme: 'file', language: 'xml' },
+];
+
 let args: string[];
 let databases: Database[];
 
@@ -62,6 +99,11 @@ function getArrayFromConfig(key: string, defaultValue: any[] = []): any[]
 {
 	const value = helperGetAnyFromConfig(key);
 	return Array.isArray(value) ? value : defaultValue;
+}
+function getBooleanFromConfig(key: string, defaultValue: boolean = false): boolean
+{
+	const value = helperGetAnyFromConfig(key);
+	return (typeof value === 'boolean') ? value : defaultValue;
 }
 function getIntFromConfig(key: string, defaultValue: number = NaN): number
 {
@@ -505,41 +547,6 @@ async function startLanguageServer(newConnectionOptions=true)
 		});
 	};
 
-	// File types that will get Language Features like "Go to Definition"
-	const documentSelector = [
-		{ scheme: 'file', language: 'ada' },
-		{ scheme: 'file', language: 'assembly' },
-		{ scheme: 'file', language: 'bat' },
-		{ scheme: 'file', language: 'c' },
-		{ scheme: 'file', language: 'cobol' },
-		{ scheme: 'file', language: 'cpp' },
-		{ scheme: 'file', language: 'csharp' },
-		{ scheme: 'file', language: 'css' },
-		{ scheme: 'file', language: 'cuda' },
-		{ scheme: 'file', language: 'delphi' },
-		{ scheme: 'file', language: 'fortran' },
-		{ scheme: 'file', language: 'html' },
-		{ scheme: 'file', language: 'java' },
-		{ scheme: 'file', language: 'javascript' },
-		{ scheme: 'file', language: 'javascriptreact' },
-		{ scheme: 'file', language: 'jovial' },
-		{ scheme: 'file', language: 'objective' },
-		{ scheme: 'file', language: 'objective' },
-		{ scheme: 'file', language: 'pascal' },
-		{ scheme: 'file', language: 'perl' },
-		{ scheme: 'file', language: 'php' },
-		{ scheme: 'file', language: 'python' },
-		{ scheme: 'file', language: 'python' },
-		{ scheme: 'file', language: 'tcl' },
-		{ scheme: 'file', language: 'text' },
-		{ scheme: 'file', language: 'typescript' },
-		{ scheme: 'file', language: 'typescriptreact' },
-		{ scheme: 'file', language: 'vb' },
-		{ scheme: 'file', language: 'verilog' },
-		{ scheme: 'file', language: 'vhdl' },
-		{ scheme: 'file', language: 'xml' },
-	];
-
 	// File types to watch for to notify the server when they are changed
 	const fileEventPattern = getStringFromConfig('files.watch');
 	const fileEvents = vscode.workspace.createFileSystemWatcher(fileEventPattern);
@@ -580,6 +587,67 @@ async function startLanguageServer(newConnectionOptions=true)
 }
 
 
+// Helper: Clamp a number to be non-negative (0 ... infinity)
+function clampToNonNegative(n: number)
+{
+	return (n >= 0) ? n : 0;
+}
+
+
+// Helper: Given a range, change the translate the start character and end character
+function translateRangeChars(range: vscode.Range, translateStart: number, translateEnd: number)
+{
+	const newStartChar = clampToNonNegative(range.start.character + translateStart);
+	const newEndChar   = clampToNonNegative(range.end.character + translateEnd);
+	return new vscode.Range(range.start.line, newStartChar, range.end.line, newEndChar);
+}
+
+
+// Show more information when the user hovers the mouse
+class HoverProvider implements vscode.HoverProvider {
+	async provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<vscode.Hover>
+	{
+		// Stop if the user disabled detailed descriptions
+		if (!getBooleanFromConfig('violations.hover.detailedDescription', true))
+			return new vscode.Hover([]);
+
+		const markdownStrings: vscode.MarkdownString[] = [];
+		const usedIds = new Set();
+
+		// Each violation in the hovered file
+		for (const violation of vscode.languages.getDiagnostics(document.uri)) {
+			// Skip if there's no detailed description URI
+			if (typeof violation.code !== 'object')
+				continue;
+
+			// Skip if the violation isn't at the hover
+			// TODO improve the end of the range either on the server side or client side
+			const modifiedViolationRange = translateRangeChars(violation.range, -1, 10);
+			if (!modifiedViolationRange.contains(position))
+				continue;
+
+			// Skip if already added this detailed description to this position
+			if (usedIds.has(violation.code.value))
+				continue;
+			usedIds.add(violation.code.value);
+
+			// Read and display content of detailed description
+			try {
+				const content = await vscode.workspace.fs.readFile(violation.code.target);
+				const markdownString = new vscode.MarkdownString(content.toString());
+				markdownString.supportHtml = true;
+				markdownStrings.push(markdownString);
+			} catch (error) {
+				const errorString = `Failed to preview [${violation.code.target.fsPath}](${violation.code.target})`;
+				markdownStrings.push(new vscode.MarkdownString(errorString));
+			}
+		}
+
+		return new vscode.Hover(markdownStrings);
+	}
+}
+
+
 // Main function for when the extension is activated
 function activate(context: vscode.ExtensionContext)
 {
@@ -595,6 +663,11 @@ function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.violations.goToPreviousViolationInAllFiles', goToPreviousViolationInAllFiles),
 		vscode.commands.registerCommand('understand.violations.goToPreviousViolationInCurrentFile', goToPreviousViolationInCurrentFile),
 		vscode.commands.registerCommand('understand.violations.togglePanelVisibilityAndFocus', togglePanelVisibilityAndFocus),
+	);
+
+	// Register hover provider, for detailed descriptions
+	context.subscriptions.push(
+		vscode.languages.registerHoverProvider(documentSelector, new HoverProvider()),
 	);
 
 	// Create status bar items

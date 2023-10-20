@@ -153,6 +153,11 @@
 						"Verbose"
 					],
 					"description": "Log trace for communication with the language server"
+				},
+				"understand.violations.hover.detailedDescription": {
+					"type": "boolean",
+					"default": true,
+					"description": "Preview the detailed description of a violation when the mouse hovers on it in the editor"
 				}
 			}
 		}
