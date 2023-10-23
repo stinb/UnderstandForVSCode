@@ -67,7 +67,7 @@ If your project uses [compile_commands.json](https://support.scitools.com/suppor
 
 Do any of the following
 
-* Hover over the problem
+* Hover over the problem (this also shows the detailed description)
 * In settings, enable "Problems: Show Current in Status" and place the text cursor on the problem
 * Run a command that starts with "Understand: Violations: Go to"
 * Place the text cursor on the problem, and run the command "Show or Focus Hover"
@@ -83,7 +83,7 @@ Do any of the following
 	"command": "understand.violations.goToPreviousViolationInCurrentFile",
 	"when": "editorTextFocus",
 },
-// Example keybinding: "Show or Focus Hover" command
+// Example keybinding: "Show or Focus Hover" command (this also shows the detailed description)
 {
 	"key": "shift+space",
 	"command": "editor.action.showHover",
