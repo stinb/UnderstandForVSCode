@@ -6,3 +6,4 @@ Makefile
 node_modules
 package.json
 src
+tsconfig.json

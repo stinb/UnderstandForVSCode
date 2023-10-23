@@ -1,12 +1,12 @@
 'use strict';
 
 
-import crypto        from 'node:crypto';
-import child_process from 'node:child_process';
-import net           from 'node:net';
-import process       from 'node:process';
+import * as crypto        from 'node:crypto';
+import * as child_process from 'node:child_process';
+import * as net           from 'node:net';
+import * as process       from 'node:process';
 
-import vscode from 'vscode';
+import * as vscode from 'vscode';
 import {
 	LanguageClient,
 	LanguageClientOptions,
