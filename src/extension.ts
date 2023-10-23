@@ -620,9 +620,18 @@ class HoverProvider implements vscode.HoverProvider {
 			if (typeof violation.code !== 'object')
 				continue;
 
+			// Skip if the violation isn't at the line of the hover
+			if (violation.range.start.line != position.line)
+				continue;
+
+			// Get token length
+			const maxScanAhead = 64;
+			const text = document.getText(translateRangeChars(violation.range, 0, maxScanAhead));
+			const tokenEndMatch = /^\w+/.exec(text);
+			const tokenLength = tokenEndMatch ? tokenEndMatch[0].length : 1;
+
 			// Skip if the violation isn't at the hover
-			// TODO improve the end of the range either on the server side or client side
-			const modifiedViolationRange = translateRangeChars(violation.range, -1, 10);
+			const modifiedViolationRange = translateRangeChars(violation.range, -1, tokenLength);
 			if (!modifiedViolationRange.contains(position))
 				continue;
 
