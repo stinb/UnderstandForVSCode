@@ -57,6 +57,11 @@
 	"contributes": {
 		"commands": [
 			{
+				"command": "understand.exploreInUnderstand.currentFile",
+				"title": "Explore in Understand: Current File",
+				"category": "Understand"
+			},
+			{
 				"command": "understand.settings.showSettings",
 				"title": "Settings",
 				"category": "Understand"

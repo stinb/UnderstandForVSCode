@@ -81,7 +81,7 @@ const documentSelector = [
 	{ scheme: 'file', language: 'xml' },
 ];
 
-let args: string[];
+let languageServerArgs: string[];
 let databases: Database[];
 
 let connectionOptions;
@@ -315,6 +315,27 @@ function showSetting(setting: string)
 }
 
 
+// Command: Explore current file in Understand
+function exploreInUnderstandCurrentFile()
+{
+	// Stop if not in an editor
+	const editor: vscode.TextEditor | undefined = vscode.window.activeTextEditor;
+	if (editor === undefined)
+		return popupInfo('Unable to explore in Understand: no current file');
+
+	// Ask the server to open Understand
+	// https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#hoverParams
+	const params = {
+		textDocument: editor.document.uri.toString(),
+		position: {
+			line: editor.selection.start.line + 1,
+			character: editor.selection.start.character,
+		},
+	};
+	languageClient.sendNotification('openFileInUnderstand', params);
+}
+
+
 // Command: Show setting for for the extension in the Settings UI
 function showSettingProjectPaths()
 {
@@ -452,7 +473,7 @@ async function startLanguageServer(newConnectionOptions=true)
 	const detached = false;
 	const childProcessEnv = process.env; // NOTE: this is important for avoiding a bad analysis
 	if (newConnectionOptions) {
-		args = [];
+		languageServerArgs = [];
 		connectionOptions = {};
 		switch (protocol) {
 			case 'Local Socket':
@@ -464,14 +485,14 @@ async function startLanguageServer(newConnectionOptions=true)
 						connectionOptions.path = '/tmp/userver-{uuid}';
 				}
 				connectionOptions.path = connectionOptions.path.replaceAll('{uuid}', crypto.randomUUID());
-				args.push('-local');
-				args.push(connectionOptions.path);
+				languageServerArgs.push('-local');
+				languageServerArgs.push(connectionOptions.path);
 				break;
 			case 'TCP Socket':
 				connectionOptions.host = '127.0.0.1';
 				connectionOptions.port = getIntFromConfig('protocols.tcpSocket.port', 6789);
-				args.push('-tcp');
-				args.push(connectionOptions.port.toString());
+				languageServerArgs.push('-tcp');
+				languageServerArgs.push(connectionOptions.port.toString());
 				break;
 			default:
 				return popupError(`Value for understand.protocol is not a supported string: ${protocol}`);
@@ -528,7 +549,7 @@ async function startLanguageServer(newConnectionOptions=true)
 			// Spawn the process and connect to it
 			else {
 				// Start to spawn the language server process
-				languageServer = child_process.spawn(command, args, {
+				languageServer = child_process.spawn(command, languageServerArgs, {
 					env: childProcessEnv,
 					stdio: 'ignore',
 					detached: detached,
@@ -660,8 +681,11 @@ class HoverProvider implements vscode.HoverProvider {
 // Main function for when the extension is activated
 function activate(context: vscode.ExtensionContext)
 {
-	// Register commands (created in package.json)
+	// Register commands (commands visible in the palette are created in package.json)
 	context.subscriptions.push(
+		// Explore in Understand
+		vscode.commands.registerCommand('understand.exploreInUnderstand.currentFile', exploreInUnderstandCurrentFile),
+
 		// Settings
 		vscode.commands.registerCommand('understand.settings.showSettings', showSettings),
 		vscode.commands.registerCommand('understand.settings.showSettingProjectPaths', showSettingProjectPaths),
