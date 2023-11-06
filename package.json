@@ -110,6 +110,11 @@
 		"configuration": {
 			"title": "Understand",
 			"properties": {
+				"understand.analysis.automaticallyAnalyze": {
+					"type": "boolean",
+					"default": true,
+					"description": "Automatically analyze on project open, file save/create/delete"
+				},
 				"understand.executable.path": {
 					"type": "string",
 					"default": "userver",

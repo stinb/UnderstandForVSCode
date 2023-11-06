@@ -479,7 +479,9 @@ async function onDidChangeConfiguration(configurationChangeEvent: vscode.Configu
 async function startLanguageServer(newConnectionOptions=true)
 {
 	// Custom options for initializing
-	const initializationOptions = {};
+	const initializationOptions = {
+		automaticallyAnalyze: getBooleanFromConfig('analysis.automaticallyAnalyze', true),
+	};
 	const projectPaths = getArrayFromConfig('project.paths');
 	// If the user wants to override the .und project path
 	if (getStringFromConfig('project.pathFindingMethod') === 'Manual') {
@@ -492,6 +494,7 @@ async function startLanguageServer(newConnectionOptions=true)
 	else if (projectPaths.length > 0) {
 		popupInfo('Project path(s) ignored because setting "project.pathFindingMethod" is not "Manual"');
 	}
+
 	changeStatusBar(GeneralState.Connecting);
 
 	// Arguments to start the language server
