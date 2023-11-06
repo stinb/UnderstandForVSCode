@@ -38,6 +38,13 @@ enum DatabaseState {
 	WrongVersion,   // the db will not be ready (not resolved due to an old parse version)
 }
 
+// Kind of analysis that the client wants to perform
+enum AnalysisKind {
+	AllFiles,
+	ChangedFiles,
+	SpecificFiles,
+}
+
 interface Database {
 	path: string,
 	state: DatabaseState,
@@ -312,6 +319,26 @@ function handleProgress(params: {value: WorkDoneProgressBegin | WorkDoneProgress
 function showSetting(setting: string)
 {
 	vscode.commands.executeCommand('workbench.action.openSettings', `@id:understand.${setting}`);
+}
+
+
+// Command: Analyze all files in all open projects
+function analyzeAllFiles()
+{
+	const params = {
+		analysisKind: AnalysisKind.AllFiles,
+	};
+	languageClient.sendNotification('analyzeFiles', params);
+}
+
+
+// Command: Analyze changed files in all open projects
+function analyzeChangedFiles()
+{
+	const params = {
+		analysisKind: AnalysisKind.ChangedFiles,
+	};
+	languageClient.sendNotification('analyzeFiles', params);
 }
 
 
@@ -683,6 +710,10 @@ function activate(context: vscode.ExtensionContext)
 {
 	// Register commands (commands visible in the palette are created in package.json)
 	context.subscriptions.push(
+		// Analysis
+		vscode.commands.registerCommand('understand.analysis.analyzeAllFiles', analyzeAllFiles),
+		vscode.commands.registerCommand('understand.analysis.analyzeChangedFiles', analyzeChangedFiles),
+
 		// Explore in Understand
 		vscode.commands.registerCommand('understand.exploreInUnderstand.currentFile', exploreInUnderstandCurrentFile),
 

@@ -57,6 +57,16 @@
 	"contributes": {
 		"commands": [
 			{
+				"command": "understand.analysis.analyzeAllFiles",
+				"title": "Analysis: Analyze All Files",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.analysis.analyzeChangedFiles",
+				"title": "Analysis: Analyze Changed Files",
+				"category": "Understand"
+			},
+			{
 				"command": "understand.exploreInUnderstand.currentFile",
 				"title": "Explore in Understand: Current File",
 				"category": "Understand"
