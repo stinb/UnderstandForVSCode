@@ -431,12 +431,44 @@ async function stop(stopLanguageServer=false)
 }
 
 
+// Get our custom options for initializing the language server
+function getInitializationOptions()
+{
+	const pathFindingMethodManual = getStringFromConfig('project.pathFindingMethod') === 'Manual';
+	const projectPaths = getArrayFromConfig('project.paths');
+
+	// Warn the user if the method is automatic, a path is set, and it's ignored
+	if (!pathFindingMethodManual && projectPaths.length > 0)
+		popupInfo('Project path(s) ignored because setting "project.pathFindingMethod" is not "Manual"');
+
+	// See initializationOptions in initializeParams
+	// https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#initializeParams
+	return {
+		automaticallyAnalyze: getBooleanFromConfig('analysis.automaticallyAnalyze', true),
+		projectPaths: pathFindingMethodManual ? projectPaths : [],
+	};
+}
+
+
 // Handle a setting that changed
 async function onDidChangeConfiguration(configurationChangeEvent: vscode.ConfigurationChangeEvent)
 {
 	// Skip settings that aren't in this extension
 	if (!configurationChangeEvent.affectsConfiguration('understand'))
 		return;
+
+	// Decide whether to simply send the option to the server
+	const settingsToSendToServer = [
+		'understand.analysis',
+		'understand.project',
+	];
+	let sendToServer = false;
+	for (const setting of settingsToSendToServer) {
+		if (configurationChangeEvent.affectsConfiguration(setting)) {
+			sendToServer = true;
+			break;
+		}
+	}
 
 	// Decide whether to stop both the server and the client
 	const settingsToStopServerAndClient = [
@@ -455,7 +487,6 @@ async function onDidChangeConfiguration(configurationChangeEvent: vscode.Configu
 	// Decide whether to stop only the client
 	const settingsToStopClientOnly = [
 		'understand.files',
-		'understand.project',
 	];
 	let stopClientOnly = false;
 	if (!stopServerAndClient) {
@@ -467,11 +498,13 @@ async function onDidChangeConfiguration(configurationChangeEvent: vscode.Configu
 		}
 	}
 
-	if (!stopServerAndClient && !stopClientOnly)
-		return;
+	if (sendToServer && !stopServerAndClient)
+		languageClient.sendNotification('changeOptions', getInitializationOptions());
 
-	await stop(stopServerAndClient);
-	return startLanguageServer(stopServerAndClient);
+	if (stopServerAndClient || stopClientOnly) {
+		await stop(stopServerAndClient);
+		return startLanguageServer(stopServerAndClient);
+	}
 }
 
 
@@ -479,21 +512,12 @@ async function onDidChangeConfiguration(configurationChangeEvent: vscode.Configu
 async function startLanguageServer(newConnectionOptions=true)
 {
 	// Custom options for initializing
-	const initializationOptions = {
-		automaticallyAnalyze: getBooleanFromConfig('analysis.automaticallyAnalyze', true),
-	};
-	const projectPaths = getArrayFromConfig('project.paths');
-	// If the user wants to override the .und project path
-	if (getStringFromConfig('project.pathFindingMethod') === 'Manual') {
-		if (projectPaths.length === 0)
+	const initializationOptions = getInitializationOptions();
+
+	// Stop trying to start the language server if there are no project paths but there should be
+	if (initializationOptions.projectPaths.length === 0)
+		if (getStringFromConfig('project.pathFindingMethod') === 'Manual')
 			return;
-		else
-			initializationOptions['projectPaths'] = projectPaths;
-	}
-	// Warn the user if any path is set and ignored
-	else if (projectPaths.length > 0) {
-		popupInfo('Project path(s) ignored because setting "project.pathFindingMethod" is not "Manual"');
-	}
 
 	changeStatusBar(GeneralState.Connecting);
 
