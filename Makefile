@@ -2,11 +2,9 @@
 WATCH  := $(wildcard src/*.ts) package.json $(wildcard res/*) $(wildcard *.md) Makefile
 OUTPUT := understand.vsix
 
-CHECK := node node_modules/typescript/bin/tsc
-
 # Targets
 $(OUTPUT): node_modules $(WATCH)
-	$(CHECK) && vsce package -o $(OUTPUT)
+	node_modules/typescript/bin/tsc && node_modules/@vscode/vsce/vsce package -o $(OUTPUT)
 node_modules:
 	npm install
 
