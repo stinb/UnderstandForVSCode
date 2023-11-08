@@ -460,7 +460,6 @@ async function onDidChangeConfiguration(configurationChangeEvent: vscode.Configu
 	// Decide whether to simply send the option to the server
 	const settingsToSendToServer = [
 		'understand.analysis',
-		'understand.project',
 	];
 	let sendToServer = false;
 	for (const setting of settingsToSendToServer) {
@@ -487,6 +486,7 @@ async function onDidChangeConfiguration(configurationChangeEvent: vscode.Configu
 	// Decide whether to stop only the client
 	const settingsToStopClientOnly = [
 		'understand.files',
+		'understand.project',
 	];
 	let stopClientOnly = false;
 	if (!stopServerAndClient) {
