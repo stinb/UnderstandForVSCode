@@ -301,7 +301,6 @@ function changeStatusBar(status: GeneralState, progress: WorkDoneProgressBegin |
 // Handler: create progress
 function handleWindowWorkDoneProgressCreate(_params: WorkDoneProgressCreateParams)
 {
-	popupInfo('Create progress');
 	// Ignore since the actual value of the progress is received later with $/progress
 }
 
