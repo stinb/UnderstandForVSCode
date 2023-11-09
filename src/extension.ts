@@ -94,7 +94,7 @@ let databases: Database[];
 let connectionOptions;
 
 let languageServer;
-let languageClient;
+let languageClient: LanguageClient;
 
 let mainStatusBarItem: vscode.StatusBarItem;
 let progressStatusBarItem: vscode.StatusBarItem;
@@ -301,6 +301,7 @@ function changeStatusBar(status: GeneralState, progress: WorkDoneProgressBegin |
 // Handler: create progress
 function handleWindowWorkDoneProgressCreate(_params: WorkDoneProgressCreateParams)
 {
+	popupInfo('Create progress');
 	// Ignore since the actual value of the progress is received later with $/progress
 }
 
@@ -628,6 +629,13 @@ async function startLanguageServer(newConnectionOptions=true)
 
 	// Options to control the language client
 	const clientOptions: LanguageClientOptions = {
+		// // TODO figure out how client-initiated response handlers work
+		// middleware: {
+		// 	provideCodeActions: function(_this, _document, _range, _context, _token, _next) {
+		// 		// Add the provided code action to the right-click menu and the status bar
+		// 		popupInfo('code action provided');
+		// 	},
+		// },
 		documentSelector: documentSelector,
 		initializationOptions: initializationOptions,
 		synchronize: {
@@ -653,7 +661,7 @@ async function startLanguageServer(newConnectionOptions=true)
 	}
 
 	// Remember the databases and update the status bar
-	databases = languageClient._initializeResult.databases;
+	databases = languageClient.initializeResult.databases;
 	changeStatusBar(GeneralState.Ready);
 
 	// Custom handlers
