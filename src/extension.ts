@@ -220,6 +220,7 @@ function statusBarItemStatusAndCommands(status: GeneralState, title: string)
 	];
 
 	// Enable commands
+	const commandsToEnable = [];
 	switch (status) {
 		case GeneralState.NeedConfig:
 			break;
@@ -228,20 +229,33 @@ function statusBarItemStatusAndCommands(status: GeneralState, title: string)
 		case GeneralState.Resolving:
 			break;
 		case GeneralState.Ready:
-			const commandsToEnable = [
-				'understand.analysis.analyzeAllFiles',
-				'understand.analysis.analyzeChangedFiles',
-				'understand.exploreInUnderstand.currentFile',
-			];
-			for (const command of commands)
-				if (commandsToEnable.includes(command.command))
-					command.enabled = true;
+			// See if there any any resolved databases
+			let resolvedDatabases = false;
+			if (databases !== undefined) {
+				for (const database of databases) {
+					if (database.state === DatabaseState.Resolved) {
+						resolvedDatabases = true;
+						break;
+					}
+				}
+			}
+
+			if (resolvedDatabases) {
+				commandsToEnable.push('understand.analysis.analyzeAllFiles');
+				commandsToEnable.push('understand.analysis.analyzeChangedFiles');
+				commandsToEnable.push('understand.exploreInUnderstand.currentFile');
+			}
+
 			break;
 		case GeneralState.NoConnection:
 			break;
 		case GeneralState.Progress:
 			break;
 	}
+	if (commandsToEnable.length)
+		for (const command of commands)
+			if (commandsToEnable.includes(command.command))
+				command.enabled = true;
 
 	// Display commands
 	markdownString.isTrusted = true;
