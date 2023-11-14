@@ -192,38 +192,65 @@ function statusBarItemStatusAndCommands(status: GeneralState, title: string)
 	interface StatusBarCommand {
 		name: string,
 		command: string,
+		enabled: boolean,
 	};
 
-	// TODO add more commands
+	// Add commands
+	const commands: StatusBarCommand[] = [
+		{
+			name: 'Select .und project(s)',
+			command: 'understand.settings.showSettingProjectPaths',
+			enabled: true,
+		},
+		{
+			name: 'Analyze all files',
+			command: 'understand.analysis.analyzeAllFiles',
+			enabled: false,
+		},
+		{
+			name: 'Analyze changed files',
+			command: 'understand.analysis.analyzeChangedFiles',
+			enabled: false,
+		},
+		{
+			name: 'Explore current file in Understand',
+			command: 'understand.exploreInUnderstand.currentFile',
+			enabled: false,
+		},
+	];
 
-	// Select commands to display
-	const commands: StatusBarCommand[] = [];
-	commands.push({ name: 'Select .und project(s)', command: 'understand.settings.showSettingProjectPaths', });
+	// Enable commands
 	switch (status) {
 		case GeneralState.NeedConfig:
-			// ...
 			break;
 		case GeneralState.Connecting:
-			// ...
 			break;
 		case GeneralState.Resolving:
-			// ...
 			break;
 		case GeneralState.Ready:
-			// ...
+			const commandsToEnable = [
+				'understand.analysis.analyzeAllFiles',
+				'understand.analysis.analyzeChangedFiles',
+				'understand.exploreInUnderstand.currentFile',
+			];
+			for (const command of commands)
+				if (commandsToEnable.includes(command.command))
+					command.enabled = true;
 			break;
 		case GeneralState.NoConnection:
-			// ...
 			break;
 		case GeneralState.Progress:
-			// ...
 			break;
 	}
 
 	// Display commands
 	markdownString.isTrusted = true;
-	for (const commandObj of commands)
-		markdownString.appendMarkdown(`\n\n[${commandObj.name}](command:${commandObj.command})`);
+	for (const command of commands) {
+		if (command.enabled)
+			markdownString.appendMarkdown(`\n\n[${command.name}](command:${command.command})`);
+		else
+			markdownString.appendMarkdown(`\n\n${command.name}`);
+	}
 
 	return markdownString;
 }
