@@ -7,15 +7,7 @@ import * as net           from 'node:net';
 import * as process       from 'node:process';
 
 import * as vscode from 'vscode';
-import {
-	LanguageClient,
-	LanguageClientOptions,
-	ServerOptions,
-	WorkDoneProgressBegin,
-	WorkDoneProgressCreateParams,
-	WorkDoneProgressEnd,
-	WorkDoneProgressReport,
-} from 'vscode-languageclient/node';
+import * as lc from 'vscode-languageclient/node';
 
 
 // General state of the language server & client
@@ -94,7 +86,7 @@ let databases: Database[];
 let connectionOptions;
 
 let languageServer;
-let languageClient: LanguageClient;
+let languageClient: lc.LanguageClient;
 
 let mainStatusBarItem: vscode.StatusBarItem;
 let progressStatusBarItem: vscode.StatusBarItem;
@@ -238,7 +230,7 @@ function statusBarItemStatusAndCommands(status: GeneralState, title: string)
 
 
 // Change status bar item
-function changeStatusBar(status: GeneralState, progress: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd | undefined = undefined)
+function changeStatusBar(status: GeneralState, progress: lc.WorkDoneProgressBegin | lc.WorkDoneProgressReport | lc.WorkDoneProgressEnd | undefined = undefined)
 {
 	switch (status) {
 		case GeneralState.NeedConfig:
@@ -299,14 +291,14 @@ function changeStatusBar(status: GeneralState, progress: WorkDoneProgressBegin |
 
 
 // Handler: create progress
-function handleWindowWorkDoneProgressCreate(_params: WorkDoneProgressCreateParams)
+function handleWindowWorkDoneProgressCreate(_params: lc.WorkDoneProgressCreateParams)
 {
 	// Ignore since the actual value of the progress is received later with $/progress
 }
 
 
 // Handler: update progress
-function handleProgress(params: {value: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd})
+function handleProgress(params: {value: lc.WorkDoneProgressBegin | lc.WorkDoneProgressReport | lc.WorkDoneProgressEnd})
 {
 	if (params.value?.kind === 'end')
 		changeStatusBar(GeneralState.Ready);
@@ -554,7 +546,7 @@ async function startLanguageServer(newConnectionOptions=true)
 	}
 
 	// Options to connect to the language server
-	const serverOptions: ServerOptions = function() {
+	const serverOptions: lc.ServerOptions = function() {
 		return new Promise(function(resolve, reject) {
 			const connectToServer = function() {
 				// Wait a bit for the language server to create the socket
@@ -627,14 +619,7 @@ async function startLanguageServer(newConnectionOptions=true)
 	const fileEvents = vscode.workspace.createFileSystemWatcher(fileEventPattern);
 
 	// Options to control the language client
-	const clientOptions: LanguageClientOptions = {
-		// // TODO figure out how client-initiated response handlers work
-		// middleware: {
-		// 	provideCodeActions: function(_this, _document, _range, _context, _token, _next) {
-		// 		// Add the provided code action to the right-click menu and the status bar
-		// 		popupInfo('code action provided');
-		// 	},
-		// },
+	const clientOptions: lc.LanguageClientOptions = {
 		documentSelector: documentSelector,
 		initializationOptions: initializationOptions,
 		synchronize: {
@@ -645,7 +630,7 @@ async function startLanguageServer(newConnectionOptions=true)
 	// Create the language client
 	const clientId = 'understand';
 	const clientName = 'Understand - Trace';
-	languageClient = new LanguageClient(
+	languageClient = new lc.LanguageClient(
 		clientId,
 		clientName,
 		serverOptions,
