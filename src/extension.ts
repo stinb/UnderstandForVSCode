@@ -300,7 +300,7 @@ function changeStatusBar(status: GeneralState, progress: lc.WorkDoneProgressBegi
 			}
 			else if (databases.length === 0) {
 				mainStatusBarItem.text = '$(error) Understand';
-				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'No database found by the Understand language server');
+				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'No database found/opened by the Understand language server');
 			}
 			else {
 				mainStatusBarItem.text = '$(error) Understand';
@@ -670,7 +670,7 @@ async function startLanguageServer(newConnectionOptions=true)
 
 	// Create the language client
 	const clientId = 'understand';
-	const clientName = 'Understand - Trace';
+	const clientName = 'Understand';
 	languageClient = new lc.LanguageClient(
 		clientId,
 		clientName,
@@ -682,6 +682,7 @@ async function startLanguageServer(newConnectionOptions=true)
 	try {
 		await languageClient.start();
 	} catch (_) {
+		changeStatusBar(GeneralState.NoConnection);
 		return;
 	}
 
