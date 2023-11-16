@@ -418,6 +418,13 @@ function showSettings()
 }
 
 
+// Command: Fix violation (run the fix-it hint)
+function fix()
+{
+	vscode.commands.executeCommand('editor.action.autoFix');
+}
+
+
 // Command: Go to next violation in all files
 function goToNextViolationInAllFiles()
 {
@@ -798,6 +805,7 @@ function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.settings.showSettingProjectPaths', showSettingProjectPaths),
 
 		// Violations
+		vscode.commands.registerCommand('understand.violations.fix', fix),
 		vscode.commands.registerCommand('understand.violations.goToNextViolationInAllFiles', goToNextViolationInAllFiles),
 		vscode.commands.registerCommand('understand.violations.goToNextViolationInCurrentFile', goToNextViolationInCurrentFile),
 		vscode.commands.registerCommand('understand.violations.goToPreviousViolationInAllFiles', goToPreviousViolationInAllFiles),
