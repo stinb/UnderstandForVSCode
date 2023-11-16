@@ -180,6 +180,22 @@
 					"description": "Preview the detailed description of a violation when the mouse hovers on it in the editor"
 				}
 			}
+		},
+		"menus": {
+			"editor/context": [
+				{
+					"command": "understand.exploreInUnderstand.currentFile",
+					"group": "understand",
+					"when": "resourceFilename =~ /^.*\\.(C|F|F90|H|TXT|a|ada|adb|ads|asm|bat|c|cbl|cc|cgi|cob|cpl|cpp|cpy|cs|css|cu|cuh|cxx|dfm|dpr|f|f03|f77|f90|f95|fmx|for|ftn|gpr|h|hh|hpp|htm|html|hxx|inl|java|jov|js|m|mm|pas|php|pl|plm|pm|py|s|sp|sql|tcl|ts|tsx|txt|upy|v|vb|vh|vhd|vhdl|xml)$/"
+				}
+			],
+			"explorer/context": [
+				{
+					"command": "understand.exploreInUnderstand.currentFile",
+					"group": "understand",
+					"when": "resourceFilename =~ /^.*\\.(C|F|F90|H|TXT|a|ada|adb|ads|asm|bat|c|cbl|cc|cgi|cob|cpl|cpp|cpy|cs|css|cu|cuh|cxx|dfm|dpr|f|f03|f77|f90|f95|fmx|for|ftn|gpr|h|hh|hpp|htm|html|hxx|inl|java|jov|js|m|mm|pas|php|pl|plm|pm|py|s|sp|sql|tcl|ts|tsx|txt|upy|v|vb|vh|vhd|vhdl|xml)$/"
+				}
+			]
 		}
 	},
 	"dependencies": {
