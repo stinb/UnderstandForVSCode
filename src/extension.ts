@@ -94,29 +94,29 @@ let progressStatusBarItemOriginalTitle: string;
 
 
 // Get an option from the user's config, which is user input
-function getArrayFromConfig(key: string, defaultValue: any[] = []): any[]
+function getArrayFromConfig(understandProject: string, defaultValue: any[] = []): any[]
 {
-	const value = helperGetAnyFromConfig(key);
+	const value = helperGetAnyFromConfig(understandProject);
 	return Array.isArray(value) ? value : defaultValue;
 }
-function getBooleanFromConfig(key: string, defaultValue: boolean = false): boolean
+function getBooleanFromConfig(understandProject: string, defaultValue: boolean = false): boolean
 {
-	const value = helperGetAnyFromConfig(key);
+	const value = helperGetAnyFromConfig(understandProject);
 	return (typeof value === 'boolean') ? value : defaultValue;
 }
-function getIntFromConfig(key: string, defaultValue: number = NaN): number
+function getIntFromConfig(understandProject: string, defaultValue: number = NaN): number
 {
-	const value = helperGetAnyFromConfig(key);
+	const value = helperGetAnyFromConfig(understandProject);
 	return (typeof value === 'number') ? Math.floor(value) : defaultValue;
 }
-function getStringFromConfig(key: string, defaultValue: string = ''): string
+function getStringFromConfig(understandProject: string, defaultValue: string = ''): string
 {
-	const value = helperGetAnyFromConfig(key);
+	const value = helperGetAnyFromConfig(understandProject);
 	return (typeof value === 'string') ? value : defaultValue;
 }
-function helperGetAnyFromConfig(key: string)
+function helperGetAnyFromConfig(understandProject: string)
 {
-	return vscode.workspace.getConfiguration().get(`understand.${key}`);
+	return vscode.workspace.getConfiguration().get(`understand.${understandProject}`);
 }
 
 
@@ -278,16 +278,19 @@ function changeStatusBar(status: GeneralState, progress: lc.WorkDoneProgressBegi
 			mainStatusBarItem.text = '$(gear) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Manual configuration needed');
 			progressStatusBarItem.hide();
+			enableUnderstandProjectContext(false);
 			break;
 		case GeneralState.Connecting:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connecting to the Understand language server');
 			progressStatusBarItem.hide();
+			enableUnderstandProjectContext(false);
 			break;
 		case GeneralState.Resolving:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'The Understand language server is finding and resolving the database(s)');
 			progressStatusBarItem.hide();
+			enableUnderstandProjectContext(false);
 			break;
 		case GeneralState.Ready:
 			let resolvedDatabases = 0;
@@ -297,14 +300,17 @@ function changeStatusBar(status: GeneralState, progress: lc.WorkDoneProgressBegi
 			if (databases.length > 0 && resolvedDatabases === databases.length) {
 				mainStatusBarItem.text = '$(search-view-icon) Understand';
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server and ready');
+				enableUnderstandProjectContext();
 			}
 			else if (databases.length === 0) {
 				mainStatusBarItem.text = '$(error) Understand';
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'No database found/opened by the Understand language server');
+				enableUnderstandProjectContext(false);
 			}
 			else {
 				mainStatusBarItem.text = '$(error) Understand';
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Only ${resolvedDatabases} / ${databases.length} databases were resolved by the Understand language server`);
+				enableUnderstandProjectContext();
 			}
 			progressStatusBarItem.hide();
 			break;
@@ -312,6 +318,7 @@ function changeStatusBar(status: GeneralState, progress: lc.WorkDoneProgressBegi
 			mainStatusBarItem.text = '$(error) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Failed to connect to the Understand language server');
 			progressStatusBarItem.hide();
+			enableUnderstandProjectContext(false);
 			break;
 		case GeneralState.Progress:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
@@ -326,6 +333,7 @@ function changeStatusBar(status: GeneralState, progress: lc.WorkDoneProgressBegi
 				}
 			}
 			progressStatusBarItem.show();
+			enableUnderstandProjectContext(false);
 			break;
 	}
 }
@@ -442,6 +450,13 @@ function goToPreviousViolationInCurrentFile()
 function togglePanelVisibilityAndFocus()
 {
 	vscode.commands.executeCommand('workbench.actions.view.problems');
+}
+
+
+// Enable the context, which enables entries on right-click context menus
+function enableUnderstandProjectContext(enable = true)
+{
+	vscode.commands.executeCommand('setContext', 'understandProject', enable || undefined);
 }
 
 
