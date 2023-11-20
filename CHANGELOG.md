@@ -1,4 +1,4 @@
 # Change Log
 
-## [1.0.0] - 2022 Dec 7
+## [1.0.0] - 2023 Nov 20
 - Initial release
