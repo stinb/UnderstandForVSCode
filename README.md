@@ -36,7 +36,9 @@ The Software Developer's Multi-Tool for Visual Studio Code
 
 1. [Install Understand](https://licensing.scitools.com/download), which comes with UServer, the language server
 
-2. If you have an atypical installation path for Understand, then see the "Why is the language server executable not found?" section below in FAQ
+2. Make UServer accessible to Visual Studio Code
+	* Windows: The folder of its installation should be added to the PATH environment variable.
+	* Other: Run `sudo ln -s /your/path/to/userver /usr/bin` to make a link to the executable (because PATH is ignored by Node.js).
 
 3. Using at least 1 source code file, [create a project in Understand](https://support.scitools.com/support/solutions/articles/70000582579-building-an-accurate-understand-project), resulting in a .und folder
 
@@ -55,9 +57,7 @@ The Software Developer's Multi-Tool for Visual Studio Code
 
 > Why is the language server executable not found?
 
-Make sure that you can run `userver` in your terminal.
-	* Windows: The folder of its installation should be added to the PATH environment variable.
-	* Other: Run `sudo ln -s /your/path/to/userver /usr/bin` to make a link to the executable (because PATH is ignored by Node.js).
+Read step 2 "Make UServer accessible to Visual Studio Code" above in setup
 
 > Why aren't my results accurate after creating or deleting a file?
 
