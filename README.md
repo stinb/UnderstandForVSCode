@@ -1,6 +1,6 @@
 # Understand for Visual Studio Code
 
-The Software Developer's Multi-Tool for Visual Studio Code
+Understand by [SciTools](https://www.scitools.com) is a popular platform for code comprehension and maintaining legacy code. This plugin shows the static analysis results from Understand in Visual Studio Code.
 
 
 ## Features
