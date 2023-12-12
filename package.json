@@ -212,7 +212,6 @@
 		"vscode-languageclient": "^9.0.0"
 	},
 	"devDependencies": {
-		"@types/node": "^20.8.6",
 		"@types/vscode": "^1.83.0",
 		"@vscode/vsce": "^2.15.0",
 		"esbuild": "^0.19.2",
@@ -220,7 +219,7 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
-		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node",
+		"esbuild-base": "esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "npm run esbuild-base -- --sourcemap",
 		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
 	}
