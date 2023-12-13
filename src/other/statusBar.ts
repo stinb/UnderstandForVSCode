@@ -38,23 +38,24 @@ export function changeStatusBar(status: GeneralState, progress: lc.WorkDoneProgr
 			enableUnderstandProjectContext(false);
 			break;
 		case GeneralState.Ready:
+			const databases: Database[] | undefined = variables.languageClient.initializeResult?.databases;
 			let resolvedDatabases = 0;
-			if (variables.databases !== undefined)
-				for (const database of variables.databases)
+			if (databases !== undefined)
+				for (const database of databases)
 					resolvedDatabases += (database.state === DatabaseState.Resolved) ? 1 : 0;
-			if (variables.databases.length > 0 && resolvedDatabases === variables.databases.length) {
+			if (databases.length > 0 && resolvedDatabases === databases.length) {
 				mainStatusBarItem.text = '$(search-view-icon) Understand';
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server and ready');
 				enableUnderstandProjectContext();
 			}
-			else if (variables.databases.length === 0) {
+			else if (databases.length === 0) {
 				mainStatusBarItem.text = '$(error) Understand';
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'No database found/opened by the Understand language server');
 				enableUnderstandProjectContext(false);
 			}
 			else {
 				mainStatusBarItem.text = '$(error) Understand';
-				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Only ${resolvedDatabases} / ${variables.databases.length} databases were resolved by the Understand language server`);
+				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Only ${resolvedDatabases} / ${databases.length} databases were resolved by the Understand language server`);
 				enableUnderstandProjectContext();
 			}
 			// progressStatusBarItem.hide();
@@ -125,8 +126,9 @@ function statusBarItemStatusAndCommands(status: GeneralState, title: string)
 	const markdownString = new vscode.MarkdownString(title);
 
 	// Add each database
-	if (variables.databases !== undefined)
-		for (const database of variables.databases)
+	const databases: Database[] | undefined = variables.languageClient.initializeResult?.databases;
+	if (databases !== undefined)
+		for (const database of databases)
 			markdownString.appendText(`\n\n${databaseToString(database)}`);
 
 	interface StatusBarCommand {
@@ -167,8 +169,8 @@ function statusBarItemStatusAndCommands(status: GeneralState, title: string)
 		case GeneralState.Ready:
 			// See if there any any resolved databases
 			let resolvedDatabases = false;
-			if (variables.databases !== undefined) {
-				for (const database of variables.databases) {
+			if (databases !== undefined) {
+				for (const database of databases) {
 					if (database.state === DatabaseState.Resolved) {
 						resolvedDatabases = true;
 						break;

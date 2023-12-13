@@ -18591,7 +18591,6 @@ var vscode8 = __toESM(require("vscode"));
 
 // src/other/variables.ts
 var variables = {
-  databases: [],
   languageClient: void 0
 };
 
@@ -18672,21 +18671,22 @@ function changeStatusBar(status, progress = void 0) {
       enableUnderstandProjectContext(false);
       break;
     case 1 /* Ready */:
+      const databases = variables.languageClient.initializeResult?.databases;
       let resolvedDatabases = 0;
-      if (variables.databases !== void 0)
-        for (const database of variables.databases)
+      if (databases !== void 0)
+        for (const database of databases)
           resolvedDatabases += database.state === 1 /* Resolved */ ? 1 : 0;
-      if (variables.databases.length > 0 && resolvedDatabases === variables.databases.length) {
+      if (databases.length > 0 && resolvedDatabases === databases.length) {
         mainStatusBarItem.text = "$(search-view-icon) Understand";
         mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, "Connected to the Understand language server and ready");
         enableUnderstandProjectContext();
-      } else if (variables.databases.length === 0) {
+      } else if (databases.length === 0) {
         mainStatusBarItem.text = "$(error) Understand";
         mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, "No database found/opened by the Understand language server");
         enableUnderstandProjectContext(false);
       } else {
         mainStatusBarItem.text = "$(error) Understand";
-        mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Only ${resolvedDatabases} / ${variables.databases.length} databases were resolved by the Understand language server`);
+        mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Only ${resolvedDatabases} / ${databases.length} databases were resolved by the Understand language server`);
         enableUnderstandProjectContext();
       }
       break;
@@ -18726,8 +18726,9 @@ function enableUnderstandProjectContext(enable = true) {
 }
 function statusBarItemStatusAndCommands(status, title) {
   const markdownString = new vscode4.MarkdownString(title);
-  if (variables.databases !== void 0)
-    for (const database of variables.databases)
+  const databases = variables.languageClient.initializeResult?.databases;
+  if (databases !== void 0)
+    for (const database of databases)
       markdownString.appendText(`
 
 ${databaseToString(database)}`);
@@ -18760,8 +18761,8 @@ ${databaseToString(database)}`);
       break;
     case 1 /* Ready */:
       let resolvedDatabases = false;
-      if (variables.databases !== void 0) {
-        for (const database of variables.databases) {
+      if (databases !== void 0) {
+        for (const database of databases) {
           if (database.state === 1 /* Resolved */) {
             resolvedDatabases = true;
             break;
@@ -18876,12 +18877,10 @@ async function startLsp() {
   changeStatusBar(0 /* Connecting */);
   return variables.languageClient.start().then(function() {
     changeStatusBar(1 /* Ready */);
-    variables.databases = variables.languageClient.initializeResult.databases;
     variables.languageClient.onRequest("window/workDoneProgress/create", handleWindowWorkDoneProgressCreate);
     variables.languageClient.onNotification("$/progress", handleProgress);
   }).catch(function() {
     changeStatusBar(2 /* NoConnection */);
-    variables.databases = [];
   });
 }
 async function stopLsp() {
@@ -18914,7 +18913,10 @@ function getLanguageServerOptions() {
       transport = lc.TransportKind.pipe;
       break;
     case "TCP Socket":
-      transport = lc.TransportKind.socket;
+      transport = {
+        kind: lc.TransportKind.socket,
+        port: 6789
+      };
       break;
     default:
       transport = lc.TransportKind.stdio;

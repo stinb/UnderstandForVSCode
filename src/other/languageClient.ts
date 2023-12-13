@@ -79,12 +79,10 @@ export async function startLsp()
 	changeStatusBar(GeneralState.Connecting);
 	return variables.languageClient.start().then(function() {
 		changeStatusBar(GeneralState.Ready);
-		variables.databases = variables.languageClient.initializeResult.databases;
 		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
 		variables.languageClient.onNotification('$/progress', handleProgress);
 	}).catch(function() {
 		changeStatusBar(GeneralState.NoConnection);
-		variables.databases = [];
 	});
 }
 
@@ -130,13 +128,16 @@ function getLanguageClientOptions(): lc.LanguageClientOptions
 // Options for starting & communicating with the language server
 function getLanguageServerOptions(): lc.ServerOptions
 {
-	let transport: lc.TransportKind;
+	let transport: lc.Transport;
 	switch (getStringFromConfig('server.communication')) {
 		case 'Named Pipe':
 			transport = lc.TransportKind.pipe;
 			break;
 		case 'TCP Socket':
-			transport = lc.TransportKind.socket;
+			transport = {
+				kind: lc.TransportKind.socket,
+				port: 6789,
+			};
 			break;
 		default:
 			transport = lc.TransportKind.stdio;

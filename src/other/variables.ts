@@ -23,12 +23,10 @@ export interface Database {
 
 // Global variables used in different files
 export const variables: Variables = {
-	databases: [],
 	languageClient: undefined,
 };
 
 
 interface Variables {
-	databases: Database[],
 	languageClient: lc.LanguageClient,
 }
