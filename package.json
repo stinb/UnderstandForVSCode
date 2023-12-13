@@ -120,11 +120,6 @@
 					"default": true,
 					"description": "Automatically analyze on project open, file save/create/delete"
 				},
-				"understand.executable.path": {
-					"type": "string",
-					"default": "userver",
-					"description": "Command or full path of the executable for the language server"
-				},
 				"understand.files.watch": {
 					"type": "string",
 					"default": "**/*.{C,F,F90,H,TXT,a,ada,adb,ads,asm,bat,c,cbl,cc,cgi,cob,cpl,cpp,cpy,cs,css,cu,cuh,cxx,dfm,dpr,f,f03,f77,f90,f95,fmx,for,ftn,gpr,h,hh,hpp,htm,html,hxx,inl,java,jov,js,m,mm,pas,php,pl,plm,pm,py,s,sp,sql,tcl,ts,tsx,txt,upy,v,vb,vh,vhd,vhdl,xml}",
@@ -147,26 +142,20 @@
 					],
 					"description": "Either allow the language server to find the Understand project(s) automatically, or manually set it once"
 				},
-				"understand.protocol": {
+				"understand.server.communication": {
 					"type": "string",
-					"default": "Local Socket",
+					"default": "Standard I/O",
 					"enum": [
-						"Local Socket",
+						"Standard I/O",
+						"Named Pipe",
 						"TCP Socket"
 					],
-					"description": "Protocol to communicate with the language server"
+					"description": "Way to communicate with the language server"
 				},
-				"understand.protocols.localSocket.path": {
+				"understand.server.executable": {
 					"type": "string",
-					"default": "",
-					"description": "Path of local socket to communicate with the language server, where {uuid} is replaced with a randomly generated UUID\nDefault for Windows: \\\\.\\pipe\\userver-{uuid}\nDefault for other: /tmp/userver-{uuid}"
-				},
-				"understand.protocols.tcpSocket.port": {
-					"type": "number",
-					"default": 6789,
-					"minimum": 0,
-					"maximum": 65535,
-					"description": "Port to communicate with the language server over TCP (integer 0 to 65535)"
+					"default": "userver",
+					"description": "Command or full path of the executable for the language server"
 				},
 				"understand.trace.server": {
 					"type": "string",

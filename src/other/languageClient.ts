@@ -130,9 +130,21 @@ function getLanguageClientOptions(): lc.LanguageClientOptions
 // Options for starting & communicating with the language server
 function getLanguageServerOptions(): lc.ServerOptions
 {
+	let transport: lc.TransportKind;
+	switch (getStringFromConfig('server.communication')) {
+		case 'Named Pipe':
+			transport = lc.TransportKind.pipe;
+			break;
+		case 'TCP Socket':
+			transport = lc.TransportKind.socket;
+			break;
+		default:
+			transport = lc.TransportKind.stdio;
+	}
+
 	return {
-		command: getStringFromConfig('executable.path', 'userver'),
-		transport: lc.TransportKind.stdio, // The fastest communication protocol
+		command: getStringFromConfig('server.executable', 'userver'),
+		transport: transport,
 		options: {
 			env: process.env, // Important for avoiding a bad analysis
 		},

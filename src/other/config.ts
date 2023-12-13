@@ -63,9 +63,9 @@ export function onDidChangeConfiguration(configurationChangeEvent: vscode.Config
 
 	// Decide whether to restart both the server and the client
 	const settingsToRestart = [
-		'understand.executable',
 		'understand.files',
 		'understand.project',
+		'understand.server',
 	];
 	let shouldRestart = false;
 	for (const setting of settingsToRestart) {
