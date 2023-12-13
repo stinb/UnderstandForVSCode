@@ -11,38 +11,51 @@ import {
 } from './variables';
 
 
-// General state of the language server & client
-export enum GeneralState {
+// Main state of the language server & client
+export enum MainState {
 	Connecting,
 	Ready,
 	NoConnection,
 	Progress,
 }
 
+// Progress with the value usually being an object
+// https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#progress
+interface ProgressParams {
+	token: lc.ProgressToken,
+	value: any,
+}
+
+// Status bar item that can remember the original text
+interface StatusBarItem extends vscode.StatusBarItem {
+	originalText?: string,
+}
+
 
 let mainStatusBarItem: vscode.StatusBarItem;
-// let progressStatusBarItems: vscode.StatusBarItem[];
+let progressStatusBarItems = new Map<string, StatusBarItem>();
 
 
 // Change the main status bar item
-export function changeStatusBar(status: GeneralState, progress: lc.WorkDoneProgressBegin | lc.WorkDoneProgressReport | lc.WorkDoneProgressEnd | undefined = undefined)
+export function changeMainStatus(status: MainState)
 {
 	if (mainStatusBarItem === undefined)
 		createStatusBar();
 
 	switch (status) {
-		case GeneralState.Connecting:
+		case MainState.Connecting:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connecting to the Understand language server');
-			// progressStatusBarItem.hide();
 			enableUnderstandProjectContext(false);
 			break;
-		case GeneralState.Ready:
+		case MainState.Ready:
+			// Count the databases
 			const databases: Database[] | undefined = variables.languageClient.initializeResult?.databases;
 			let resolvedDatabases = 0;
 			if (databases !== undefined)
 				for (const database of databases)
 					resolvedDatabases += (database.state === DatabaseState.Resolved) ? 1 : 0;
+			// Show status
 			if (databases.length > 0 && resolvedDatabases === databases.length) {
 				mainStatusBarItem.text = '$(search-view-icon) Understand';
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server and ready');
@@ -58,27 +71,15 @@ export function changeStatusBar(status: GeneralState, progress: lc.WorkDoneProgr
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Only ${resolvedDatabases} / ${databases.length} databases were resolved by the Understand language server`);
 				enableUnderstandProjectContext();
 			}
-			// progressStatusBarItem.hide();
 			break;
-		case GeneralState.NoConnection:
+		case MainState.NoConnection:
 			mainStatusBarItem.text = '$(error) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Failed to connect to the Understand language server');
-			// progressStatusBarItem.hide();
 			enableUnderstandProjectContext(false);
 			break;
-		case GeneralState.Progress:
+		case MainState.Progress:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
-			if (progress !== undefined) {
-				if ('title' in progress) {
-					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, progress.title);
-					// progressStatusBarItem.text = statusBarItemTitleAndPercent(progress.title, progress.percentage);
-					// progressStatusBarItemOriginalTitle = progress.title;
-				}
-				else if ('percentage' in progress) {
-					// progressStatusBarItem.text = statusBarItemTitleAndPercent(progressStatusBarItemOriginalTitle, progress.percentage);
-				}
-			}
-			// progressStatusBarItem.show();
+			mainStatusBarItem.tooltip = 'Analyzing';
 			enableUnderstandProjectContext(false);
 			break;
 	}
@@ -90,25 +91,57 @@ function createStatusBar()
 {
 	mainStatusBarItem = vscode.window.createStatusBarItem('main', vscode.StatusBarAlignment.Left, 100);
 	mainStatusBarItem.name = 'Understand';
-	changeStatusBar(GeneralState.Connecting);
 	mainStatusBarItem.show();
 }
 
 
 // Handler: create progress
-export function handleWindowWorkDoneProgressCreate(_params: lc.WorkDoneProgressCreateParams)
+export function handleWindowWorkDoneProgressCreate(params: lc.WorkDoneProgressCreateParams)
 {
+	// Delete it if it already exists for some reason
+	const token = params.token.toString();
+	if (progressStatusBarItems.has(token)) {
+		progressStatusBarItems.delete(token);
+		progressStatusBarItems.get(token).dispose();
+	}
 
+	// Create it
+	const progressStatusBarItem = vscode.window.createStatusBarItem(token, vscode.StatusBarAlignment.Left, 99);
+	progressStatusBarItems.set(token, progressStatusBarItem);
 }
 
 
 // Handler: update progress
-export function handleProgress(params: {value: lc.WorkDoneProgressBegin | lc.WorkDoneProgressReport | lc.WorkDoneProgressEnd})
+export function handleProgress(params: ProgressParams)
 {
-	if (params.value?.kind === 'end')
-		changeStatusBar(GeneralState.Ready);
+	// Stop if there's no progress object
+	const progress: lc.WorkDoneProgressBegin | lc.WorkDoneProgressReport | lc.WorkDoneProgressEnd = params.value;
+	if (progress === undefined)
+		return;
+
+	// Optionally change the progress bar status bar item for the database
+	const token = params.token.toString();
+	if (progressStatusBarItems.has(token)) {
+		const progressStatusBarItem = progressStatusBarItems.get(token);
+		if ('title' in progress) {
+			progressStatusBarItem.text = statusBarItemTitleAndPercent(progress.title, progress.percentage);
+			progressStatusBarItem.originalText = progress.title;
+			progressStatusBarItem.show();
+		}
+		else if ('percentage' in progress) {
+			progressStatusBarItem.text = statusBarItemTitleAndPercent(progressStatusBarItem.originalText, progress.percentage);
+		}
+		else if (progress.kind === 'end') {
+			progressStatusBarItems.delete(token);
+			progressStatusBarItem.dispose();
+		}
+	}
+
+	// Change the main status bar item
+	if (progressStatusBarItems.size === 0)
+		changeMainStatus(MainState.Ready);
 	else
-		changeStatusBar(GeneralState.Progress, params.value);
+		changeMainStatus(MainState.Progress);
 }
 
 
@@ -120,7 +153,7 @@ function enableUnderstandProjectContext(enable = true)
 
 
 // Create text of status bar item: status and commands
-function statusBarItemStatusAndCommands(status: GeneralState, title: string)
+function statusBarItemStatusAndCommands(status: MainState, title: string)
 {
 	// Add status title
 	const markdownString = new vscode.MarkdownString(title);
@@ -164,9 +197,9 @@ function statusBarItemStatusAndCommands(status: GeneralState, title: string)
 	// Enable commands
 	const commandsToEnable = [];
 	switch (status) {
-		case GeneralState.Connecting:
+		case MainState.Connecting:
 			break;
-		case GeneralState.Ready:
+		case MainState.Ready:
 			// See if there any any resolved databases
 			let resolvedDatabases = false;
 			if (databases !== undefined) {
@@ -185,9 +218,9 @@ function statusBarItemStatusAndCommands(status: GeneralState, title: string)
 			}
 
 			break;
-		case GeneralState.NoConnection:
+		case MainState.NoConnection:
 			break;
-		case GeneralState.Progress:
+		case MainState.Progress:
 			break;
 	}
 	if (commandsToEnable.length)

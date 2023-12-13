@@ -1,5 +1,5 @@
 # Variables
-WATCH  := $(wildcard src/*.ts) package.json $(wildcard res/*) $(wildcard *.md) Makefile
+WATCH  := $(wildcard src/*.ts) $(wildcard src/commands/*.ts) $(wildcard src/other/*.ts) package.json $(wildcard res/*) $(wildcard *.md) Makefile
 OUTPUT := understand.vsix
 
 # Targets

@@ -11,8 +11,8 @@ import {
 	getStringFromConfig,
 } from './config';
 import {
-	GeneralState,
-	changeStatusBar,
+	MainState,
+	changeMainStatus,
 	handleWindowWorkDoneProgressCreate,
 	handleProgress,
 } from './statusBar';
@@ -76,13 +76,13 @@ export async function startLsp()
 	);
 
 	// Start the language client & language server
-	changeStatusBar(GeneralState.Connecting);
+	changeMainStatus(MainState.Connecting);
 	return variables.languageClient.start().then(function() {
-		changeStatusBar(GeneralState.Ready);
+		changeMainStatus(MainState.Ready);
 		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
 		variables.languageClient.onNotification('$/progress', handleProgress);
 	}).catch(function() {
-		changeStatusBar(GeneralState.NoConnection);
+		changeMainStatus(MainState.NoConnection);
 	});
 }
 
