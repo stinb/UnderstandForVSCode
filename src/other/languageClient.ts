@@ -8,6 +8,7 @@ import { variables } from './variables';
 import {
 	getArrayFromConfig,
 	getBooleanFromConfig,
+	getIntFromConfig,
 	getStringFromConfig,
 } from './config';
 import {
@@ -90,7 +91,7 @@ export async function startLsp()
 // Stop language client & language server
 export async function stopLsp()
 {
-	if (variables.languageClient !== undefined)
+	if (variables.languageClient !== undefined && variables.languageClient.state === lc.State.Running)
 		return variables.languageClient.stop();
 }
 
@@ -129,11 +130,11 @@ function getLanguageClientOptions(): lc.LanguageClientOptions
 function getLanguageServerOptions(): lc.ServerOptions
 {
 	let transport: lc.Transport;
-	switch (getStringFromConfig('server.communication')) {
+	switch (getStringFromConfig('server.communicationProtocol')) {
 		case 'TCP Socket':
 			transport = {
 				kind: lc.TransportKind.socket,
-				port: 6789,
+				port: getIntFromConfig('server.communicationTcpPort', 6789),
 			};
 			break;
 		default:

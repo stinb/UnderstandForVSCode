@@ -142,7 +142,7 @@
 					],
 					"description": "Either allow the language server to find the Understand project(s) automatically, or manually set it once"
 				},
-				"understand.server.communication": {
+				"understand.server.communicationProtocol": {
 					"type": "string",
 					"default": "Named Pipe",
 					"enum": [
@@ -150,6 +150,13 @@
 						"TCP Socket"
 					],
 					"description": "Way to communicate with the language server"
+				},
+				"understand.server.communicationTcpPort": {
+					"type": "number",
+					"default": 6789,
+					"minimum": 0,
+					"maximum": 65535,
+					"description": "TCP port used if the communication protocol is TCP socket"
 				},
 				"understand.server.executable": {
 					"type": "string",
