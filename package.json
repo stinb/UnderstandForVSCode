@@ -144,9 +144,8 @@
 				},
 				"understand.server.communication": {
 					"type": "string",
-					"default": "Standard I/O",
+					"default": "Named Pipe",
 					"enum": [
-						"Standard I/O",
 						"Named Pipe",
 						"TCP Socket"
 					],

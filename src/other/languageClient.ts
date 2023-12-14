@@ -130,9 +130,6 @@ function getLanguageServerOptions(): lc.ServerOptions
 {
 	let transport: lc.Transport;
 	switch (getStringFromConfig('server.communication')) {
-		case 'Named Pipe':
-			transport = lc.TransportKind.pipe;
-			break;
 		case 'TCP Socket':
 			transport = {
 				kind: lc.TransportKind.socket,
@@ -140,7 +137,9 @@ function getLanguageServerOptions(): lc.ServerOptions
 			};
 			break;
 		default:
-			transport = lc.TransportKind.stdio;
+		case 'Named Pipe':
+			transport = lc.TransportKind.pipe;
+			break;
 	}
 
 	return {
