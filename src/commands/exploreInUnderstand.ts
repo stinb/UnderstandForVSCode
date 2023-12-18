@@ -15,9 +15,11 @@ export function currentFile()
 		return;
 
 	// Ask the server to open Understand
-	// https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#hoverParams
+	// https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentPositionParams
 	variables.languageClient.sendNotification('openFileInUnderstand', {
-		textDocument: editor.document.uri.toString(),
+		textDocument: {
+			uri: editor.document.uri.toString(),
+		},
 		position: {
 			line: editor.selection.start.line + 1,
 			character: editor.selection.start.character,
