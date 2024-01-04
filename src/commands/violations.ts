@@ -7,7 +7,11 @@ import * as vscode from 'vscode';
 // Fix violation (run the fix-it hint)
 export function fix()
 {
-	vscode.commands.executeCommand('editor.action.autoFix');
+	// The argument schema was found in the vscode repo:
+	// src/vs/editor/contrib/codeAction/browser/codeActionCommands.ts
+	vscode.commands.executeCommand('editor.action.codeAction', {
+		kind: 'quickfix.fix',
+	});
 }
 
 
@@ -36,6 +40,19 @@ export function goToPreviousViolationInAllFiles()
 export function goToPreviousViolationInCurrentFile()
 {
 	vscode.commands.executeCommand('editor.action.marker.prev');
+}
+
+
+// Ignore violation (add a comment)
+export function ignore()
+{
+	// Due to a vscode bug, we can't easily find 'quickfix.ignore' when 'quickfix.ignore' is available but 'quickfix.fix' isn't available.
+	// For a workaround, we find the 'quickfix.ignore' action by finding the preferred action.
+	vscode.commands.executeCommand('editor.action.codeAction', {
+		kind: 'quickfix',
+		apply: 'first',
+		preferred: true,
+	});
 }
 
 

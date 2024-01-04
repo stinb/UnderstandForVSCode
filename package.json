@@ -80,7 +80,7 @@
 				"title": "Settings: Project Paths",
 				"category": "Understand"
 			},
-			{
+						{
 				"command": "understand.violations.fix",
 				"title": "Violations: Fix",
 				"category": "Understand"
@@ -103,6 +103,11 @@
 			{
 				"command": "understand.violations.goToPreviousViolationInCurrentFile",
 				"title": "Violations: Go to Previous Violation in Current File (Error/Warning/Info)",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.violations.ignore",
+				"title": "Violations: Ignore",
 				"category": "Understand"
 			},
 			{
@@ -181,16 +186,63 @@
 			}
 		},
 		"menus": {
+			"commandPalette": [
+				{
+					"command": "understand.analysis.analyzeAllFiles",
+					"when": "understandProject"
+				},
+				{
+					"command": "understand.analysis.analyzeChangedFiles",
+					"when": "understandProject"
+				},
+				{
+					"command": "understand.exploreInUnderstand.currentFile",
+					"when": "understandProject"
+				},
+				{
+					"command": "understand.violations.fix",
+					"when": "understandProject && !editorReadonly"
+				},
+				{
+					"command": "understand.violations.goToNextViolationInAllFiles",
+					"when": "understandProject"
+				},
+				{
+					"command": "understand.violations.goToNextViolationInCurrentFile",
+					"when": "understandProject"
+				},
+				{
+					"command": "understand.violations.goToPreviousViolationInAllFiles",
+					"when": "understandProject"
+				},
+				{
+					"command": "understand.violations.goToPreviousViolationInCurrentFile",
+					"when": "understandProject"
+				},
+				{
+					"command": "understand.violations.ignore",
+					"when": "understandProject && !editorReadonly"
+				},
+				{
+					"command": "understand.violations.togglePanelVisibilityAndFocus",
+					"when": "understandProject"
+				}
+			],
 			"editor/context": [
 				{
 					"command": "understand.exploreInUnderstand.currentFile",
 					"group": "understand.exploreInUnderstand",
-					"when": "understandProject && resourceFilename =~ /^.*\\.(C|F|F90|H|TXT|a|ada|adb|ads|asm|bat|c|cbl|cc|cgi|cob|cpl|cpp|cpy|cs|css|cu|cuh|cxx|dfm|dpr|f|f03|f77|f90|f95|fmx|for|ftn|gpr|h|hh|hpp|htm|html|hxx|inl|java|jov|js|m|mm|pas|php|pl|plm|pm|py|s|sp|sql|tcl|ts|tsx|txt|upy|v|vb|vh|vhd|vhdl|xml)$/"
+					"when": "understandProject"
 				},
 				{
 					"command": "understand.violations.fix",
 					"group": "understand.violations",
-					"when": "textInputFocus && !editorReadonly && supportedCodeAction =~ /(\\s|^)quickfix\\b/"
+					"when": "understandProject && !editorReadonly"
+				},
+				{
+					"command": "understand.violations.ignore",
+					"group": "understand.violations",
+					"when": "understandProject && !editorReadonly"
 				}
 			],
 			"explorer/context": [

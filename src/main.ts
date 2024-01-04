@@ -38,6 +38,7 @@ export function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.violations.goToNextViolationInCurrentFile', violations.goToNextViolationInCurrentFile),
 		vscode.commands.registerCommand('understand.violations.goToPreviousViolationInAllFiles', violations.goToPreviousViolationInAllFiles),
 		vscode.commands.registerCommand('understand.violations.goToPreviousViolationInCurrentFile', violations.goToPreviousViolationInCurrentFile),
+		vscode.commands.registerCommand('understand.violations.ignore', violations.ignore),
 		vscode.commands.registerCommand('understand.violations.togglePanelVisibilityAndFocus', violations.togglePanelVisibilityAndFocus),
 	);
 
