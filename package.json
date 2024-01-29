@@ -6,7 +6,7 @@
 	"publisher": "scitools",
 	"repository": {},
 	"engines": {
-		"vscode": "^1.83.0"
+		"vscode": "^1.85.0"
 	},
 	"categories": [
 		"Data Science",
@@ -80,7 +80,7 @@
 				"title": "Settings: Project Paths",
 				"category": "Understand"
 			},
-						{
+			{
 				"command": "understand.violations.fix",
 				"title": "Violations: Fix",
 				"category": "Understand"
@@ -227,41 +227,18 @@
 					"command": "understand.violations.togglePanelVisibilityAndFocus",
 					"when": "understandProject"
 				}
-			],
-			"editor/context": [
-				{
-					"command": "understand.exploreInUnderstand.currentFile",
-					"group": "understand.exploreInUnderstand",
-					"when": "understandProject"
-				},
-				{
-					"command": "understand.violations.fix",
-					"group": "understand.violations",
-					"when": "understandProject && !editorReadonly"
-				},
-				{
-					"command": "understand.violations.ignore",
-					"group": "understand.violations",
-					"when": "understandProject && !editorReadonly"
-				}
-			],
-			"explorer/context": [
-				{
-					"command": "understand.exploreInUnderstand.currentFile",
-					"group": "understand.exploreInUnderstand",
-					"when": "understandProject && resourceFilename =~ /^.*\\.(C|F|F90|H|TXT|a|ada|adb|ads|asm|bat|c|cbl|cc|cgi|cob|cpl|cpp|cpy|cs|css|cu|cuh|cxx|dfm|dpr|f|f03|f77|f90|f95|fmx|for|ftn|gpr|h|hh|hpp|htm|html|hxx|inl|java|jov|js|m|mm|pas|php|pl|plm|pm|py|s|sp|sql|tcl|ts|tsx|txt|upy|v|vb|vh|vhd|vhdl|xml)$/"
-				}
 			]
 		}
 	},
 	"dependencies": {
-		"vscode-languageclient": "^9.0.0"
+		"vscode-languageclient": "^9.0.1"
 	},
 	"devDependencies": {
-		"@types/vscode": "^1.83.0",
-		"@vscode/vsce": "^2.15.0",
-		"esbuild": "^0.19.2",
-		"typescript": "^5.2.2"
+		"@types/node": "^20.11.10",
+		"@types/vscode": "^1.85.0",
+		"@vscode/vsce": "^2.23.0",
+		"esbuild": "^0.20.0",
+		"typescript": "^5.3.3"
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
