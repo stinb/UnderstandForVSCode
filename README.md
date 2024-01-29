@@ -18,7 +18,7 @@ __Understand Different Languages__
 * VHDL
 * Visual Basic (.NET)
 * Web Languages
-* [Details of Supported Languages](https://support.scitools.com/support/solutions/articles/70000582794-supported-languages)
+* [Details of supported languages](https://support.scitools.com/support/solutions/articles/70000582794-supported-languages)
 
 ---
 __See or Go To References__
@@ -92,7 +92,7 @@ __Quickly Analyze Your Code__
 
 > Why is the language server executable not found?
 
-Read step 2 "Make UServer accessible to Visual Studio Code" above in setup
+Read step 2 "Make the command `userver` accessible to Visual Studio Code" above in setup
 
 ---
 > Why aren't my results accurate after creating or deleting a file?
