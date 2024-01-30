@@ -61,6 +61,20 @@ __Quickly Analyze Your Code__
 * Automatically analyze files on save... or
 * Manually analyze files with a [command](https://code.visualstudio.com/api/extension-guides/command)
 
+---
+__Explore in _Understand___
+
+![Screenshot of our main product Understand](res/screenshotUnderstand.png)
+
+* If the current file in the database, explore it in _Understand_ for the full experience
+	* Discover how legacy code fits together
+	* Visualize with customizable Graphs
+	* Comply with any standard including AUTOSAR/MISRA
+	* Detect and fix issues early
+	* Solve problems and automate solutions with full API access
+	* Gain insight with actionable metrics
+	* More at [scitools.com](https://scitools.com) and [blog.scitools.com](https://blog.scitools.com)
+
 ## Setup
 
 ![Screenshot of the status item showing "Connected to the Understand language server"](res/screenshotConnected.png)
