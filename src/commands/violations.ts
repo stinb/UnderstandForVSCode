@@ -57,7 +57,7 @@ export function ignore()
 
 
 // Toggle whether the Problems panel (Violations) is focused and visible
-export function togglePanelVisibilityAndFocus()
+export function toggleVisibilityAndFocus()
 {
 	vscode.commands.executeCommand('workbench.actions.view.problems');
 }

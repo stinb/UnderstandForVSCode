@@ -31,7 +31,10 @@ __See or Go To References__
 	* Type Definition
 	* Implementations
 	* All References
-* See references at a peek, or instantly go to them
+* Where to see references
+	* [Peek](https://code.visualstudio.com/docs/editor/editingevolved#_peek) at references in with a code popup
+	* Instantly [go to](https://code.visualstudio.com/docs/editor/editingevolved#_go-to-definition) a reference
+	* Find all references in the [side bar](https://code.visualstudio.com/docs/getstarted/userinterface) with the ability to dismiss them
 
 ---
 __See Hover Information__

@@ -71,6 +71,66 @@
 				"category": "Understand"
 			},
 			{
+				"command": "understand.references.findAllImplementations",
+				"title": "References: Find All Implementations",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.references.findAllReferences",
+				"title": "References: Find All References",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.references.goToDeclaration",
+				"title": "References: Go to Declaration",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.references.goToDefinition",
+				"title": "References: Go to Definition",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.references.goToImplementations",
+				"title": "References: Go to Implementations",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.references.goToReferences",
+				"title": "References: Go to References",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.references.goToTypeDefinition",
+				"title": "References: Go to Type Definition",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.references.peekDeclaration",
+				"title": "References: Peek Declaration",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.references.peekDefinition",
+				"title": "References: Peek Definition",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.references.peekImplementations",
+				"title": "References: Peek Implementations",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.references.peekReferences",
+				"title": "References: Peek References",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.references.peekTypeDefinition",
+				"title": "References: Peek Type Definition",
+				"category": "Understand"
+			},
+			{
 				"command": "understand.settings.showSettings",
 				"title": "Settings",
 				"category": "Understand"
@@ -111,8 +171,8 @@
 				"category": "Understand"
 			},
 			{
-				"command": "understand.violations.togglePanelVisibilityAndFocus",
-				"title": "Violations: Toggle Panel Visibility and Focus",
+				"command": "understand.violations.toggleVisibilityAndFocus",
+				"title": "Violations: Toggle Visibility and Focus",
 				"category": "Understand"
 			}
 		],
@@ -197,11 +257,59 @@
 				},
 				{
 					"command": "understand.exploreInUnderstand.currentFile",
-					"when": "understandProject"
+					"when": "understandProject && editorIsOpen"
+				},
+				{
+					"command": "understand.references.findAllImplementations",
+					"when": "understandProject && editorIsOpen"
+				},
+				{
+					"command": "understand.references.findAllReferences",
+					"when": "understandProject && editorIsOpen"
+				},
+				{
+					"command": "understand.references.goToDeclaration",
+					"when": "understandProject && editorIsOpen"
+				},
+				{
+					"command": "understand.references.goToDefinition",
+					"when": "understandProject && editorIsOpen"
+				},
+				{
+					"command": "understand.references.goToImplementations",
+					"when": "understandProject && editorIsOpen"
+				},
+				{
+					"command": "understand.references.goToReferences",
+					"when": "understandProject && editorIsOpen"
+				},
+				{
+					"command": "understand.references.goToTypeDefinition",
+					"when": "understandProject && editorIsOpen"
+				},
+				{
+					"command": "understand.references.peekDeclaration",
+					"when": "understandProject && editorIsOpen"
+				},
+				{
+					"command": "understand.references.peekDefinition",
+					"when": "understandProject && editorIsOpen"
+				},
+				{
+					"command": "understand.references.peekImplementations",
+					"when": "understandProject && editorIsOpen"
+				},
+				{
+					"command": "understand.references.peekReferences",
+					"when": "understandProject && editorIsOpen"
+				},
+				{
+					"command": "understand.references.peekTypeDefinition",
+					"when": "understandProject && editorIsOpen"
 				},
 				{
 					"command": "understand.violations.fix",
-					"when": "understandProject && !editorReadonly"
+					"when": "understandProject && editorIsOpen && !editorReadonly"
 				},
 				{
 					"command": "understand.violations.goToNextViolationInAllFiles",
@@ -209,7 +317,7 @@
 				},
 				{
 					"command": "understand.violations.goToNextViolationInCurrentFile",
-					"when": "understandProject"
+					"when": "understandProject && editorIsOpen"
 				},
 				{
 					"command": "understand.violations.goToPreviousViolationInAllFiles",
@@ -217,14 +325,14 @@
 				},
 				{
 					"command": "understand.violations.goToPreviousViolationInCurrentFile",
-					"when": "understandProject"
+					"when": "understandProject && editorIsOpen"
 				},
 				{
 					"command": "understand.violations.ignore",
-					"when": "understandProject && !editorReadonly"
+					"when": "understandProject && editorIsOpen && !editorReadonly"
 				},
 				{
-					"command": "understand.violations.togglePanelVisibilityAndFocus",
+					"command": "understand.violations.toggleVisibilityAndFocus",
 					"when": "understandProject"
 				}
 			]

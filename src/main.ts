@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 
 import * as analysis from './commands/analysis';
 import * as exploreInUnderstand from './commands/exploreInUnderstand';
+import * as references from './commands/references';
 import * as settings from './commands/settings';
 import * as violations from './commands/violations';
 import { onDidChangeConfiguration } from './other/config';
@@ -28,6 +29,20 @@ export function activate(context: vscode.ExtensionContext)
 		// Explore in Understand
 		vscode.commands.registerCommand('understand.exploreInUnderstand.currentFile', exploreInUnderstand.currentFile),
 
+		// References
+		vscode.commands.registerCommand('understand.references.findAllImplementations', references.findAllImplementations),
+		vscode.commands.registerCommand('understand.references.findAllReferences', references.findAllReferences),
+		vscode.commands.registerCommand('understand.references.goToDeclaration', references.goToDeclaration),
+		vscode.commands.registerCommand('understand.references.goToDefinition', references.goToDefinition),
+		vscode.commands.registerCommand('understand.references.goToImplementations', references.goToImplementations),
+		vscode.commands.registerCommand('understand.references.goToReferences', references.goToReferences),
+		vscode.commands.registerCommand('understand.references.goToTypeDefinition', references.goToTypeDefinition),
+		vscode.commands.registerCommand('understand.references.peekDeclaration', references.peekDeclaration),
+		vscode.commands.registerCommand('understand.references.peekDefinition', references.peekDefinition),
+		vscode.commands.registerCommand('understand.references.peekImplementations', references.peekImplementations),
+		vscode.commands.registerCommand('understand.references.peekReferences', references.peekReferences),
+		vscode.commands.registerCommand('understand.references.peekTypeDefinition', references.peekTypeDefinition),
+
 		// Settings
 		vscode.commands.registerCommand('understand.settings.showSettings', settings.showSettings),
 		vscode.commands.registerCommand('understand.settings.showSettingProjectPaths', settings.showSettingProjectPaths),
@@ -39,7 +54,7 @@ export function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.violations.goToPreviousViolationInAllFiles', violations.goToPreviousViolationInAllFiles),
 		vscode.commands.registerCommand('understand.violations.goToPreviousViolationInCurrentFile', violations.goToPreviousViolationInCurrentFile),
 		vscode.commands.registerCommand('understand.violations.ignore', violations.ignore),
-		vscode.commands.registerCommand('understand.violations.togglePanelVisibilityAndFocus', violations.togglePanelVisibilityAndFocus),
+		vscode.commands.registerCommand('understand.violations.toggleVisibilityAndFocus', violations.toggleVisibilityAndFocus),
 	);
 
 	// Register hover provider, for detailed descriptions
