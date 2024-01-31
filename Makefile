@@ -4,7 +4,7 @@ OUTPUT := understand.vsix
 
 # Targets
 $(OUTPUT): node_modules $(WATCH)
-	node node_modules/typescript/bin/tsc && node_modules/@vscode/vsce/vsce package -o $(OUTPUT) --baseImagesUrl https://raw.githubusercontent.com/stinb/UserverVscode/main/
+	node node_modules/typescript/bin/tsc && node node_modules/@vscode/vsce/vsce package -o $(OUTPUT) --baseImagesUrl https://raw.githubusercontent.com/stinb/UserverVscode/main/
 node_modules:
 	npm install
 
