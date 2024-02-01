@@ -127,6 +127,11 @@ Status Bar:
 * On the bottom status bar on the left, hover over _Understand_ to see buttons for common commands.
 
 ---
+> Why don't I see some commands in certain files.
+
+If a file isn't a resolved project file, then the file-specific commands won't show up in the command palette. The other commands - general and project-specific - should still be available.
+
+---
 > How do I see the name of a violation?
 
 Do any of the following

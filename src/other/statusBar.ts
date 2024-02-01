@@ -263,7 +263,7 @@ function databaseToString(database: Database)
 			stateString = 'Resolving';
 			break;
 		case DatabaseState.WrongVersion:
-			stateString = 'Wrong version';
+			stateString = 'Wrong database version';
 			break;
 		default:
 			stateString = 'Unknown state';
