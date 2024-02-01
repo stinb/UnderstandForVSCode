@@ -43,10 +43,10 @@ export function getStringFromConfig(understandProject: string, defaultValue: str
 
 
 // Handle a setting that changed
-export function onDidChangeConfiguration(configurationChangeEvent: vscode.ConfigurationChangeEvent)
+export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 {
 	// Skip settings that aren't in this extension
-	if (!configurationChangeEvent.affectsConfiguration('understand'))
+	if (!event.affectsConfiguration('understand'))
 		return;
 
 	// Decide whether to simply send the option to the server
@@ -55,7 +55,7 @@ export function onDidChangeConfiguration(configurationChangeEvent: vscode.Config
 	];
 	let shouldNotifyServer = false;
 	for (const setting of settingsToNotifyServer) {
-		if (configurationChangeEvent.affectsConfiguration(setting)) {
+		if (event.affectsConfiguration(setting)) {
 			shouldNotifyServer = true;
 			break;
 		}
@@ -69,7 +69,7 @@ export function onDidChangeConfiguration(configurationChangeEvent: vscode.Config
 	];
 	let shouldRestart = false;
 	for (const setting of settingsToRestart) {
-		if (configurationChangeEvent.affectsConfiguration(setting)) {
+		if (event.affectsConfiguration(setting)) {
 			shouldRestart = true;
 			break;
 		}

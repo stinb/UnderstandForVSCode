@@ -9,6 +9,7 @@ import * as references from './commands/references';
 import * as settings from './commands/settings';
 import * as violations from './commands/violations';
 import { onDidChangeConfiguration } from './other/config';
+import { onDidChangeActiveTextEditor } from './other/context';
 import { UnderstandHoverProvider } from './other/hover';
 import {
 	documentSelector,
@@ -45,7 +46,7 @@ export function activate(context: vscode.ExtensionContext)
 
 		// Settings
 		vscode.commands.registerCommand('understand.settings.showSettings', settings.showSettings),
-		vscode.commands.registerCommand('understand.settings.showSettingProjectPaths', settings.showSettingProjectPaths),
+		vscode.commands.registerCommand('understand.settings.showSettingsProject', settings.showSettingsProject),
 
 		// Violations
 		vscode.commands.registerCommand('understand.violations.fix', violations.fix),
@@ -64,6 +65,9 @@ export function activate(context: vscode.ExtensionContext)
 
 	// Watch for settings changes, which should prompt the user to re-connect
 	vscode.workspace.onDidChangeConfiguration(onDidChangeConfiguration);
+
+	// Watch for editor focus changing, which should change the 'understandFile' context
+	vscode.window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor);
 
 	startLsp();
 }

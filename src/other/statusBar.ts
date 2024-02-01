@@ -5,6 +5,10 @@ import * as vscode from 'vscode';
 import * as lc from 'vscode-languageclient/node';
 
 import {
+	contexts,
+	setContext,
+} from './context';
+import {
 	Database,
 	DatabaseState,
 	variables,
@@ -46,7 +50,7 @@ export function changeMainStatus(status: MainState)
 		case MainState.Connecting:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connecting to the Understand language server');
-			enableUnderstandProjectContext(false);
+			setContext(contexts.project, false);
 			break;
 		case MainState.Ready:
 			// Count the databases
@@ -59,28 +63,28 @@ export function changeMainStatus(status: MainState)
 			if (databases.length > 0 && resolvedDatabases === databases.length) {
 				mainStatusBarItem.text = '$(search-view-icon) Understand';
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server and ready');
-				enableUnderstandProjectContext();
+				setContext(contexts.project, true);
 			}
 			else if (databases.length === 0) {
 				mainStatusBarItem.text = '$(error) Understand';
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'No database found/opened by the Understand language server');
-				enableUnderstandProjectContext(false);
+				setContext(contexts.project, false);
 			}
 			else {
 				mainStatusBarItem.text = '$(error) Understand';
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Only ${resolvedDatabases} / ${databases.length} databases were resolved by the Understand language server`);
-				enableUnderstandProjectContext();
+				setContext(contexts.project, true);
 			}
 			break;
 		case MainState.NoConnection:
 			mainStatusBarItem.text = '$(error) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Failed to connect to the Understand language server');
-			enableUnderstandProjectContext(false);
+			setContext(contexts.project, false);
 			break;
 		case MainState.Progress:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
 			mainStatusBarItem.tooltip = 'Analyzing';
-			enableUnderstandProjectContext(false);
+			setContext(contexts.project, false);
 			break;
 	}
 }
@@ -145,13 +149,6 @@ export function handleProgress(params: ProgressParams)
 }
 
 
-// Enable the context, which makes commands show up
-function enableUnderstandProjectContext(enable = true)
-{
-	vscode.commands.executeCommand('setContext', 'understandProject', enable || undefined);
-}
-
-
 // Create text of status bar item: status and commands
 function statusBarItemStatusAndCommands(status: MainState, title: string)
 {
@@ -173,11 +170,6 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 	// Add commands
 	const commands: StatusBarCommand[] = [
 		{
-			name: 'Select .und project(s)',
-			command: 'understand.settings.showSettingProjectPaths',
-			enabled: true,
-		},
-		{
 			name: 'Analyze all files',
 			command: 'understand.analysis.analyzeAllFiles',
 			enabled: false,
@@ -188,9 +180,9 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 			enabled: false,
 		},
 		{
-			name: 'Explore current file in Understand',
-			command: 'understand.exploreInUnderstand.currentFile',
-			enabled: false,
+			name: 'Select .und project(s)',
+			command: 'understand.settings.showSettingsProject',
+			enabled: true,
 		},
 	];
 
@@ -214,7 +206,6 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 			if (resolvedDatabases) {
 				commandsToEnable.push('understand.analysis.analyzeAllFiles');
 				commandsToEnable.push('understand.analysis.analyzeChangedFiles');
-				commandsToEnable.push('understand.exploreInUnderstand.currentFile');
 			}
 
 			break;

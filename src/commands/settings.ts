@@ -12,7 +12,7 @@ export function showSettings()
 
 
 // Show setting for for the extension in the Settings UI
-export function showSettingProjectPaths()
+export function showSettingsProject()
 {
-	vscode.commands.executeCommand('workbench.action.openSettings', '@id:understand.project.paths');
+	vscode.commands.executeCommand('workbench.action.openSettings', '@ext:scitools.understand understand.project');
 }

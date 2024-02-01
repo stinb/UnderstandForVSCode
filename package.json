@@ -136,8 +136,8 @@
 				"category": "Understand"
 			},
 			{
-				"command": "understand.settings.showSettingProjectPaths",
-				"title": "Settings: Project Paths",
+				"command": "understand.settings.showSettingsProject",
+				"title": "Settings: Project",
 				"category": "Understand"
 			},
 			{
@@ -257,59 +257,59 @@
 				},
 				{
 					"command": "understand.exploreInUnderstand.currentFile",
-					"when": "understandProject && editorIsOpen"
+					"when": "understandProject && understandFile"
 				},
 				{
 					"command": "understand.references.findAllImplementations",
-					"when": "understandProject && editorIsOpen"
+					"when": "understandProject && understandFile"
 				},
 				{
 					"command": "understand.references.findAllReferences",
-					"when": "understandProject && editorIsOpen"
+					"when": "understandProject && understandFile"
 				},
 				{
 					"command": "understand.references.goToDeclaration",
-					"when": "understandProject && editorIsOpen"
+					"when": "understandProject && understandFile"
 				},
 				{
 					"command": "understand.references.goToDefinition",
-					"when": "understandProject && editorIsOpen"
+					"when": "understandProject && understandFile"
 				},
 				{
 					"command": "understand.references.goToImplementations",
-					"when": "understandProject && editorIsOpen"
+					"when": "understandProject && understandFile"
 				},
 				{
 					"command": "understand.references.goToReferences",
-					"when": "understandProject && editorIsOpen"
+					"when": "understandProject && understandFile"
 				},
 				{
 					"command": "understand.references.goToTypeDefinition",
-					"when": "understandProject && editorIsOpen"
+					"when": "understandProject && understandFile"
 				},
 				{
 					"command": "understand.references.peekDeclaration",
-					"when": "understandProject && editorIsOpen"
+					"when": "understandProject && understandFile"
 				},
 				{
 					"command": "understand.references.peekDefinition",
-					"when": "understandProject && editorIsOpen"
+					"when": "understandProject && understandFile"
 				},
 				{
 					"command": "understand.references.peekImplementations",
-					"when": "understandProject && editorIsOpen"
+					"when": "understandProject && understandFile"
 				},
 				{
 					"command": "understand.references.peekReferences",
-					"when": "understandProject && editorIsOpen"
+					"when": "understandProject && understandFile"
 				},
 				{
 					"command": "understand.references.peekTypeDefinition",
-					"when": "understandProject && editorIsOpen"
+					"when": "understandProject && understandFile"
 				},
 				{
 					"command": "understand.violations.fix",
-					"when": "understandProject && editorIsOpen && !editorReadonly"
+					"when": "understandProject && understandFile && !editorReadonly"
 				},
 				{
 					"command": "understand.violations.goToNextViolationInAllFiles",
@@ -317,7 +317,7 @@
 				},
 				{
 					"command": "understand.violations.goToNextViolationInCurrentFile",
-					"when": "understandProject && editorIsOpen"
+					"when": "understandProject && understandFile"
 				},
 				{
 					"command": "understand.violations.goToPreviousViolationInAllFiles",
@@ -325,11 +325,11 @@
 				},
 				{
 					"command": "understand.violations.goToPreviousViolationInCurrentFile",
-					"when": "understandProject && editorIsOpen"
+					"when": "understandProject && understandFile"
 				},
 				{
 					"command": "understand.violations.ignore",
-					"when": "understandProject && editorIsOpen && !editorReadonly"
+					"when": "understandProject && understandFile && !editorReadonly"
 				},
 				{
 					"command": "understand.violations.toggleVisibilityAndFocus",
