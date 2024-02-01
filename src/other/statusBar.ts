@@ -53,12 +53,11 @@ export function changeMainStatus(status: MainState)
 			setContext(contexts.project, false);
 			break;
 		case MainState.Ready:
-			// Count the databases
-			const databases: Database[] | undefined = variables.languageClient.initializeResult?.databases;
+			// Count the resolved databases
+			const databases: Database[] = getDatabases();
 			let resolvedDatabases = 0;
-			if (databases !== undefined)
-				for (const database of databases)
-					resolvedDatabases += (database.state === DatabaseState.Resolved) ? 1 : 0;
+			for (const database of databases)
+				resolvedDatabases += (database.state === DatabaseState.Resolved) ? 1 : 0;
 			// Show status
 			if (databases.length > 0 && resolvedDatabases === databases.length) {
 				mainStatusBarItem.text = '$(search-view-icon) Understand';
@@ -99,17 +98,32 @@ function createStatusBar()
 }
 
 
+// Get the databases, which were sent by the language server 'initialize' method response
+function getDatabases(): Database[]
+{
+	return variables.languageClient.initializeResult?.databases || [];
+}
+
+
 // Handler: create progress
 export function handleWindowWorkDoneProgressCreate(params: lc.WorkDoneProgressCreateParams)
 {
-	// Delete it if it already exists for some reason
+	// Delete the progress item if it already exists for some reason
 	const token = params.token.toString();
 	if (progressStatusBarItems.has(token)) {
 		progressStatusBarItems.delete(token);
 		progressStatusBarItems.get(token).dispose();
 	}
 
-	// Create it
+	// Mark the database as resolved
+	for (const database of getDatabases()) {
+		if (database.path === token) {
+			database.state = DatabaseState.Resolved;
+			break;
+		}
+	}
+
+	// Create the progress item
 	const progressStatusBarItem = vscode.window.createStatusBarItem(token, vscode.StatusBarAlignment.Left, 99);
 	progressStatusBarItems.set(token, progressStatusBarItem);
 }
@@ -156,10 +170,9 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 	const markdownString = new vscode.MarkdownString(title);
 
 	// Add each database
-	const databases: Database[] | undefined = variables.languageClient.initializeResult?.databases;
-	if (databases !== undefined)
-		for (const database of databases)
-			markdownString.appendText(`\n\n${databaseToString(database)}`);
+	const databases: Database[] = getDatabases();
+	for (const database of databases)
+		markdownString.appendText(`\n\n${databaseToString(database)}`);
 
 	interface StatusBarCommand {
 		name: string,
@@ -192,16 +205,13 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 		case MainState.Connecting:
 			break;
 		case MainState.Ready:
-			// See if there any any resolved databases
+			// See if there are any resolved databases
 			let resolvedDatabases = false;
-			if (databases !== undefined) {
-				for (const database of databases) {
-					if (database.state === DatabaseState.Resolved) {
-						resolvedDatabases = true;
-						break;
-					}
+			for (const database of databases)
+				if (database.state === DatabaseState.Resolved) {
+					resolvedDatabases = true;
+					break;
 				}
-			}
 
 			if (resolvedDatabases) {
 				commandsToEnable.push('understand.analysis.analyzeAllFiles');
