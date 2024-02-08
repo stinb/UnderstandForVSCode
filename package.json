@@ -51,7 +51,8 @@
 		"onLanguage:vb",
 		"onLanguage:verilog",
 		"onLanguage:vhdl",
-		"onLanguage:xml"
+		"onLanguage:xml",
+		"workspaceContains:**/*.und/id.txt"
 	],
 	"contributes": {
 		"commands": [

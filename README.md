@@ -100,6 +100,8 @@ __Explore in _Understand___
 
 3. In Visual Studio Code, open a folder/[workspace](https://code.visualstudio.com/docs/editor/workspaces) with those source code files
 
+4. If the _.und_ folder is visible, then the extension starts automatically. Otherwise, open a code file in a supported language to start the extension.
+
 * What happens next, automatically
 	* If the file is a supported language, then the _Understand_ language server will start.
 	* On the bottom status bar on the left, hover and see that it's connected.
@@ -110,6 +112,12 @@ __Explore in _Understand___
 > Why is the language server executable not found?
 
 Read step 2 "Make the command `userver` accessible to Visual Studio Code" above in setup
+
+> Why isn't the language server starting?
+
+To start it, do either of the following.
+* Have a _.und_ folder in your file explorer, which is created automatically when creating an _Understand_ project.
+* If the _.und_ folder is elsewhere, open a code file which is one of our supported languages.
 
 ---
 > Why aren't my results accurate after creating or deleting a file?
@@ -127,9 +135,19 @@ Status Bar:
 * On the bottom status bar on the left, hover over _Understand_ to see buttons for common commands.
 
 ---
-> Why don't I see some commands in certain files.
+> Why don't I see some commands in certain files?
 
 If a file isn't a resolved project file, then the file-specific commands won't show up in the command palette. The other commands - general and project-specific - should still be available.
+
+---
+> Why don't I see certain kinds of references, like declarations, type definitions, or implementations?
+* It might be because the token doesn't have an entity, like a number literal or a keyword.
+* An entity may not have the reference kind that you are looking for. For example, in C, an `int` object doesn't have a type definition because it's a primitive type, but a `struct` object does if the type is resolved.
+* Some languages don't have certain reference kinds. For example, C doesn't have implementations, but Java does.
+
+---
+> Why don't CodeCheck violations go away after ignoring or fixing them?
+* You should analyze after ignoring, fixing automatically, or fixing manually.
 
 ---
 > How do I see the name of a violation?
