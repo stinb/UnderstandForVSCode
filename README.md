@@ -78,6 +78,7 @@ __Explore in _Understand___
 	* Gain insight with actionable metrics
 	* More at [scitools.com](https://scitools.com) and [blog.scitools.com](https://blog.scitools.com)
 
+---
 ## Setup
 
 ![Screenshot of the status item showing "Connected to the Understand language server"](res/screenshotConnected.png)
@@ -107,6 +108,7 @@ __Explore in _Understand___
 	* On the bottom status bar on the left, hover and see that it's connected.
 	* If there's a _.und_ folder somewhere in the [file explorer](https://code.visualstudio.com/docs/getstarted/userinterface#_explorer), it will be selected automatically by the language server.
 
+---
 ## FAQ
 
 > Why is the language server executable not found?
