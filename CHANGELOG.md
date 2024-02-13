@@ -1,5 +1,8 @@
 # Change Log
 
+# [0.9.3] - 2024 Feb 13
+- Extension now starts if a .und folder is in the file explorer
+
 # [0.9.2] - 2024 Feb 1
 - Fix supported languages objective C/C++
 - Add command to ignore a CodeCheck violation
