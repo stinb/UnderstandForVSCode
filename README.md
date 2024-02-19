@@ -88,7 +88,7 @@ __Explore in _Understand___
 1. [Install _Understand_](https://licensing.scitools.com/download), which comes with _UServer_, the _Understand_ language server
 
 2. Make the command `userver` accessible to Visual Studio Code
-	* Windows: The folder of its installation should be added to the PATH environment variable.
+	* Windows: Add "C:\Program Files\SciTools\bin\pc-win64" to the system PATH. This is usually handled automatically by the Understand installer.
 	* Other: Run `sudo ln -s /your/path/to/userver /usr/bin` to make a link to the executable (because PATH is ignored by Node.js).
 
 3. Open Visual Studio Code and install this extension, if you haven't already
