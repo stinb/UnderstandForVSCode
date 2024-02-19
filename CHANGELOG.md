@@ -1,5 +1,8 @@
 # Change Log
 
+# [0.9.4] - 2024 Feb 19
+- Fix images in README when viewed in VS Code
+
 # [0.9.3] - 2024 Feb 13
 - Extension now starts if a .und folder is in the file explorer
 

@@ -23,7 +23,7 @@ __Understand Different Languages__
 ---
 __See or Go To References__
 
-![Screenshot of hover information with types in the editor](res/screenshotReferences.png)
+![Screenshot of hover information with types in the editor](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/res/screenshotReferences.png)
 
 * Kinds of references
 	* Definition
@@ -39,7 +39,7 @@ __See or Go To References__
 ---
 __See Hover Information__
 
-![Screenshot of hover information with types in the editor](res/screenshotHover.png)
+![Screenshot of hover information with types in the editor](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/res/screenshotHover.png)
 
 * Types of objects, functions, parameters, classes, type aliases, etc.
 * Values of objects, macros, etc.
@@ -47,7 +47,7 @@ __See Hover Information__
 ---
 __See Errors and Warnings__
 
-![Screenshot of an analysis error violation in the editor](res/screenshotErrorInEditor.png)
+![Screenshot of an analysis error violation in the editor](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/res/screenshotErrorInEditor.png)
 
 * Kinds of violations
 	* Errors and warnings from preprocessing and compiling
@@ -59,7 +59,7 @@ __See Errors and Warnings__
 ---
 __Quickly Analyze Your Code__
 
-![Screenshot of analysis progress on the status bar](res/screenshotAnalysis.png)
+![Screenshot of analysis progress on the status bar](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/res/screenshotAnalysis.png)
 
 * Automatically analyze files on save... or
 * Manually analyze files with a [command](https://code.visualstudio.com/api/extension-guides/command)
@@ -67,7 +67,7 @@ __Quickly Analyze Your Code__
 ---
 __Explore in _Understand___
 
-![Screenshot of our main product Understand](res/screenshotUnderstand.png)
+![Screenshot of our main product Understand](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/res/screenshotUnderstand.png)
 
 * If the current file in the database, explore it in _Understand_ for the full experience
 	* Discover how legacy code fits together
@@ -81,7 +81,7 @@ __Explore in _Understand___
 ---
 ## Setup
 
-![Screenshot of the status item showing "Connected to the Understand language server"](res/screenshotConnected.png)
+![Screenshot of the status item showing "Connected to the Understand language server"](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/res/screenshotConnected.png)
 
 ## Setup: Installation
 
