@@ -91,7 +91,7 @@ __Explore in _Understand___
 	* Windows: Add "C:\Program Files\SciTools\bin\pc-win64" to the system PATH. This is usually handled automatically by the Understand installer.
 	* Other: Run `sudo ln -s /your/path/to/userver /usr/bin` to make a link to the executable (because PATH is ignored by Node.js).
 
-3. Open Visual Studio Code and install this extension, if you haven't already
+3. Open Visual Studio Code and [install this extension](https://github.com/stinb/UnderstandForVSCode/wiki/Installing-the-Extension), if you haven't already
 
 ## Setup: Project Creation
 
