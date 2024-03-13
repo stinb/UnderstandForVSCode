@@ -4,7 +4,10 @@
 	"description": "The Software Developer's Multi-Tool",
 	"version": "1.0.0",
 	"publisher": "scitools",
-	"repository": {},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/stinb/UnderstandForVSCode.git"
+	},
 	"engines": {
 		"vscode": "^1.85.0"
 	},
@@ -345,7 +348,7 @@
 	"devDependencies": {
 		"@types/node": "^20.11.10",
 		"@types/vscode": "^1.85.0",
-		"@vscode/vsce": "^2.23.0",
+		"@vscode/vsce": "^2.24.0",
 		"esbuild": "^0.20.0",
 		"typescript": "^5.3.3"
 	},

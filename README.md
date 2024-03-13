@@ -32,7 +32,7 @@ __See or Go To References__
 	* Implementations
 	* All References
 * Where to see references
-	* [Peek](https://code.visualstudio.com/docs/editor/editingevolved#_peek) at references in with a code popup
+	* [Peek](https://code.visualstudio.com/docs/editor/editingevolved#_peek) at references with a code popup
 	* Instantly [go to](https://code.visualstudio.com/docs/editor/editingevolved#_go-to-definition) a reference
 	* Find all references in the [side bar](https://code.visualstudio.com/docs/getstarted/userinterface) with the ability to dismiss them
 
@@ -52,7 +52,7 @@ __See Errors and Warnings__
 * Kinds of violations
 	* Errors and warnings from preprocessing and compiling
 	* Warnings from your selected [CodeChecks](https://support.scitools.com/support/solutions/articles/70000583282-codecheck-overview)
-* Ignore any violations or quick fix some with [code actions](https://code.visualstudio.com/docs/editor/refactoring#_code-actions-quick-fixes-and-refactorings)
+* Ignore CodeCheck violations or quick fix some with [code actions](https://code.visualstudio.com/docs/editor/refactoring#_code-actions-quick-fixes-and-refactorings)
 * Detailed descriptions of CodeCheck violations
 * Violations available in the editor, file explorer [side bar](https://code.visualstudio.com/docs/getstarted/userinterface), and problems [panel](https://code.visualstudio.com/docs/getstarted/userinterface)
 
@@ -69,9 +69,9 @@ __Explore in _Understand___
 
 ![Screenshot of our main product Understand](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/screenshotUnderstand.png)
 
-* If the current file in the database, explore it in _Understand_ for the full experience
+* If the current file is in the database, explore it in _Understand_ for the full experience
 	* Discover how legacy code fits together
-	* Visualize with customizable Graphs
+	* Visualize with customizable graphs
 	* Comply with any standard including AUTOSAR/MISRA
 	* Detect and fix issues early
 	* Solve problems and automate solutions with full API access
@@ -113,7 +113,7 @@ __Explore in _Understand___
 
 > Why is the language server executable not found?
 
-Read step 2 "Make the command `userver` accessible to Visual Studio Code" above in setup
+Read step 2 "Make the command `userver` accessible to Visual Studio Code" above in the setup section
 
 > Why isn't the language server starting?
 
@@ -130,11 +130,17 @@ If your project uses [compile_commands.json](https://support.scitools.com/suppor
 > Now that I am connected to the _Understand_ language server, how do I use it?
 
 Command Palette:
-1. Open the [command palette](https://code.visualstudio.com/api/ux-guidelines/command-palette) and type in _Understand_ to see all of the commands available to you.
+1. Open the command palette with [the keybinding for `workbench.action.showCommands`](https://code.visualstudio.com/docs/getstarted/keybindings#_navigation) and type in _Understand_ to see all of the commands available to you.
 2. Click the gear to view the command ID and [start adding keyboard startcuts](https://code.visualstudio.com/docs/getstarted/keybindings).
 
 Status Bar:
 * On the bottom status bar on the left, hover over _Understand_ to see buttons for common commands.
+
+Code Actions:
+* In a resolved file, the lightbulb icon will appear with some [code actions](https://code.visualstudio.com/docs/editor/editingevolved#_code-action).
+
+Editor Context Menu:
+* In a resolved file, right click code to see the editor context menu and see references like [go to definition](https://code.visualstudio.com/docs/editor/editingevolved#_go-to-definition).
 
 ---
 > Why don't I see some commands in certain files?
@@ -148,8 +154,8 @@ If a file isn't a resolved project file, then the file-specific commands won't s
 * Some languages don't have certain reference kinds. For example, C doesn't have implementations, but Java does.
 
 ---
-> Why don't CodeCheck violations go away after ignoring or fixing them?
-* You should analyze after ignoring, fixing automatically, or fixing manually.
+> Why don't violations go away after manually fixing them?
+* You should analyze after manually fixing an error or warning.
 
 ---
 > How do I see the name of a violation?
@@ -157,7 +163,7 @@ If a file isn't a resolved project file, then the file-specific commands won't s
 Do any of the following
 
 * Hover over the squiggle (this also shows the detailed description)
-* In settings, enable "Problems: Show Current in Status" and place the text cursor on the problem
+* In [settings](https://code.visualstudio.com/docs/getstarted/userinterface#_settings), enable "Problems: Show Current in Status" and place the text cursor on the problem
 * Run a command that starts with "Understand: Violations: Go to"
 * Place the text cursor on the problem, and run the command "Show or Focus Hover"
 ```jsonc
@@ -184,7 +190,7 @@ Do any of the following
 > How do I skip certain violations with the "Go to Next/Previous Violation" commands?
 
 * There are 4 levels of severity for violations in the language server protocol: error, warning, info, and hint.
-* For violations from another extension (like a spell checker), go into the settings of that extension and change the severity to a hint. This limitation is an [issue](https://github.com/microsoft/vscode/issues/105795) on the backlog of the Visual Studio Code team.
+* For violations from another extension (like a spell checker), go into the settings of that extension and change the severity to a hint. This limitation is [an issue on the backlog of the Visual Studio Code team]((https://github.com/microsoft/vscode/issues/105795)).
 * For violations from Understand, enable/disable different warnings in the [CodeCheck configuration in Understand](https://support.scitools.com/support/solutions/articles/70000641317-background-static-analysis-codechecks).
 
 ---
