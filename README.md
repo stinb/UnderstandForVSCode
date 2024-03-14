@@ -5,22 +5,6 @@ Understand by [SciTools](https://www.scitools.com) is a popular platform for cod
 
 ## Features
 
-__Understand Different Languages__
-* Ada
-* Assembly
-* C/C++
-* C#
-* FORTRAN
-* Java
-* JOVIAL
-* Delphi/Pascal
-* Python
-* VHDL
-* Visual Basic (.NET)
-* Web Languages
-* [Details of supported languages](https://support.scitools.com/support/solutions/articles/70000582794-supported-languages)
-
----
 __See or Go To References__
 
 ![Screenshot of hover information with types in the editor](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/screenshotReferences.png)
@@ -79,6 +63,24 @@ __Explore in _Understand___
 	* More at [scitools.com](https://scitools.com) and [blog.scitools.com](https://blog.scitools.com)
 
 ---
+
+__Understand Different Languages__
+* Ada
+* Assembly
+* C/C++
+* C#
+* FORTRAN
+* Java
+* JOVIAL
+* Delphi/Pascal
+* Python
+* VHDL
+* Visual Basic (.NET)
+* Web Languages
+* [Details of supported languages](https://support.scitools.com/support/solutions/articles/70000582794-supported-languages)
+
+---
+
 ## Setup
 
 ![Screenshot of the status item showing "Connected to the Understand language server"](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/screenshotConnected.png)
