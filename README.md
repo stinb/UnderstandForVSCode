@@ -243,3 +243,22 @@ In [keybindings.json](https://code.visualstudio.com/docs/getstarted/keybindings#
 	"command": "understand.violations.toggleVisibilityAndFocus",
 },
 ```
+
+---
+> How do I change the colors of violations?
+
+In [settings.json](https://code.visualstudio.com/docs/getstarted/settings#_settingsjson), the colors can be changed. This is especially useful for color blind users
+```jsonc
+{
+	// See all color customizations:
+	// https://code.visualstudio.com/api/references/theme-color
+	"workbench.colorCustomizations": {
+		// Editor squiggles and problems panel
+		"editorWarning.foreground": "#ffff77",
+		"editorError.foreground": "#ff7777",
+		// File name color
+ 		"list.warningForeground": "#ffff77",
+		"list.errorForeground": "#ff7777"
+	}
+}
+```
