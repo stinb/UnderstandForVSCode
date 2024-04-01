@@ -101,14 +101,11 @@ __Understand Different Languages__
 
 2. If you want to see violations from CodeCheck, [make your CodeCheck configuration(s) run in the background](https://support.scitools.com/support/solutions/articles/70000641317-background-static-analysis-codechecks)
 
-3. In Visual Studio Code, open a folder/[workspace](https://code.visualstudio.com/docs/editor/workspaces) with those source code files
-
-4. If the _.und_ folder is visible, then the extension starts automatically. Otherwise, open a code file in a supported language to start the extension.
+3. In Visual Studio Code, open a folder/[workspace](https://code.visualstudio.com/docs/editor/workspaces) that contains the _.und_ folder. Also, include all of the source code files that you want.
 
 * What happens next, automatically
-	* If the file is a supported language, then the _Understand_ language server will start.
-	* On the bottom status bar on the left, hover and see that it's connected.
-	* If there's a _.und_ folder somewhere in the [file explorer](https://code.visualstudio.com/docs/getstarted/userinterface#_explorer), it will be selected automatically by the language server.
+	* If there's one _.und_ folder somewhere in the [file explorer](https://code.visualstudio.com/docs/getstarted/userinterface#_explorer), the extension starts.
+	* On the bottom status bar on the left, hover on the _Understand_ section and see that the extension has connected to `userver`.
 
 ---
 ## FAQ
@@ -119,9 +116,7 @@ Read step 2 "Make the command `userver` accessible to Visual Studio Code" above 
 
 > Why isn't the language server starting?
 
-To start it, do either of the following.
-* Have a _.und_ folder in your file explorer, which is created automatically when creating an _Understand_ project.
-* If the _.und_ folder is elsewhere, open a code file which is one of our supported languages.
+Make sure that you have a _.und_ folder in your file explorer, which is created automatically when creating an _Understand_ project.
 
 ---
 > Why aren't my results accurate after creating or deleting a file?
