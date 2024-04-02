@@ -76,5 +76,5 @@ export function activate(context: vscode.ExtensionContext)
 // Deactivate the extension
 export function deactivate()
 {
-	stopLsp();
+	return stopLsp();
 }
