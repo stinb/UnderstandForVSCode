@@ -1,5 +1,8 @@
 # Change Log
 
+# [1.0.4] - 2024 May 2
+- Update README.md
+
 # [1.0.3] - 2024 Apr 2
 - Fix graceful shutdown to release license
 

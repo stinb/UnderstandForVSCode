@@ -1,8 +1,31 @@
 # Understand for Visual Studio Code
 
-Understand by [SciTools](https://www.scitools.com) is a popular platform for code comprehension and maintaining legacy code. This plugin shows the static analysis results from Understand in Visual Studio Code.
+_Understand_ by [SciTools](https://www.scitools.com) is a popular platform for code comprehension and maintaining legacy code. This plugin shows the static analysis results from Understand in Visual Studio Code.
 
 
+---
+## Licensing
+
+To use this extension, you must have a valid _Understand_ license. Try it for free with a trial license. Students and teachers can get a free educational license. Please see available options at [scitools.com/pricing](https://scitools.com/pricing).
+
+
+---
+## Compare to Other Extensions
+
+|                                     |Understand by SciTools|C/C++ by Microsoft|clangd by LLVM|C/C++ Advanced Lint by Joseph Benden|
+|-------------------------------------|----------------------|------------------|--------------|------------------------------------|
+|__Supports more than C/C++__         |Yes                   |No                |No            |No                                  |
+|__Can analyze whole project__        |Yes                   |Yes               |No            |No                                  |
+|__See all errors/warnings at launch__|Yes                   |No                |No            |No                                  |
+|__Definitions and other references__ |Yes                   |Yes               |Yes           |No                                  |
+|__Hover for arguments, type, etc.__  |Yes                   |Yes               |Yes           |No                                  |
+|__AUTOSAR, MISRA, CERT, etc.__       |Yes                   |No                |No            |Yes                                 |
+|__Companion GUI application__        |Yes                   |No                |No            |No                                  |
+
+* Note: this comparison may not be perfect. It is just an observation of whether or not these features were found in each extension.
+
+
+---
 ## Features
 
 __See or Go To References__
@@ -79,8 +102,8 @@ __Understand Different Languages__
 * Web Languages
 * [Details of supported languages](https://support.scitools.com/support/solutions/articles/70000582794-supported-languages)
 
----
 
+---
 ## Setup
 
 ![Screenshot of the status item showing "Connected to the Understand language server"](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/screenshotConnected.png)
@@ -106,6 +129,7 @@ __Understand Different Languages__
 * What happens next, automatically
 	* If there's one _.und_ folder somewhere in the [file explorer](https://code.visualstudio.com/docs/getstarted/userinterface#_explorer), the extension starts.
 	* On the bottom status bar on the left, hover on the _Understand_ section and see that the extension has connected to `userver`.
+
 
 ---
 ## FAQ
