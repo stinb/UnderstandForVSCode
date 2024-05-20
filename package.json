@@ -224,6 +224,78 @@
 				}
 			}
 		},
+		"languages": [
+			{
+				"id": "ada",
+				"extensions": [
+					".a",
+					".ada",
+					".adb",
+					".ads",
+					".gpr"
+				]
+			},
+			{
+				"id": "assembly",
+				"extensions": [
+					".asm",
+					".s"
+				]
+			},
+			{
+				"id": "delphi",
+				"extensions": [
+					".dfm",
+					".dpr",
+					".fmx"
+				]
+			},
+			{
+				"id": "fortran",
+				"extensions": [
+					".f",
+					".f77",
+					".f90",
+					".f95",
+					".f03",
+					".for",
+					".ftn"
+				]
+			},
+			{
+				"id": "jovial",
+				"extensions": [
+					".cpl",
+					".jov"
+				]
+			},
+			{
+				"id": "pascal",
+				"extensions": [
+					".pas",
+					".sp"
+				]
+			},
+			{
+				"id": "perl",
+				"extensions": [
+					".upl"
+				]
+			},
+			{
+				"id": "python",
+				"extensions": [
+					".upy"
+				]
+			},
+			{
+				"id": "vhdl",
+				"extensions": [
+					".vhd",
+					".vhdl"
+				]
+			}
+		],
 		"menus": {
 			"commandPalette": [
 				{
