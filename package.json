@@ -40,6 +40,11 @@
 				"category": "Understand"
 			},
 			{
+				"command": "understand.analysis.stopAnalyzingFiles",
+				"title": "Analysis: Stop Analyzing Files",
+				"category": "Understand"
+			},
+			{
 				"command": "understand.exploreInUnderstand.currentFile",
 				"title": "Explore in Understand: Current File",
 				"category": "Understand"

@@ -27,3 +27,10 @@ export function analyzeChangedFiles()
 		analysisKind: AnalysisKind.ChangedFiles,
 	});
 }
+
+
+// Stop analyzing files in all open projects
+export function stopAnalyzingFiles()
+{
+	variables.languageClient.sendNotification('stopAnalyzingFiles');
+}

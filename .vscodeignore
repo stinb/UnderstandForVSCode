@@ -1,9 +1,12 @@
+.github
 .gitignore
-*.js.map
 .vscode
+*.js.map
 *.vsix
 Makefile
 node_modules
+package-lock.json
 package.json
 src
 tsconfig.json
+workflows
