@@ -227,6 +227,9 @@
 		"languages": [
 			{
 				"id": "ada",
+				"aliases": [
+					"Ada"
+				],
 				"extensions": [
 					".a",
 					".ada",
@@ -237,6 +240,9 @@
 			},
 			{
 				"id": "assembly",
+				"aliases": [
+					"Assembly"
+				],
 				"extensions": [
 					".asm",
 					".s"
@@ -244,6 +250,9 @@
 			},
 			{
 				"id": "delphi",
+				"aliases": [
+					"Delphi"
+				],
 				"extensions": [
 					".dfm",
 					".dpr",
@@ -252,6 +261,9 @@
 			},
 			{
 				"id": "fortran",
+				"aliases": [
+					"Fortran"
+				],
 				"extensions": [
 					".f",
 					".f77",
@@ -264,6 +276,9 @@
 			},
 			{
 				"id": "jovial",
+				"aliases": [
+					"JOVIAL"
+				],
 				"extensions": [
 					".cpl",
 					".jov"
@@ -271,6 +286,9 @@
 			},
 			{
 				"id": "pascal",
+				"aliases": [
+					"Pascal"
+				],
 				"extensions": [
 					".pas",
 					".sp"
@@ -290,6 +308,9 @@
 			},
 			{
 				"id": "vhdl",
+				"aliases": [
+					"VHDL"
+				],
 				"extensions": [
 					".vhd",
 					".vhdl"
