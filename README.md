@@ -116,7 +116,8 @@ __Understand Different Languages__
 	* Option 1: Change the setting `understand.server.executable` to your userver path like `/your/path/to/userver`
 	* Option 2: Add to `PATH` or `/usr/bin`
 		* Windows: Add "C:\Program Files\SciTools\bin\pc-win64" to the system PATH. This is usually handled automatically by the Understand installer.
-		* Other: Run `sudo ln -s /your/path/to/userver /usr/bin` to make a link to the executable (because PATH is ignored by Node.js).
+		* Mac: Run `sudo mkdir -p /usr/local/bin && sudo ln -s /your/path/to/userver /usr/local/bin` to make a link to the executable (because PATH is ignored by Node.js).
+		* Linux & Other: Run `sudo ln -s /your/path/to/userver /usr/bin` to make a link to the executable (because PATH is ignored by Node.js).
 
 3. Open Visual Studio Code and [install this extension](https://github.com/stinb/UnderstandForVSCode/wiki/Installing-the-Extension), if you haven't already
 
