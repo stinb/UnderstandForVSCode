@@ -1,5 +1,10 @@
 # Change Log
 
+# [1.0.5] - 2024 May 23
+- Add command to stop analyzing files
+- Show current language for Ada, Assembly, Delphi, Fortran, JOVIAL, Pascal, and VHDL
+- Update README.md
+
 # [1.0.4] - 2024 May 2
 - Update README.md
 
