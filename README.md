@@ -26,6 +26,14 @@ To use this extension, you must have a valid _Understand_ license. Try it for fr
 
 
 ---
+## Compatibility
+
+- Windows 10 and newer
+- MacOS 14 and newer
+- Linux
+
+
+---
 ## Features
 
 __See or Go To References__
