@@ -321,11 +321,15 @@
 			"commandPalette": [
 				{
 					"command": "understand.analysis.analyzeAllFiles",
-					"when": "understandProject"
+					"when": "understandProject && !understandAnalyzing"
 				},
 				{
 					"command": "understand.analysis.analyzeChangedFiles",
-					"when": "understandProject"
+					"when": "understandProject && !understandAnalyzing"
+				},
+				{
+					"command": "understand.analysis.stopAnalyzingFiles",
+					"when": "understandProject && understandAnalyzing"
 				},
 				{
 					"command": "understand.exploreInUnderstand.currentFile",
@@ -416,7 +420,7 @@
 	"devDependencies": {
 		"@types/node": "^20.11.10",
 		"@types/vscode": "^1.85.0",
-		"@vscode/vsce": "^2.26.0",
+		"@vscode/vsce": "^2.26.1",
 		"esbuild": "^0.20.0",
 		"typescript": "^5.3.3"
 	},

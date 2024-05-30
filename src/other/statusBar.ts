@@ -48,9 +48,10 @@ export function changeMainStatus(status: MainState)
 
 	switch (status) {
 		case MainState.Connecting:
-			mainStatusBarItem.text = '$(sync~spin) Understand';
+			mainStatusBarItem.text = '$(loading~spin) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connecting to the Understand language server');
 			setContext(contexts.project, false);
+			setContext(contexts.analyzing, false);
 			break;
 		case MainState.Ready:
 			// Count the resolved databases
@@ -63,27 +64,32 @@ export function changeMainStatus(status: MainState)
 				mainStatusBarItem.text = '$(search-view-icon) Understand';
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server and ready');
 				setContext(contexts.project, true);
+				setContext(contexts.analyzing, false);
 			}
 			else if (databases.length === 0) {
 				mainStatusBarItem.text = '$(error) Understand';
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'No database found/opened by the Understand language server');
 				setContext(contexts.project, false);
+				setContext(contexts.analyzing, false);
 			}
 			else {
 				mainStatusBarItem.text = '$(error) Understand';
 				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Only ${resolvedDatabases} / ${databases.length} databases were resolved by the Understand language server`);
 				setContext(contexts.project, true);
+				setContext(contexts.analyzing, false);
 			}
 			break;
 		case MainState.NoConnection:
 			mainStatusBarItem.text = '$(error) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Failed to connect to the Understand language server');
 			setContext(contexts.project, false);
+			setContext(contexts.analyzing, false);
 			break;
 		case MainState.Progress:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
-			mainStatusBarItem.tooltip = 'Analyzing';
-			setContext(contexts.project, false);
+			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Analyzing');
+			setContext(contexts.project, true);
+			setContext(contexts.analyzing, true);
 			break;
 	}
 }
@@ -177,30 +183,34 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 	interface StatusBarCommand {
 		name: string,
 		command: string,
-		enabled: boolean,
 	};
 
-	// Add commands
+	// Define commands
 	const commands: StatusBarCommand[] = [
 		{
 			name: 'Analyze all files',
 			command: 'understand.analysis.analyzeAllFiles',
-			enabled: false,
 		},
 		{
 			name: 'Analyze changed files',
 			command: 'understand.analysis.analyzeChangedFiles',
-			enabled: false,
+		},
+		{
+			name: 'Stop analyzing files',
+			command: 'understand.analysis.stopAnalyzingFiles',
 		},
 		{
 			name: 'Select .und project(s)',
 			command: 'understand.settings.showSettingsProject',
-			enabled: true,
+		},
+		{
+			name: 'Show settings',
+			command: 'understand.settings.showSettings',
 		},
 	];
 
 	// Enable commands
-	const commandsToEnable = [];
+	const enabledCommands: Set<string> = new Set();
 	switch (status) {
 		case MainState.Connecting:
 			break;
@@ -214,28 +224,25 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 				}
 
 			if (resolvedDatabases) {
-				commandsToEnable.push('understand.analysis.analyzeAllFiles');
-				commandsToEnable.push('understand.analysis.analyzeChangedFiles');
+				enabledCommands.add('understand.analysis.analyzeAllFiles');
+				enabledCommands.add('understand.analysis.analyzeChangedFiles');
+				enabledCommands.add('understand.settings.showSettingsProject');
 			}
 
 			break;
 		case MainState.NoConnection:
+			enabledCommands.add('understand.settings.showSettings');
 			break;
 		case MainState.Progress:
+			enabledCommands.add('understand.analysis.stopAnalyzingFiles');
 			break;
 	}
-	if (commandsToEnable.length)
-		for (const command of commands)
-			if (commandsToEnable.includes(command.command))
-				command.enabled = true;
 
 	// Display commands
 	markdownString.isTrusted = true;
 	for (const command of commands) {
-		if (command.enabled)
+		if (enabledCommands.has(command.command))
 			markdownString.appendMarkdown(`\n\n[${command.name}](command:${command.command})`);
-		else
-			markdownString.appendMarkdown(`\n\n${command.name}`);
 	}
 
 	return markdownString;
