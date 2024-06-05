@@ -2,7 +2,7 @@
 	"name": "understand",
 	"displayName": "Understand",
 	"description": "The Software Developer's Multi-Tool",
-	"version": "1.0.6",
+	"version": "1.0.7",
 	"publisher": "scitools",
 	"repository": {
 		"type": "git",
@@ -420,7 +420,7 @@
 	"devDependencies": {
 		"@types/node": "^20.11.10",
 		"@types/vscode": "^1.85.0",
-		"@vscode/vsce": "^2.26.1",
+		"@vscode/vsce": "^2.27.0",
 		"esbuild": "^0.20.0",
 		"typescript": "^5.3.3"
 	},

@@ -48,7 +48,7 @@ export function changeMainStatus(status: MainState)
 
 	switch (status) {
 		case MainState.Connecting:
-			mainStatusBarItem.text = '$(loading~spin) Understand';
+			mainStatusBarItem.text = '$(sync~spin) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connecting to the Understand language server');
 			setContext(contexts.project, false);
 			setContext(contexts.analyzing, false);
@@ -86,7 +86,7 @@ export function changeMainStatus(status: MainState)
 			setContext(contexts.analyzing, false);
 			break;
 		case MainState.Progress:
-			mainStatusBarItem.text = '$(sync~spin) Understand';
+			mainStatusBarItem.text = '$(loading~spin) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Analyzing');
 			setContext(contexts.project, true);
 			setContext(contexts.analyzing, true);

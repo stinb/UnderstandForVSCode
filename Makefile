@@ -3,8 +3,16 @@ WATCH  := $(wildcard src/*.ts) $(wildcard src/commands/*.ts) $(wildcard src/othe
 OUTPUT := understand.vsix
 
 # Targets
-$(OUTPUT): node_modules $(WATCH)
-	node node_modules/typescript/bin/tsc && node node_modules/@vscode/vsce/vsce package -o $(OUTPUT)
+$(OUTPUT): $(WATCH)
+	@echo
+	@echo '--------------------------------------------------------------------------------'
+	npm install
+	@echo
+	@echo '--------------------------------------------------------------------------------'
+	node node_modules/typescript/bin/tsc
+	@echo
+	@echo '--------------------------------------------------------------------------------'
+	node node_modules/@vscode/vsce/vsce package -o $(OUTPUT)
 node_modules:
 	npm install
 
@@ -16,4 +24,5 @@ watch: node_modules
 install: $(OUTPUT)
 	code --install-extension $(OUTPUT)
 run: $(OUTPUT)
-	code --install-extension $(OUTPUT) && code
+	code --install-extension $(OUTPUT)
+	code
