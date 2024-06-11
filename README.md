@@ -4,6 +4,13 @@ _Understand_ by [SciTools](https://www.scitools.com) is a popular platform for c
 
 
 ---
+## Video
+
+See the extension in action in [our video](https://youtu.be/4Unt2SXtkrE).
+
+[![Video: Get the best of both worlds with the Visual Studio Code extension for Understand](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/videoThumbnail.png)](https://youtu.be/4Unt2SXtkrE)
+
+---
 ## Licensing
 
 To use this extension, you must have a valid _Understand_ license. Try it for free with a trial license. Students and teachers can get a free educational license. Please see available options at [scitools.com/pricing](https://scitools.com/pricing).
