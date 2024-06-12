@@ -1,5 +1,8 @@
 # Change Log
 
+# [1.0.8] - 2024 Jun 11
+- Update README.md
+
 # [1.0.7] - 2024 Jun 5
 - Improve accessibility of commands
 - Make Analyzing icon different from Connecting icon
