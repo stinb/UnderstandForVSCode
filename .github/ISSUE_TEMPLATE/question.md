@@ -7,14 +7,14 @@ assignees: RobbyCBennett
 
 ---
 
-**Question information**
+## Question information
 - [ ] I tried to find this question in the existing issues.
 
-**Question**
+## Question
 
 
-**System and version**
- - CPU architecture (x86, ARM, etc.): 
- - Operating system (Windows, Mac, Linux, etc.): 
- - `userver` version: 
+## System and version
+ - CPU architecture (x86, ARM, etc.):
+ - Operating system (Windows, Mac, Linux, etc.):
+ - `userver` version:
  - Understand for VS Code extension version:

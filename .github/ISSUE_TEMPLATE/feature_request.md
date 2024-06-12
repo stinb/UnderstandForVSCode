@@ -7,10 +7,10 @@ assignees: RobbyCBennett
 
 ---
 
-**Feature request information**
+## Feature request information
 - [ ] I tried to find this feature request in the existing issues.
 
-**Problem(s) this feature will solve**
+## Problem(s) this feature will solve
 
 
-**Describe the solution you'd like**
+## Describe the solution you'd like

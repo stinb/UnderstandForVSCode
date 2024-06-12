@@ -7,18 +7,18 @@ assignees: RobbyCBennett
 
 ---
 
-**Bug information**
+## Bug information
 - [ ] I can replicate the bug consistently.
 - [ ] I tried to find this bug in the existing issues.
 
-**Describe the bug**
+## Describe the bug
 
 
-**Steps to replicate the bug**
-1. 
+## Steps to replicate the bug
+1.
 
-**System and version**
- - CPU architecture (x86, ARM, etc.): 
- - Operating system (Windows, Mac, Linux, etc.): 
- - `userver` version: 
+## System and version
+ - CPU architecture (x86, ARM, etc.):
+ - Operating system (Windows, Mac, Linux, etc.):
+ - `userver` version:
  - Understand for VS Code extension version:
