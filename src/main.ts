@@ -18,8 +18,8 @@ import {
 } from './other/languageClient';
 
 
-// Activate the extension
-export function activate(context: vscode.ExtensionContext)
+/** Activate the extension */
+export async function activate(context: vscode.ExtensionContext)
 {
 	// Register commands (commands visible in the palette are created in package.json)
 	context.subscriptions.push(
@@ -74,7 +74,7 @@ export function activate(context: vscode.ExtensionContext)
 }
 
 
-// Deactivate the extension
+/** Deactivate the extension */
 export function deactivate()
 {
 	return stopLsp();

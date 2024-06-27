@@ -13,7 +13,7 @@ export const contexts = {
 };
 
 
-// Enable/disable a context, which can enable/disable commands in package.json
+/** Enable/disable a context, which can enable/disable commands in package.json */
 export function setContext(name: string, enabled: boolean)
 {
 	setContextHelper(name, enabled);
@@ -28,7 +28,7 @@ export function setContext(name: string, enabled: boolean)
 }
 
 
-// When the editor changes (or when otherwise called) enable/disable the 'understandFile' context
+/** When the editor changes (or when otherwise called) enable/disable the 'understandFile' context */
 export async function onDidChangeActiveTextEditor(editor: vscode.TextEditor | undefined)
 {
 	if (editor === undefined) {
@@ -43,7 +43,7 @@ export async function onDidChangeActiveTextEditor(editor: vscode.TextEditor | un
 }
 
 
-// Actually set the context
+/** Actually set the context */
 function setContextHelper(name: string, enabled: boolean)
 {
 	vscode.commands.executeCommand('setContext', name, enabled || undefined);

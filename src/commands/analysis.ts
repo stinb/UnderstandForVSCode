@@ -11,7 +11,7 @@ enum AnalysisKind {
 }
 
 
-// Analyze all files in all open projects
+/** Analyze all files in all open projects */
 export function analyzeAllFiles()
 {
 	variables.languageClient.sendNotification('analyzeFiles', {
@@ -20,7 +20,7 @@ export function analyzeAllFiles()
 }
 
 
-// Analyze changed files in all open projects
+/** Analyze changed files in all open projects */
 export function analyzeChangedFiles()
 {
 	variables.languageClient.sendNotification('analyzeFiles', {
@@ -29,7 +29,7 @@ export function analyzeChangedFiles()
 }
 
 
-// Stop analyzing files in all open projects
+/** Stop analyzing files in all open projects */
 export function stopAnalyzingFiles()
 {
 	variables.languageClient.sendNotification('stopAnalyzingFiles');

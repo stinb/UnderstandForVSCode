@@ -10,6 +10,7 @@ import {
 	getBooleanFromConfig,
 	getIntFromConfig,
 	getStringFromConfig,
+	getUserverPathIfUnix,
 } from './config';
 import {
 	MainState,
@@ -19,9 +20,11 @@ import {
 } from './statusBar';
 
 
-// File types that can get the following features if they are implemented:
-	// LSP "Language Features" like go to definition
-	// VSCode "HoverProvider" like a detailed description of a violation
+/**
+ * File types that can get the following features if they are implemented:
+ * - LSP "Language Features" like go to definition
+ * - VSCode "HoverProvider" like a detailed description of a violation
+ */
 export const documentSelector = [
 	{ scheme: 'file', language: 'ada' },
 	{ scheme: 'file', language: 'assembly' },
@@ -56,7 +59,7 @@ export const documentSelector = [
 ];
 
 
-// Restart language client & language server
+/** Restart language client & language server */
 export async function restartLsp()
 {
 	return stopLsp().then(async function() {
@@ -65,13 +68,13 @@ export async function restartLsp()
 }
 
 
-// Start language client & language server
+/** Start language client & language server */
 export async function startLsp()
 {
 	// Create the language client
 	variables.languageClient = new lc.LanguageClient(
 		'Understand',
-		getLanguageServerOptions(),
+		await getLanguageServerOptions(),
 		getLanguageClientOptions(),
 	);
 
@@ -87,7 +90,7 @@ export async function startLsp()
 }
 
 
-// Stop language client & language server
+/** Stop language client & language server */
 export async function stopLsp()
 {
 	if (variables.languageClient !== undefined && variables.languageClient.state === lc.State.Running)
@@ -95,7 +98,7 @@ export async function stopLsp()
 }
 
 
-// Get value of initializationOptions object that the language client will send
+/** Get value of initializationOptions object that the language client will send */
 export function getInitializationOptions()
 {
 	const pathFindingMethodManual = getStringFromConfig('project.pathFindingMethod') === 'Manual';
@@ -112,7 +115,7 @@ export function getInitializationOptions()
 }
 
 
-// Options for starting the language client
+/** Options for starting the language client */
 function getLanguageClientOptions(): lc.LanguageClientOptions
 {
 	return {
@@ -125,8 +128,8 @@ function getLanguageClientOptions(): lc.LanguageClientOptions
 }
 
 
-// Options for starting & communicating with the language server
-function getLanguageServerOptions(): lc.ServerOptions
+/** Options for starting & communicating with the language server */
+async function getLanguageServerOptions(): Promise<lc.ServerOptions>
 {
 	let transport: lc.Transport;
 	switch (getStringFromConfig('server.communicationProtocol')) {
@@ -143,7 +146,7 @@ function getLanguageServerOptions(): lc.ServerOptions
 	}
 
 	return {
-		command: getStringFromConfig('server.executable', 'userver'),
+		command: getStringFromConfig('server.executable') || await getUserverPathIfUnix() || 'userver',
 		transport: transport,
 		options: {
 			env: process.env, // Important for avoiding a bad analysis

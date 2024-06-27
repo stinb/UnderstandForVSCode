@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import { getBooleanFromConfig } from './config';
 
 
-// Show more information when the user hovers the mouse
+/** Show more information when the user hovers the mouse */
 export class UnderstandHoverProvider implements vscode.HoverProvider {
 	async provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<vscode.Hover>
 	{
@@ -60,7 +60,7 @@ export class UnderstandHoverProvider implements vscode.HoverProvider {
 }
 
 
-// Given a range, change the translate the start character and end character
+/** Given a range, change the translate the start character and end character */
 function translateRangeChars(range: vscode.Range, translateStart: number, translateEnd: number)
 {
 	const newStartChar = clampToNonNegative(range.start.character + translateStart);
@@ -69,7 +69,7 @@ function translateRangeChars(range: vscode.Range, translateStart: number, transl
 }
 
 
-// Clamp a number to be non-negative (0 ... infinity)
+/** Clamp a number to be non-negative (0 ... infinity) */
 function clampToNonNegative(n: number)
 {
 	return (n >= 0) ? n : 0;

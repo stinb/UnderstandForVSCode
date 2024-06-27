@@ -3,6 +3,8 @@
 
 import * as vscode from 'vscode';
 
+import { Dirent} from 'fs';
+import { readdir } from 'fs/promises';
 import { variables } from './variables';
 import {
 	getInitializationOptions,
@@ -10,7 +12,7 @@ import {
 } from './languageClient';
 
 
-// Get an array from the user config/options
+/** Get an array from the user config/options */
 export function getArrayFromConfig(understandProject: string, defaultValue: any[] = []): any[]
 {
 	const value = getAnyFromConfig(understandProject);
@@ -18,7 +20,7 @@ export function getArrayFromConfig(understandProject: string, defaultValue: any[
 }
 
 
-// Get a boolean from the user config/options
+/** Get a boolean from the user config/options */
 export function getBooleanFromConfig(understandProject: string, defaultValue: boolean = false): boolean
 {
 	const value = getAnyFromConfig(understandProject);
@@ -26,7 +28,7 @@ export function getBooleanFromConfig(understandProject: string, defaultValue: bo
 }
 
 
-// Get an integer from the user config/options
+/** Get an integer from the user config/options */
 export function getIntFromConfig(understandProject: string, defaultValue: number = NaN): number
 {
 	const value = getAnyFromConfig(understandProject);
@@ -34,7 +36,7 @@ export function getIntFromConfig(understandProject: string, defaultValue: number
 }
 
 
-// Get a string from the user config/options
+/** Get a string from the user config/options */
 export function getStringFromConfig(understandProject: string, defaultValue: string = ''): string
 {
 	const value = getAnyFromConfig(understandProject);
@@ -42,7 +44,7 @@ export function getStringFromConfig(understandProject: string, defaultValue: str
 }
 
 
-// Handle a setting that changed
+/** Handle a setting that changed */
 export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 {
 	// Skip settings that aren't in this extension
@@ -83,7 +85,34 @@ export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 }
 
 
-// Get a value of any type from the user config/options
+/** Get the executable path of userver if UNIX-like, otherwise an empty string */
+export async function getUserverPathIfUnix(): Promise<string>
+{
+	// Fail if not UNIX-like
+	if (process.platform === 'win32')
+		return '';
+
+	// Fail if no PATH environment variable
+	const pathCompontents = process.env.PATH;
+	if (typeof pathCompontents !== 'string')
+		return '';
+
+	// Start reading all of the directories of the PATH environment variable
+	const promises: Promise<Dirent[]>[] = [];
+	for (const path of pathCompontents.split(':'))
+		promises.push(readdir(path, {withFileTypes: true}).catch(() => []));
+
+	// Starting at the first part, try to find userver
+	for (const dir of await Promise.all(promises))
+		for (const file of dir)
+			if (file.name === 'userver' && (file.isFile() || file.isSymbolicLink()))
+				return `${file.path}/${file.name}`;
+
+	return '';
+}
+
+
+/** Get a value of any type from the user config/options */
 function getAnyFromConfig(understandProject: string)
 {
 	return vscode.workspace.getConfiguration().get(`understand.${understandProject}`);

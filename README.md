@@ -127,14 +127,7 @@ __Understand Different Languages__
 
 1. [Install _Understand_](https://licensing.scitools.com/download), which comes with _UServer_, the _Understand_ language server
 
-2. Make the command `userver` accessible to Visual Studio Code
-	* Option 1: Change the setting `understand.server.executable` to your userver path like `/your/path/to/userver`
-	* Option 2: Add to `PATH` on Windows or a symbolic link on other platforms
-		* Windows: Add "C:\Program Files\SciTools\bin\pc-win64" to the system PATH. This is usually handled automatically by the Understand installer.
-		* Mac: Run `sudo mkdir -p /usr/local/bin && sudo ln -s /your/path/to/userver /usr/local/bin` to make a link to the executable (because PATH is ignored by Node.js).
-		* Linux & Other: Run `sudo ln -s /your/path/to/userver /usr/bin` to make a link to the executable (because PATH is ignored by Node.js).
-
-3. Open Visual Studio Code and [install this extension](https://github.com/stinb/UnderstandForVSCode/wiki/Installing-the-Extension), if you haven't already
+2. Open Visual Studio Code and [install this extension](https://github.com/stinb/UnderstandForVSCode/wiki/Installing-the-Extension), if you haven't already
 
 ## Setup: Project Creation
 
@@ -154,7 +147,14 @@ __Understand Different Languages__
 
 > Why is the language server executable not found?
 
-Read step 2 "Make the command `userver` accessible to Visual Studio Code" above in the setup section
+Make the command `userver` accessible to Visual Studio Code
+	* Option 1: Change the setting `understand.server.executable` to your userver path like `/your/path/to/userver`
+	* Option 2: Add the path to `userver` to the `PATH` environment variable
+		* Windows: Add "C:\Program Files\SciTools\bin\pc-win64" to the system PATH. This is usually handled automatically by the Understand installer.
+		* Linux & Mac: In your `~/.profile` file, add `export PATH="/your/path/to:$PATH"` where `/your/path/to` is the parent directory of `userver`
+	* Option 3: On Linux or Mac, add a symbolic link
+		* Linux: `sudo ln -s /your/path/to/userver /usr/bin`
+		* Mac: `sudo mkdir -p /usr/local/bin && sudo ln -s /your/path/to/userver /usr/local/bin`
 
 > Why isn't the language server starting?
 

@@ -15,7 +15,7 @@ import {
 } from './variables';
 
 
-// Main state of the language server & client
+/** Main state of the language server & client */
 export enum MainState {
 	Connecting,
 	Ready,
@@ -23,14 +23,18 @@ export enum MainState {
 	Progress,
 }
 
-// Progress with the value usually being an object
-// https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#progress
+/**
+ * Progress, with the value usually being an object
+ * https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#progress
+ */
 interface ProgressParams {
 	token: lc.ProgressToken,
 	value: any,
 }
 
-// Status bar item that can remember the original text
+/**
+ * Status bar item that can remember the original text
+ */
 interface StatusBarItem extends vscode.StatusBarItem {
 	originalText?: string,
 }
@@ -40,7 +44,9 @@ let mainStatusBarItem: vscode.StatusBarItem;
 let progressStatusBarItems = new Map<string, StatusBarItem>();
 
 
-// Change the main status bar item
+/**
+ * Change the main status bar item
+ */
 export function changeMainStatus(status: MainState)
 {
 	if (mainStatusBarItem === undefined)
@@ -95,7 +101,7 @@ export function changeMainStatus(status: MainState)
 }
 
 
-// Initialize the main status bar item
+/** Initialize the main status bar item */
 function createStatusBar()
 {
 	mainStatusBarItem = vscode.window.createStatusBarItem('main', vscode.StatusBarAlignment.Left, 100);
@@ -104,14 +110,14 @@ function createStatusBar()
 }
 
 
-// Get the databases, which were sent by the language server 'initialize' method response
+/** Get the databases, which were sent by the language server 'initialize' method response */
 function getDatabases(): Database[]
 {
 	return variables.languageClient.initializeResult?.databases || [];
 }
 
 
-// Handler: create progress
+/** Handler: create progress */
 export function handleWindowWorkDoneProgressCreate(params: lc.WorkDoneProgressCreateParams)
 {
 	// Delete the progress item if it already exists for some reason
@@ -135,7 +141,7 @@ export function handleWindowWorkDoneProgressCreate(params: lc.WorkDoneProgressCr
 }
 
 
-// Handler: update progress
+/** Handler: update progress */
 export function handleProgress(params: ProgressParams)
 {
 	// Stop if there's no progress object
@@ -169,7 +175,7 @@ export function handleProgress(params: ProgressParams)
 }
 
 
-// Create text of status bar item: status and commands
+/** Create text of status bar item: status and commands */
 function statusBarItemStatusAndCommands(status: MainState, title: string)
 {
 	// Add status title
@@ -249,7 +255,7 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 }
 
 
-// Create text of status bar item: title and percent
+/** Create text of status bar item: title and percent */
 function statusBarItemTitleAndPercent(title: string, percentage: number | undefined)
 {
 	if (percentage === undefined)
@@ -259,7 +265,7 @@ function statusBarItemTitleAndPercent(title: string, percentage: number | undefi
 }
 
 
-// Display the database path & state
+/** Display the database path & state */
 function databaseToString(database: Database)
 {
 	let stateString = '';

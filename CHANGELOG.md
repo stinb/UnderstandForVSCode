@@ -1,5 +1,8 @@
 # Change Log
 
+# [1.0.9] - 2024 Jun 27
+- Add support for PATH environment variable to find userver on non-Windows platforms
+
 # [1.0.8] - 2024 Jun 11
 - Update README.md
 

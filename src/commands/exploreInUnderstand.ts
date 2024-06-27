@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import { variables } from '../other/variables';
 
 
-// Explore current file in Understand
+/** Explore current file in Understand */
 export function currentFile()
 {
 	// Stop if not in an editor
