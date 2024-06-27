@@ -26,3 +26,24 @@ export function currentFile()
 		},
 	});
 }
+
+
+/** Create a new project in Understand using the only directory or a prompt */
+export async function newProject()
+{
+	// Get the folder or fail
+	const uris = await vscode.window.showOpenDialog({
+		canSelectFiles: false,
+		canSelectFolders: true,
+		canSelectMany: false,
+		openLabel: 'Select',
+		title: 'Root directory of your source code',
+	});
+	if (!uris || uris.length !== 1)
+		return;
+
+	// Ask userver to open Understand
+	variables.languageClient.sendNotification('newProject', {
+		uri: uris[0].toString(),
+	});
+}

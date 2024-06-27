@@ -50,6 +50,11 @@
 				"category": "Understand"
 			},
 			{
+				"command": "understand.exploreInUnderstand.newProject",
+				"title": "Explore in Understand: New Project",
+				"category": "Understand"
+			},
+			{
 				"command": "understand.references.findAllImplementations",
 				"title": "References: Find All Implementations",
 				"category": "Understand"
@@ -334,6 +339,10 @@
 				{
 					"command": "understand.exploreInUnderstand.currentFile",
 					"when": "understandProject && understandFile"
+				},
+				{
+					"command": "understand.exploreInUnderstand.newProject",
+					"when": "!understandProject"
 				},
 				{
 					"command": "understand.references.findAllImplementations",

@@ -30,6 +30,7 @@ export async function activate(context: vscode.ExtensionContext)
 
 		// Explore in Understand
 		vscode.commands.registerCommand('understand.exploreInUnderstand.currentFile', exploreInUnderstand.currentFile),
+		vscode.commands.registerCommand('understand.exploreInUnderstand.newProject', exploreInUnderstand.newProject),
 
 		// References
 		vscode.commands.registerCommand('understand.references.findAllImplementations', references.findAllImplementations),
