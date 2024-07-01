@@ -341,8 +341,7 @@
 					"when": "understandProject && understandFile"
 				},
 				{
-					"command": "understand.exploreInUnderstand.newProject",
-					"when": "!understandProject"
+					"command": "understand.exploreInUnderstand.newProject"
 				},
 				{
 					"command": "understand.references.findAllImplementations",

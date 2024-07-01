@@ -131,7 +131,7 @@ __Understand Different Languages__
 
 ## Setup: Project Creation
 
-1. Using at least 1 source code file, [create a project in _Understand_](https://support.scitools.com/support/solutions/articles/70000582579-building-an-accurate-understand-project), resulting in a .und folder
+1. Using at least 1 source code file, [create a project in _Understand_](https://support.scitools.com/support/solutions/articles/70000582579-building-an-accurate-understand-project), resulting in a .und folder. With this extension, you can simply create a source code file and run the command "Understand: Explore in Understand: New Project" to quickly get started.
 
 2. If you want to see violations from CodeCheck, [make your CodeCheck configuration(s) run in the background](https://support.scitools.com/support/solutions/articles/70000641317-background-static-analysis-codechecks)
 

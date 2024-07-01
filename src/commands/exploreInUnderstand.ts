@@ -43,7 +43,7 @@ export async function newProject()
 		return;
 
 	// Ask userver to open Understand
-	variables.languageClient.sendNotification('newProject', {
+	variables.languageClient.sendNotification('newProjectInUnderstand', {
 		uri: uris[0].toString(),
 	});
 }

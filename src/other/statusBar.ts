@@ -206,7 +206,11 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 			command: 'understand.analysis.stopAnalyzingFiles',
 		},
 		{
-			name: 'Select .und project(s)',
+			name: 'Create new .und project',
+			command: 'understand.exploreInUnderstand.newProject',
+		},
+		{
+			name: 'Select .und project',
 			command: 'understand.settings.showSettingsProject',
 		},
 		{
@@ -232,6 +236,10 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 			if (resolvedDatabases) {
 				enabledCommands.add('understand.analysis.analyzeAllFiles');
 				enabledCommands.add('understand.analysis.analyzeChangedFiles');
+				enabledCommands.add('understand.settings.showSettingsProject');
+			}
+			else {
+				enabledCommands.add('understand.exploreInUnderstand.newProject');
 				enabledCommands.add('understand.settings.showSettingsProject');
 			}
 
