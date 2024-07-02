@@ -7,8 +7,7 @@ assignees: RobbyCBennett
 
 ---
 
-## Question information
-- [ ] I tried to find this question in the existing issues.
+<!-- Try to find this question in the existing issues, if you haven't already -->
 
 ## Question
 

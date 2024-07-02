@@ -7,9 +7,7 @@ assignees: RobbyCBennett
 
 ---
 
-## Bug information
-- [ ] I can replicate the bug consistently.
-- [ ] I tried to find this bug in the existing issues.
+<!-- Try to find this bug in the existing issues, if you haven't already -->
 
 ## Describe the bug
 
@@ -17,7 +15,8 @@ assignees: RobbyCBennett
 ## Steps to replicate the bug
 1.
 
-## System and version
+## Bug information, system, version
+ - The bug is consistent (yes/no):
  - CPU architecture (x86, ARM, etc.):
  - Operating system (Windows, Mac, Linux, etc.):
  - `userver` version:
