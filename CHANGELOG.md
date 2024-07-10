@@ -1,5 +1,8 @@
 # Change Log
 
+# [1.0.10] - 2024 Jul 1
+- Add command to create a new project in Understand
+
 # [1.0.9] - 2024 Jun 27
 - Add support for PATH environment variable to find userver on non-Windows platforms
 
