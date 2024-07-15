@@ -21,13 +21,13 @@ To use this extension, you must have a valid _Understand_ license. Try it for fr
 
 |                                     |Understand by SciTools|C/C++ by Microsoft|clangd by LLVM|C/C++ Advanced Lint by Joseph Benden|
 |-------------------------------------|----------------------|------------------|--------------|------------------------------------|
-|__Supports more than C/C++__         |Yes                   |No                |No            |No                                  |
-|__Can analyze whole project__        |Yes                   |Yes               |No            |No                                  |
-|__See all errors/warnings at launch__|Yes                   |No                |No            |No                                  |
-|__Definitions and other references__ |Yes                   |Yes               |Yes           |No                                  |
-|__Hover for arguments, type, etc.__  |Yes                   |Yes               |Yes           |No                                  |
-|__AUTOSAR, MISRA, CERT, etc.__       |Yes                   |No                |No            |Yes                                 |
-|__Companion GUI application__        |Yes                   |No                |No            |No                                  |
+|__Supports more than C/C++__         |✔️                    |❌                |❌            |❌                                  |
+|__Can analyze whole project__        |✔️                    |✔️                |❌            |❌                                  |
+|__See all errors/warnings at launch__|✔️                    |❌                |❌            |❌                                  |
+|__Definitions and other references__ |✔️                    |✔️                |✔️            |❌                                  |
+|__Hover for arguments, type, etc.__  |✔️                    |✔️                |✔️            |❌                                  |
+|__AUTOSAR, MISRA, CERT, etc.__       |✔️                    |❌                |❌            |✔️                                  |
+|__Companion GUI application__        |✔️                    |❌                |❌            |❌                                  |
 
 * Note: this comparison may not be perfect. It is just an observation of whether or not these features were found in each extension.
 
