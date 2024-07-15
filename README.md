@@ -107,7 +107,7 @@ __Understand Different Languages__
 * Assembly
 * C/C++
 * C#
-* FORTRAN
+* Fortran
 * Java
 * JOVIAL
 * Delphi/Pascal
