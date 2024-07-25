@@ -1,5 +1,8 @@
 # Change Log
 
+# [1.0.11] - 2024 Jul 25
+- Update README.md
+
 # [1.0.10] - 2024 Jul 1
 - Add command to create a new project in Understand
 
