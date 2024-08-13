@@ -1,5 +1,8 @@
 # Change Log
 
+# [1.0.12] - 2024 Aug 13
+- Update README.md
+
 # [1.0.11] - 2024 Jul 25
 - Update README.md
 
