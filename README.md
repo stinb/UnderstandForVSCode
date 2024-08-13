@@ -10,6 +10,7 @@ See the extension in action in [our video](https://youtu.be/4Unt2SXtkrE).
 
 [![Video: Get the best of both worlds with the Visual Studio Code extension for Understand](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/videoThumbnail.png)](https://youtu.be/4Unt2SXtkrE)
 
+
 ---
 ## Licensing
 
@@ -30,6 +31,11 @@ To use this extension, you must have a valid _Understand_ license. Try it for fr
 |__Companion GUI application__        |✔️                    |❌                |❌            |❌                                  |
 
 * Note: this comparison may not be perfect. It is just an observation of whether or not these features were found in each extension.
+
+
+---
+# Privacy
+See [scitools.com/eula](https://scitools.com/eula) and also in Understand see Help > Privacy for our updated privacy policy.
 
 
 ---
