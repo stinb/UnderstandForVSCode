@@ -31,15 +31,15 @@ export function setContext(name: string, enabled: boolean)
 /** When the editor changes (or when otherwise called) enable/disable the 'understandFile' context */
 export async function onDidChangeActiveTextEditor(editor: vscode.TextEditor | undefined)
 {
-	if (editor === undefined) {
-		setContext(contexts.file, false);
-	}
-	else {
-		const result: boolean = await variables.languageClient.sendRequest('isResolved', {
-			uri: editor.document.uri.toString(),
-		});
-		setContext(contexts.file, result);
-	}
+	// Unresolved if no editor or the editor isn't a file
+	if (editor === undefined || editor.document.uri.scheme !== 'file')
+		return setContext(contexts.file, false);
+
+	// Resolved if the language server says so
+	const resolved: boolean = await variables.languageClient.sendRequest('isResolved', {
+		uri: editor.document.uri.toString(),
+	});
+	setContext(contexts.file, resolved);
 }
 
 

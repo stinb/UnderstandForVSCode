@@ -2,7 +2,7 @@
 	"name": "understand",
 	"displayName": "Understand",
 	"description": "The Software Developer's Multi-Tool",
-	"version": "1.0.13",
+	"version": "1.0.14",
 	"publisher": "scitools",
 	"repository": {
 		"type": "git",
@@ -167,11 +167,6 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Automatically analyze on project open, file save/create/delete"
-				},
-				"understand.files.watch": {
-					"type": "string",
-					"default": "**/*.{C,F,F90,H,TXT,a,ada,adb,ads,asm,bat,c,cbl,cc,cgi,cob,cpl,cpp,cpy,cs,css,cu,cuh,cxx,dfm,dpr,f,f03,f77,f90,f95,fmx,for,ftn,gpr,h,hh,hpp,htm,html,hxx,inl,java,jov,js,m,mm,pas,php,pl,plm,pm,py,s,sp,sql,tcl,ts,tsx,txt,upy,v,vb,vh,vhd,vhdl,xml}",
-					"markdownDescription": "[Glob pattern](https://aka.ms/vscode-glob-patterns) of files to watch, to notify the server when they are changed/created/deleted"
 				},
 				"understand.project.paths": {
 					"type": "array",
@@ -428,7 +423,7 @@
 	"devDependencies": {
 		"@types/node": "^20.11.10",
 		"@types/vscode": "^1.85.0",
-		"@vscode/vsce": "^3.1.0",
+		"@vscode/vsce": "^3.2.1",
 		"esbuild": "^0.20.0",
 		"typescript": "^5.3.3"
 	},

@@ -121,9 +121,6 @@ function getLanguageClientOptions(): lc.LanguageClientOptions
 	return {
 		documentSelector: documentSelector,
 		initializationOptions: getInitializationOptions(),
-		synchronize: {
-			fileEvents: vscode.workspace.createFileSystemWatcher(getStringFromConfig('files.watch')),
-		},
 	};
 }
 

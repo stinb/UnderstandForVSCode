@@ -10,8 +10,6 @@ $(OUTPUT): $(WATCH)
 	node node_modules/typescript/bin/tsc
 	@echo --------------------------------------------------------------------------------
 	node node_modules/@vscode/vsce/vsce package -o $(OUTPUT)
-node_modules:
-	npm install
 
 # Commands
 clean:

@@ -1,7 +1,8 @@
 'use strict';
 
 
-import * as lc from 'vscode-languageclient/node';
+import { FileSystemWatcher } from 'vscode';
+import { FileEvent, LanguageClient } from 'vscode-languageclient/node';
 
 
 /** Database state from the server, with NotOpened added */
@@ -23,10 +24,16 @@ export interface Database {
 
 /** Global variables used in different files */
 export const variables: Variables = {
+	fileSystemChanges: [],
+	fileSystemTimeout: undefined,
+	fileSystemWatcher: undefined,
 	languageClient: undefined,
 };
 
 
 interface Variables {
-	languageClient: lc.LanguageClient,
+	fileSystemChanges: FileEvent[],
+	fileSystemTimeout: NodeJS.Timeout,
+	fileSystemWatcher: FileSystemWatcher,
+	languageClient: LanguageClient,
 }

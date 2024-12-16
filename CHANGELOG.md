@@ -1,5 +1,8 @@
 # Change Log
 
+# [1.0.14] - 2024 Dec 16
+- Add missing messages for deleted or renamed folders
+
 # [1.0.13] - 2024 Sep 13
 - Update README.md
 
