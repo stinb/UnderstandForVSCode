@@ -1,5 +1,8 @@
 # Change Log
 
+# [1.0.15] - 2025 Apr 4
+- Automatically find userver in normal installation location on Mac OS
+
 # [1.0.14] - 2024 Dec 16
 - Add missing messages for deleted or renamed folders
 

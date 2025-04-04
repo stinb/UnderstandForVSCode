@@ -3,7 +3,8 @@
 
 import * as vscode from 'vscode';
 
-import { Dirent} from 'fs';
+import * as fs from 'fs';
+import { Dirent } from 'fs';
 import { readdir } from 'fs/promises';
 import { variables } from './variables';
 import {
@@ -107,6 +108,13 @@ export async function getUserverPathIfUnix(): Promise<string>
 		for (const file of dir)
 			if (file.name === 'userver' && (file.isFile() || file.isSymbolicLink()))
 				return `${file.path}/${file.name}`;
+
+	// Try to find it in the default location on Mac
+	if (process.platform === 'darwin') {
+		const path = '/Applications/Understand.app/Contents/MacOS/userver';
+		if (fs.existsSync(path))
+			return path;
+	}
 
 	return '';
 }
