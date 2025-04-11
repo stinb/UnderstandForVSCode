@@ -26,36 +26,7 @@ import {
  * - VSCode "HoverProvider" like a detailed description of a violation
  */
 export const documentSelector = [
-	{ scheme: 'file', language: 'ada' },
-	{ scheme: 'file', language: 'assembly' },
-	{ scheme: 'file', language: 'bat' },
-	{ scheme: 'file', language: 'c' },
-	{ scheme: 'file', language: 'cobol' },
-	{ scheme: 'file', language: 'cpp' },
-	{ scheme: 'file', language: 'csharp' },
-	{ scheme: 'file', language: 'css' },
-	{ scheme: 'file', language: 'cuda' },
-	{ scheme: 'file', language: 'delphi' },
-	{ scheme: 'file', language: 'fortran' },
-	{ scheme: 'file', language: 'html' },
-	{ scheme: 'file', language: 'java' },
-	{ scheme: 'file', language: 'javascript' },
-	{ scheme: 'file', language: 'javascriptreact' },
-	{ scheme: 'file', language: 'jovial' },
-	{ scheme: 'file', language: 'objective-c' },
-	{ scheme: 'file', language: 'objective-cpp' },
-	{ scheme: 'file', language: 'pascal' },
-	{ scheme: 'file', language: 'perl' },
-	{ scheme: 'file', language: 'php' },
-	{ scheme: 'file', language: 'python' },
-	{ scheme: 'file', language: 'tcl' },
-	{ scheme: 'file', language: 'text' },
-	{ scheme: 'file', language: 'typescript' },
-	{ scheme: 'file', language: 'typescriptreact' },
-	{ scheme: 'file', language: 'vb' },
-	{ scheme: 'file', language: 'verilog' },
-	{ scheme: 'file', language: 'vhdl' },
-	{ scheme: 'file', language: 'xml' },
+	{ scheme: 'file' },
 ];
 
 

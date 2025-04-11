@@ -1,5 +1,8 @@
 # Change Log
 
+# [1.0.16] - 2025 Apr 11
+- Fix conflict between other extensions with code highlighting
+
 # [1.0.15] - 2025 Apr 4
 - Automatically find userver in normal installation location on Mac OS
 
