@@ -6,9 +6,9 @@ import * as lc from 'vscode-languageclient/node';
 
 import { variables } from './variables';
 import {
-	getArrayFromConfig,
 	getBooleanFromConfig,
 	getIntFromConfig,
+	getStringArrayFromConfig,
 	getStringFromConfig,
 	getUserverPathIfUnix,
 } from './config';
@@ -73,15 +73,15 @@ export async function stopLsp()
 export function getInitializationOptions()
 {
 	const pathFindingMethodManual = getStringFromConfig('project.pathFindingMethod') === 'Manual';
-	const projectPaths = getArrayFromConfig('project.paths');
+	const projectPath = getStringFromConfig('project.path') || getStringArrayFromConfig('project.paths')[0] || '';
 
 	// Warn the user if the method is automatic, a path is set, and it's ignored
-	if (!pathFindingMethodManual && projectPaths.length > 0)
-		vscode.window.showInformationMessage('Project path(s) ignored because setting "project.pathFindingMethod" is not "Manual"');
+	if (!pathFindingMethodManual && projectPath)
+		vscode.window.showInformationMessage('Project path ignored because setting "project.pathFindingMethod" is not "Manual"');
 
 	return {
 		automaticallyAnalyze: getBooleanFromConfig('analysis.automaticallyAnalyze', true),
-		projectPaths: pathFindingMethodManual ? projectPaths : [],
+		projectPath: pathFindingMethodManual ? projectPath : '',
 	};
 }
 

@@ -173,13 +173,9 @@
 					"default": true,
 					"description": "Automatically analyze on project open, file save/create/delete"
 				},
-				"understand.project.paths": {
-					"type": "array",
-					"default": [],
-					"items": {
-						"type": "string"
-					},
-					"description": "Absolute path of each Understand project (PROJECT_NAME.und folder, most likely should be configured in Workspace/Folder Settings)"
+				"understand.project.path": {
+					"type": "string",
+					"description": "Absolute path of the Understand project (PROJECT_NAME.und folder, most likely should be configured in Workspace/Folder Settings)"
 				},
 				"understand.project.pathFindingMethod": {
 					"type": "string",

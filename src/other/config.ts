@@ -13,11 +13,19 @@ import {
 } from './languageClient';
 
 
-/** Get an array from the user config/options */
-export function getArrayFromConfig(understandProject: string, defaultValue: any[] = []): any[]
+/** Get an array of zero or more strings from the user config/options */
+export function getStringArrayFromConfig(understandProject: string, defaultValue: string[] = []): string[]
 {
 	const value = getAnyFromConfig(understandProject);
-	return Array.isArray(value) ? value : defaultValue;
+
+	if (!Array.isArray(value))
+		return defaultValue;
+
+	for (let i = 0; i < value.length; i++)
+		if (typeof(value[i]) !== 'string')
+			return defaultValue;
+
+	return value;
 }
 
 
