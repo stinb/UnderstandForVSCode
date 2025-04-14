@@ -30,6 +30,11 @@
 	"contributes": {
 		"commands": [
 			{
+				"command": "understand.ai.generateAiOverview",
+				"title": "AI: Generate AI Overview",
+				"category": "Understand"
+			},
+			{
 				"command": "understand.analysis.analyzeAllFiles",
 				"title": "Analysis: Analyze All Files",
 				"category": "Understand"
@@ -226,6 +231,10 @@
 		},
 		"menus": {
 			"commandPalette": [
+				{
+					"command": "understand.ai.generateAiOverview",
+					"when": "understandProject && understandFile"
+				},
 				{
 					"command": "understand.analysis.analyzeAllFiles",
 					"when": "understandProject && !understandAnalyzing"

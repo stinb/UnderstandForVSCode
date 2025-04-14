@@ -3,6 +3,7 @@
 
 import * as vscode from 'vscode';
 
+import * as ai from './commands/ai';
 import * as analysis from './commands/analysis';
 import * as exploreInUnderstand from './commands/exploreInUnderstand';
 import * as references from './commands/references';
@@ -24,6 +25,9 @@ export async function activate(context: vscode.ExtensionContext)
 	// Commands visible in the palette are created in package.json
 
 	context.subscriptions.push(
+		// Commands: AI
+		vscode.commands.registerCommand('understand.ai.generateAiOverview', ai.generateAiOverview),
+
 		// Commands: Analysis
 		vscode.commands.registerCommand('understand.analysis.analyzeAllFiles', analysis.analyzeAllFiles),
 		vscode.commands.registerCommand('understand.analysis.analyzeChangedFiles', analysis.analyzeChangedFiles),
