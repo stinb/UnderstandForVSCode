@@ -80,7 +80,7 @@ export function changeMainStatus(status: MainState)
 			}
 			else {
 				mainStatusBarItem.text = '$(error) Understand';
-				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Only ${resolvedDatabases} / ${databases.length} databases were resolved by the Understand language server`);
+				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Database not resolved yet by the Understand language server`);
 				setContext(contexts.project, true);
 				setContext(contexts.analyzing, false);
 			}
@@ -236,6 +236,10 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 			if (resolvedDatabases) {
 				enabledCommands.add('understand.analysis.analyzeAllFiles');
 				enabledCommands.add('understand.analysis.analyzeChangedFiles');
+				enabledCommands.add('understand.settings.showSettingsProject');
+			}
+			else if (databases.length) {
+				enabledCommands.add('understand.analysis.analyzeAllFiles');
 				enabledCommands.add('understand.settings.showSettingsProject');
 			}
 			else {
