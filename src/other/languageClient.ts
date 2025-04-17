@@ -99,8 +99,12 @@ function getLanguageClientOptions(): lc.LanguageClientOptions
 /** Options for starting & communicating with the language server */
 async function getLanguageServerOptions(): Promise<lc.ServerOptions>
 {
+	// Workaround
+	const protocol = (process.platform === 'darwin')
+		? 'TCP Socket' : getStringFromConfig('server.communicationProtocol');
+
 	let transport: lc.Transport;
-	switch (getStringFromConfig('server.communicationProtocol')) {
+	switch (protocol) {
 		case 'TCP Socket':
 			transport = {
 				kind: lc.TransportKind.socket,

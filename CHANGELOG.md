@@ -1,5 +1,8 @@
 # Change Log
 
+# [1.0.17] - 2025 Apr 17
+- Fix problem with inter-process communication on Mac
+
 # [1.0.16] - 2025 Apr 11
 - Fix conflict between other extensions with code highlighting
 
