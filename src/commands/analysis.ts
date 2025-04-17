@@ -1,36 +1,25 @@
 'use strict';
 
 
-import { variables } from '../other/variables';
-
-
-enum AnalysisKind {
-	AllFiles,
-	ChangedFiles,
-	SpecificFiles,
-}
+import { executeCommand } from './helpers';
 
 
 /** Analyze all files in all open projects */
 export function analyzeAllFiles()
 {
-	variables.languageClient.sendNotification('analyzeFiles', {
-		analysisKind: AnalysisKind.AllFiles,
-	});
+	executeCommand('understand.server.analysis.analyzeAllFiles');
 }
 
 
 /** Analyze changed files in all open projects */
 export function analyzeChangedFiles()
 {
-	variables.languageClient.sendNotification('analyzeFiles', {
-		analysisKind: AnalysisKind.ChangedFiles,
-	});
+	executeCommand('understand.server.analysis.analyzeChangedFiles');
 }
 
 
 /** Stop analyzing files in all open projects */
 export function stopAnalyzingFiles()
 {
-	variables.languageClient.sendNotification('stopAnalyzingFiles');
+	executeCommand('understand.server.analysis.stopAnalyzingFiles');
 }

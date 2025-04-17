@@ -4,15 +4,8 @@
 import * as vscode from 'vscode';
 import * as lc from 'vscode-languageclient/node';
 
-import {
-	contexts,
-	setContext,
-} from './context';
-import {
-	Database,
-	DatabaseState,
-	variables,
-} from './variables';
+import { contexts, setContext } from './context';
+import { Db, DbState, variables, } from './variables';
 
 
 /** Main state of the language server & client */
@@ -55,34 +48,36 @@ export function changeMainStatus(status: MainState)
 	switch (status) {
 		case MainState.Connecting:
 			mainStatusBarItem.text = '$(sync~spin) Understand';
-			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connecting to the Understand language server');
+			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connecting');
 			setContext(contexts.project, false);
 			setContext(contexts.analyzing, false);
 			break;
 		case MainState.Ready:
-			// Count the resolved databases
-			const databases: Database[] = getDatabases();
-			let resolvedDatabases = 0;
-			for (const database of databases)
-				resolvedDatabases += (database.state === DatabaseState.Resolved) ? 1 : 0;
-			// Show status
-			if (databases.length > 0 && resolvedDatabases === databases.length) {
-				mainStatusBarItem.text = '$(search-view-icon) Understand';
-				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server and ready');
-				setContext(contexts.project, true);
-				setContext(contexts.analyzing, false);
-			}
-			else if (databases.length === 0) {
-				mainStatusBarItem.text = '$(error) Understand';
-				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'No database found/opened by the Understand language server');
-				setContext(contexts.project, false);
-				setContext(contexts.analyzing, false);
-			}
-			else {
-				mainStatusBarItem.text = '$(error) Understand';
-				mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Database not resolved yet by the Understand language server`);
-				setContext(contexts.project, true);
-				setContext(contexts.analyzing, false);
+			switch (variables.db.state) {
+				case DbState.Finding:
+					mainStatusBarItem.text = '$(loading~spin) Understand';
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server, finding project');
+					setContext(contexts.project, true);
+					setContext(contexts.analyzing, false);
+					break;
+				case DbState.NoProject:
+					mainStatusBarItem.text = '$(error) Understand';
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'No database found/opened by the Understand language server');
+					setContext(contexts.project, false);
+					setContext(contexts.analyzing, false);
+					break;
+				case DbState.Resolved:
+					mainStatusBarItem.text = '$(search-view-icon) Understand';
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server and ready');
+					setContext(contexts.project, true);
+					setContext(contexts.analyzing, false);
+					break;
+				default:
+					mainStatusBarItem.text = '$(error) Understand';
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Database not resolved yet by the Understand language server`);
+					setContext(contexts.project, true);
+					setContext(contexts.analyzing, false);
+					break;
 			}
 			break;
 		case MainState.NoConnection:
@@ -110,13 +105,6 @@ function createStatusBar()
 }
 
 
-/** Get the databases, which were sent by the language server 'initialize' method response */
-function getDatabases(): Database[]
-{
-	return variables.languageClient.initializeResult?.databases || [];
-}
-
-
 /** Handler: create progress */
 export function handleWindowWorkDoneProgressCreate(params: lc.WorkDoneProgressCreateParams)
 {
@@ -125,14 +113,6 @@ export function handleWindowWorkDoneProgressCreate(params: lc.WorkDoneProgressCr
 	if (progressStatusBarItems.has(token)) {
 		progressStatusBarItems.delete(token);
 		progressStatusBarItems.get(token).dispose();
-	}
-
-	// Mark the database as resolved
-	for (const database of getDatabases()) {
-		if (database.path === token) {
-			database.state = DatabaseState.Resolved;
-			break;
-		}
 	}
 
 	// Create the progress item
@@ -175,16 +155,21 @@ export function handleProgress(params: ProgressParams)
 }
 
 
+export function handleUnderstandChangedDatabaseState(params: Db)
+{
+	variables.db = params;
+	changeMainStatus(MainState.Ready);
+}
+
+
 /** Create text of status bar item: status and commands */
 function statusBarItemStatusAndCommands(status: MainState, title: string)
 {
 	// Add status title
 	const markdownString = new vscode.MarkdownString(title);
 
-	// Add each database
-	const databases: Database[] = getDatabases();
-	for (const database of databases)
-		markdownString.appendText(`\n\n${databaseToString(database)}`);
+	// Add the database path and state
+	markdownString.appendText(`\n\n${databaseToString(variables.db)}`);
 
 	interface StatusBarCommand {
 		name: string,
@@ -225,28 +210,23 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 		case MainState.Connecting:
 			break;
 		case MainState.Ready:
-			// See if there are any resolved databases
-			let resolvedDatabases = false;
-			for (const database of databases)
-				if (database.state === DatabaseState.Resolved) {
-					resolvedDatabases = true;
+			switch (variables.db.state) {
+				case DbState.Finding:
+					enabledCommands.add('understand.settings.showSettingsProject');
 					break;
-				}
-
-			if (resolvedDatabases) {
-				enabledCommands.add('understand.analysis.analyzeAllFiles');
-				enabledCommands.add('understand.analysis.analyzeChangedFiles');
-				enabledCommands.add('understand.settings.showSettingsProject');
+				case DbState.NoProject:
+					enabledCommands.add('understand.exploreInUnderstand.newProject');
+					enabledCommands.add('understand.settings.showSettingsProject');
+					break;
+				case DbState.Resolved:
+					enabledCommands.add('understand.analysis.analyzeAllFiles');
+					enabledCommands.add('understand.analysis.analyzeChangedFiles');
+					enabledCommands.add('understand.settings.showSettingsProject');
+					break;
+				default:
+					enabledCommands.add('understand.analysis.analyzeAllFiles');
+					enabledCommands.add('understand.settings.showSettingsProject');
 			}
-			else if (databases.length) {
-				enabledCommands.add('understand.analysis.analyzeAllFiles');
-				enabledCommands.add('understand.settings.showSettingsProject');
-			}
-			else {
-				enabledCommands.add('understand.exploreInUnderstand.newProject');
-				enabledCommands.add('understand.settings.showSettingsProject');
-			}
-
 			break;
 		case MainState.NoConnection:
 			enabledCommands.add('understand.settings.showSettings');
@@ -278,26 +258,32 @@ function statusBarItemTitleAndPercent(title: string, percentage: number | undefi
 
 
 /** Display the database path & state */
-function databaseToString(database: Database)
+function databaseToString(database: Db)
 {
 	let stateString = '';
 	switch (database.state) {
-		case DatabaseState.NotOpened:
+		case DbState.Finding:
+			stateString = 'Finding project';
+			break;
+		case DbState.NoProject:
+			stateString = 'No project';
+			break;
+		case DbState.UnableToOpen:
 			stateString = 'Not opened';
 			break;
-		case DatabaseState.Empty:
-			stateString = 'Empty';
+		case DbState.Empty:
+			stateString = 'Empty database';
 			break;
-		case DatabaseState.Resolved:
+		case DbState.Resolved:
 			stateString = ''; // (Empty to imply success)
 			break;
-		case DatabaseState.Resolving:
+		case DbState.Resolving:
 			stateString = 'Resolving';
 			break;
-		case DatabaseState.Unresolved:
-			stateString = 'Resolving';
+		case DbState.Unresolved:
+			stateString = 'Not resolved';
 			break;
-		case DatabaseState.WrongVersion:
+		case DbState.WrongVersion:
 			stateString = 'Wrong database version';
 			break;
 		default:

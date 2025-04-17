@@ -4,6 +4,7 @@
 import * as vscode from 'vscode';
 
 import { variables } from '../other/variables';
+import { LSPAny } from 'vscode-languageclient';
 
 
 /** Execute the server-defined command at the current editor position */
@@ -14,20 +15,26 @@ export function executeAtPosition(command: string)
 	if (editor === undefined)
 		return;
 
-	// Ask the server to do it
 	// https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentPositionParams
+	executeCommand(command, [
+		{
+			textDocument: {
+				uri: editor.document.uri.toString(),
+			},
+			position: {
+				line: editor.selection.start.line,
+				character: editor.selection.start.character,
+			},
+		},
+	]);
+}
+
+
+/** Execute a server-defined command */
+export function executeCommand(command: string, args: LSPAny[] = [])
+{
 	variables.languageClient.sendRequest('workspace/executeCommand', {
 		command: command,
-		arguments: [
-			{
-				textDocument: {
-					uri: editor.document.uri.toString(),
-				},
-				position: {
-					line: editor.selection.start.line,
-					character: editor.selection.start.character,
-				},
-			},
-		],
+		arguments: args,
 	});
 }

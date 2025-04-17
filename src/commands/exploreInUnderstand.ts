@@ -3,8 +3,7 @@
 
 import * as vscode from 'vscode';
 
-import { executeAtPosition } from './helpers';
-import { variables } from '../other/variables';
+import { executeAtPosition, executeCommand } from './helpers';
 
 
 /** Explore current file in Understand */
@@ -29,7 +28,5 @@ export async function newProject()
 		return;
 
 	// Ask userver to open Understand
-	variables.languageClient.sendNotification('newProjectInUnderstand', {
-		uri: uris[0].toString(),
-	});
+	executeCommand('understand.server.exploreInUnderstand.newProject', [uris[0].toString()]);
 }

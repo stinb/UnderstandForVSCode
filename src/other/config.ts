@@ -7,16 +7,26 @@ import * as fs from 'fs';
 import { Dirent } from 'fs';
 import { readdir } from 'fs/promises';
 import { variables } from './variables';
-import {
-	getInitializationOptions,
-	restartLsp,
-} from './languageClient';
+import { restartLsp } from './languageClient';
+
+
+enum SettingType
+{
+	Boolean,
+	String,
+}
+
+type Setting =
+{
+	id: string,
+	type: SettingType,
+}
 
 
 /** Get an array of zero or more strings from the user config/options */
-export function getStringArrayFromConfig(understandProject: string, defaultValue: string[] = []): string[]
+export function getStringArrayFromConfig(id: string, defaultValue: string[] = []): string[]
 {
-	const value = getAnyFromConfig(understandProject);
+	const value = getAnyFromConfig(id);
 
 	if (!Array.isArray(value))
 		return defaultValue;
@@ -30,25 +40,25 @@ export function getStringArrayFromConfig(understandProject: string, defaultValue
 
 
 /** Get a boolean from the user config/options */
-export function getBooleanFromConfig(understandProject: string, defaultValue: boolean = false): boolean
+export function getBooleanFromConfig(id: string, defaultValue: boolean = false): boolean
 {
-	const value = getAnyFromConfig(understandProject);
+	const value = getAnyFromConfig(id);
 	return (typeof value === 'boolean') ? value : defaultValue;
 }
 
 
 /** Get an integer from the user config/options */
-export function getIntFromConfig(understandProject: string, defaultValue: number = NaN): number
+export function getIntFromConfig(id: string, defaultValue: number = NaN): number
 {
-	const value = getAnyFromConfig(understandProject);
+	const value = getAnyFromConfig(id);
 	return (typeof value === 'number') ? Math.floor(value) : defaultValue;
 }
 
 
 /** Get a string from the user config/options */
-export function getStringFromConfig(understandProject: string, defaultValue: string = ''): string
+export function getStringFromConfig(id: string, defaultValue: string = ''): string
 {
-	const value = getAnyFromConfig(understandProject);
+	const value = getAnyFromConfig(id);
 	return (typeof value === 'string') ? value : defaultValue;
 }
 
@@ -61,21 +71,30 @@ export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 		return;
 
 	// Decide whether to simply send the option to the server
-	const settingsToNotifyServer = [
-		'understand.analysis',
+	const settingsToNotify: Setting[] = [
+		{id: 'understand.analysis.automaticallyAnalyze', type: SettingType.Boolean},
+		{id: 'understand.project.path', type: SettingType.String},
+		{id: 'understand.project.pathFindingMethod', type: SettingType.String},
 	];
+	const newSettings = {
+		result: [],
+	};
 	let shouldNotifyServer = false;
-	for (const setting of settingsToNotifyServer) {
-		if (event.affectsConfiguration(setting)) {
-			shouldNotifyServer = true;
-			break;
+	for (const setting of settingsToNotify) {
+		switch (setting.type) {
+			case SettingType.Boolean:
+				newSettings.result.push(getBooleanFromConfig(setting.id));
+				break;
+			case SettingType.String:
+				newSettings.result.push(getStringFromConfig(setting.id));
+				break;
 		}
+		if (event.affectsConfiguration(setting.id))
+			shouldNotifyServer = true;
 	}
 
 	// Decide whether to restart both the server and the client
 	const settingsToRestart = [
-		'understand.files',
-		'understand.project',
 		'understand.server',
 	];
 	let shouldRestart = false;
@@ -87,7 +106,7 @@ export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 	}
 
 	if (shouldNotifyServer && !shouldRestart)
-		variables.languageClient.sendNotification('changeOptions', getInitializationOptions());
+		variables.languageClient.sendNotification('workspace/didChangeConfiguration', { settings: newSettings });
 
 	if (shouldRestart)
 		restartLsp();
@@ -129,7 +148,7 @@ export async function getUserverPathIfUnix(): Promise<string>
 
 
 /** Get a value of any type from the user config/options */
-function getAnyFromConfig(understandProject: string)
+function getAnyFromConfig(id: string)
 {
-	return vscode.workspace.getConfiguration().get(`understand.${understandProject}`);
+	return vscode.workspace.getConfiguration().get(id);
 }

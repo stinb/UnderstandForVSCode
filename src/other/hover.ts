@@ -11,7 +11,7 @@ export class UnderstandHoverProvider implements vscode.HoverProvider {
 	async provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<vscode.Hover>
 	{
 		// Stop if the user disabled detailed descriptions
-		if (!getBooleanFromConfig('violations.hover.detailedDescription', true))
+		if (!getBooleanFromConfig('understand.violations.hover.detailedDescription', true))
 			return new vscode.Hover([]);
 
 		const markdownStrings: vscode.MarkdownString[] = [];

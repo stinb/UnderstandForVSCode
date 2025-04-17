@@ -1,14 +1,11 @@
 'use strict';
 
 
-import * as vscode from 'vscode';
 import * as lc from 'vscode-languageclient/node';
 
 import { variables } from './variables';
 import {
-	getBooleanFromConfig,
 	getIntFromConfig,
-	getStringArrayFromConfig,
 	getStringFromConfig,
 	getUserverPathIfUnix,
 } from './config';
@@ -17,6 +14,7 @@ import {
 	changeMainStatus,
 	handleWindowWorkDoneProgressCreate,
 	handleProgress,
+	handleUnderstandChangedDatabaseState,
 } from './statusBar';
 
 
@@ -53,8 +51,9 @@ export async function startLsp()
 	changeMainStatus(MainState.Connecting);
 	return variables.languageClient.start().then(function() {
 		changeMainStatus(MainState.Ready);
-		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
 		variables.languageClient.onNotification('$/progress', handleProgress);
+		variables.languageClient.onNotification('understand/changedDatabaseState', handleUnderstandChangedDatabaseState);
+		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
 	}).catch(function() {
 		changeMainStatus(MainState.NoConnection);
 	});
@@ -69,29 +68,11 @@ export async function stopLsp()
 }
 
 
-/** Get value of initializationOptions object that the language client will send */
-export function getInitializationOptions()
-{
-	const pathFindingMethodManual = getStringFromConfig('project.pathFindingMethod') === 'Manual';
-	const projectPath = getStringFromConfig('project.path') || getStringArrayFromConfig('project.paths')[0] || '';
-
-	// Warn the user if the method is automatic, a path is set, and it's ignored
-	if (!pathFindingMethodManual && projectPath)
-		vscode.window.showInformationMessage('Project path ignored because setting "project.pathFindingMethod" is not "Manual"');
-
-	return {
-		automaticallyAnalyze: getBooleanFromConfig('analysis.automaticallyAnalyze', true),
-		projectPath: pathFindingMethodManual ? projectPath : '',
-	};
-}
-
-
 /** Options for starting the language client */
 function getLanguageClientOptions(): lc.LanguageClientOptions
 {
 	return {
 		documentSelector: documentSelector,
-		initializationOptions: getInitializationOptions(),
 	};
 }
 
@@ -100,11 +81,11 @@ function getLanguageClientOptions(): lc.LanguageClientOptions
 async function getLanguageServerOptions(): Promise<lc.ServerOptions>
 {
 	let transport: lc.Transport;
-	switch (getStringFromConfig('server.communicationProtocol')) {
+	switch (getStringFromConfig('understand.server.communicationProtocol')) {
 		case 'TCP Socket':
 			transport = {
 				kind: lc.TransportKind.socket,
-				port: getIntFromConfig('server.communicationTcpPort', 6789),
+				port: getIntFromConfig('understand.server.communicationTcpPort', 6789),
 			};
 			break;
 		default:
@@ -114,7 +95,7 @@ async function getLanguageServerOptions(): Promise<lc.ServerOptions>
 	}
 
 	return {
-		command: getStringFromConfig('server.executable') || await getUserverPathIfUnix() || 'userver',
+		command: getStringFromConfig('understand.server.executable') || await getUserverPathIfUnix() || 'userver',
 		transport: transport,
 		options: {
 			env: process.env, // Important for avoiding a bad analysis
