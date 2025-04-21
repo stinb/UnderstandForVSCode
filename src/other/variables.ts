@@ -31,6 +31,7 @@ export const variables: Variables = {
 	fileSystemTimeout: undefined,
 	fileSystemWatcher: undefined,
 	languageClient: undefined,
+	watchedSettings: [],
 };
 
 
@@ -40,4 +41,5 @@ interface Variables {
 	fileSystemTimeout: NodeJS.Timeout,
 	fileSystemWatcher: FileSystemWatcher,
 	languageClient: LanguageClient,
+	watchedSettings: string[],
 }

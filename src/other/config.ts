@@ -2,25 +2,13 @@
 
 
 import * as vscode from 'vscode';
+import * as lc from 'vscode-languageclient/node';
 
 import * as fs from 'fs';
 import { Dirent } from 'fs';
 import { readdir } from 'fs/promises';
 import { variables } from './variables';
 import { restartLsp } from './languageClient';
-
-
-enum SettingType
-{
-	Boolean,
-	String,
-}
-
-type Setting =
-{
-	id: string,
-	type: SettingType,
-}
 
 
 /** Get an array of zero or more strings from the user config/options */
@@ -63,6 +51,19 @@ export function getStringFromConfig(id: string, defaultValue: string = ''): stri
 }
 
 
+export function handleWorkspaceConfiguration(params: lc.ConfigurationParams)
+{
+	const result = [];
+	for (const item of params.items) {
+		if (typeof(item.section) !== 'string')
+			continue;
+		variables.watchedSettings.push(item.section);
+		result.push(getAnyFromConfig(item.section));
+	}
+	return result;
+}
+
+
 /** Handle a setting that changed */
 export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 {
@@ -71,29 +72,19 @@ export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 		return;
 
 	// Decide whether to simply send the option to the server
-	const settingsToNotify: Setting[] = [
-		{id: 'understand.analysis.automaticallyAnalyze', type: SettingType.Boolean},
-		{id: 'understand.project.path', type: SettingType.String},
-		{id: 'understand.project.pathFindingMethod', type: SettingType.String},
-	];
-	const newSettings = {
-		result: [],
-	};
-	let shouldNotifyServer = false;
-	for (const setting of settingsToNotify) {
-		switch (setting.type) {
-			case SettingType.Boolean:
-				newSettings.result.push(getBooleanFromConfig(setting.id));
-				break;
-			case SettingType.String:
-				newSettings.result.push(getStringFromConfig(setting.id));
-				break;
+	let shouldNotify = false;
+	const params = {
+		settings: {
+			result: [],
 		}
-		if (event.affectsConfiguration(setting.id))
-			shouldNotifyServer = true;
+	};
+	for (const setting of variables.watchedSettings) {
+		params.settings.result.push(getAnyFromConfig(setting));
+		if (event.affectsConfiguration(setting))
+			shouldNotify = true;
 	}
 
-	// Decide whether to restart both the server and the client
+	// Decide whether to simply send the option to the server
 	const settingsToRestart = [
 		'understand.server',
 	];
@@ -105,8 +96,8 @@ export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 		}
 	}
 
-	if (shouldNotifyServer && !shouldRestart)
-		variables.languageClient.sendNotification('workspace/didChangeConfiguration', { settings: newSettings });
+	if (shouldNotify && !shouldRestart)
+		variables.languageClient.sendNotification('workspace/didChangeConfiguration', params);
 
 	if (shouldRestart)
 		restartLsp();

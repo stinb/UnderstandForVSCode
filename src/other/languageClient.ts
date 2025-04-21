@@ -8,6 +8,7 @@ import {
 	getIntFromConfig,
 	getStringFromConfig,
 	getUserverPathIfUnix,
+	handleWorkspaceConfiguration,
 } from './config';
 import {
 	MainState,
@@ -54,6 +55,7 @@ export async function startLsp()
 		variables.languageClient.onNotification('$/progress', handleProgress);
 		variables.languageClient.onNotification('understand/changedDatabaseState', handleUnderstandChangedDatabaseState);
 		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
+		variables.languageClient.onRequest('workspace/configuration', handleWorkspaceConfiguration);
 	}).catch(function() {
 		changeMainStatus(MainState.NoConnection);
 	});
