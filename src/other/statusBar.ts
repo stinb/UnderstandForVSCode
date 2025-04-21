@@ -25,6 +25,11 @@ interface ProgressParams {
 	value: any,
 }
 
+interface StatusBarCommand {
+	name: string,
+	command: string,
+};
+
 /**
  * Status bar item that can remember the original text
  */
@@ -50,7 +55,6 @@ export function changeMainStatus(status: MainState)
 			mainStatusBarItem.text = '$(sync~spin) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connecting');
 			setContext(contexts.project, false);
-			setContext(contexts.analyzing, false);
 			break;
 		case MainState.Ready:
 			switch (variables.db.state) {
@@ -58,25 +62,26 @@ export function changeMainStatus(status: MainState)
 					mainStatusBarItem.text = '$(loading~spin) Understand';
 					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server, finding project');
 					setContext(contexts.project, true);
-					setContext(contexts.analyzing, false);
 					break;
 				case DbState.NoProject:
 					mainStatusBarItem.text = '$(error) Understand';
 					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'No database found/opened by the Understand language server');
 					setContext(contexts.project, false);
-					setContext(contexts.analyzing, false);
 					break;
 				case DbState.Resolved:
 					mainStatusBarItem.text = '$(search-view-icon) Understand';
 					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server and ready');
 					setContext(contexts.project, true);
-					setContext(contexts.analyzing, false);
+					break;
+				case DbState.Resolving:
+					mainStatusBarItem.text = '$(loading~spin) Understand';
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server, resolving database');
+					setContext(contexts.project, false);
 					break;
 				default:
 					mainStatusBarItem.text = '$(error) Understand';
 					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Database not resolved yet by the Understand language server`);
 					setContext(contexts.project, true);
-					setContext(contexts.analyzing, false);
 					break;
 			}
 			break;
@@ -84,14 +89,22 @@ export function changeMainStatus(status: MainState)
 			mainStatusBarItem.text = '$(error) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Failed to connect to the Understand language server');
 			setContext(contexts.project, false);
-			setContext(contexts.analyzing, false);
 			break;
 		case MainState.Progress:
 			mainStatusBarItem.text = '$(loading~spin) Understand';
-			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Analyzing');
+			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server, working');
 			setContext(contexts.project, true);
-			setContext(contexts.analyzing, true);
 			break;
+	}
+}
+
+
+function commandToStop(token: string)
+{
+	switch (token) {
+		case 'Understand AI Generation': return 'understand.ai.stopAiGeneration';
+		case 'Understand Analysis': return 'understand.analysis.stopAnalyzingFiles';
+		default: return '';
 	}
 }
 
@@ -117,7 +130,7 @@ export function handleWindowWorkDoneProgressCreate(params: lc.WorkDoneProgressCr
 
 	// Create the progress item
 	const progressStatusBarItem = vscode.window.createStatusBarItem(token, vscode.StatusBarAlignment.Left, 99);
-	progressStatusBarItems.set(token, progressStatusBarItem);
+	progressStatusBarItems.set(token, progressStatusBarItem)
 }
 
 
@@ -133,6 +146,17 @@ export function handleProgress(params: ProgressParams)
 	const token = params.token.toString();
 	if (progressStatusBarItems.has(token)) {
 		const progressStatusBarItem = progressStatusBarItems.get(token);
+		if ('cancellable' in progress) {
+			if (progress.cancellable) {
+				const markdownString = new vscode.MarkdownString();
+				markdownString.isTrusted = true;
+				markdownString.appendMarkdown(`[Stop](command:${commandToStop(token)})`);
+				progressStatusBarItem.tooltip = markdownString;
+			}
+			else {
+				progressStatusBarItem.tooltip = '';
+			}
+		}
 		if ('title' in progress) {
 			progressStatusBarItem.text = statusBarItemTitleAndPercent(progress.title, progress.percentage);
 			progressStatusBarItem.originalText = progress.title;
@@ -158,11 +182,15 @@ export function handleProgress(params: ProgressParams)
 export function handleUnderstandChangedDatabaseState(params: Db)
 {
 	variables.db = params;
-	changeMainStatus(MainState.Ready);
+
+	if (progressStatusBarItems.size === 0)
+		changeMainStatus(MainState.Ready);
+	else
+		changeMainStatus(MainState.Progress);
 }
 
 
-/** Create text of status bar item: status and commands */
+/** Creatke text of status bar item: status and commands */
 function statusBarItemStatusAndCommands(status: MainState, title: string)
 {
 	// Add status title
@@ -170,11 +198,6 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 
 	// Add the database path and state
 	markdownString.appendText(`\n\n${databaseToString(variables.db)}`);
-
-	interface StatusBarCommand {
-		name: string,
-		command: string,
-	};
 
 	// Define commands
 	const commands: StatusBarCommand[] = [
@@ -185,10 +208,6 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 		{
 			name: 'Analyze changed files',
 			command: 'understand.analysis.analyzeChangedFiles',
-		},
-		{
-			name: 'Stop analyzing files',
-			command: 'understand.analysis.stopAnalyzingFiles',
 		},
 		{
 			name: 'Create new .und project',

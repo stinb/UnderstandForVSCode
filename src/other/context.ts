@@ -7,7 +7,6 @@ import { variables } from '../other/variables';
 
 
 export const contexts = {
-	analyzing: 'understandAnalyzing',
 	project: 'understandProject',
 	file: 'understandFile',
 };

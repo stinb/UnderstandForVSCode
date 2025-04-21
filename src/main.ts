@@ -27,6 +27,7 @@ export async function activate(context: vscode.ExtensionContext)
 	context.subscriptions.push(
 		// Commands: AI
 		vscode.commands.registerCommand('understand.ai.generateAiOverview', ai.generateAiOverview),
+		vscode.commands.registerCommand('understand.ai.stopAiGeneration', ai.stopAiGeneration),
 
 		// Commands: Analysis
 		vscode.commands.registerCommand('understand.analysis.analyzeAllFiles', analysis.analyzeAllFiles),

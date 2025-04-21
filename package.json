@@ -2,7 +2,7 @@
 	"name": "understand",
 	"displayName": "Understand",
 	"description": "The Software Developer's Multi-Tool",
-	"version": "1.0.16",
+	"version": "1.0.18",
 	"publisher": "scitools",
 	"repository": {
 		"type": "git",
@@ -32,6 +32,11 @@
 			{
 				"command": "understand.ai.generateAiOverview",
 				"title": "AI: Generate AI Overview",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.ai.stopAiGeneration",
+				"title": "AI: Stop AI Generation",
 				"category": "Understand"
 			},
 			{
@@ -232,16 +237,20 @@
 					"when": "understandProject && understandFile"
 				},
 				{
+					"command": "understand.ai.stopAiGeneration",
+					"when": "understandProject"
+				},
+				{
 					"command": "understand.analysis.analyzeAllFiles",
-					"when": "understandProject && !understandAnalyzing"
+					"when": "understandProject"
 				},
 				{
 					"command": "understand.analysis.analyzeChangedFiles",
-					"when": "understandProject && !understandAnalyzing"
+					"when": "understandProject"
 				},
 				{
 					"command": "understand.analysis.stopAnalyzingFiles",
-					"when": "understandProject && understandAnalyzing"
+					"when": "understandProject"
 				},
 				{
 					"command": "understand.exploreInUnderstand.currentFile",
