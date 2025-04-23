@@ -23,6 +23,7 @@ import { URI_SCHEME_VIOLATION_DESCRIPTION, ViolationDescriptionProvider } from '
 export async function activate(context: vscode.ExtensionContext)
 {
 	variables.fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**');
+	variables.violationDescriptionProvider = new ViolationDescriptionProvider();
 
 	// Commands visible in the palette are created in package.json
 
@@ -73,7 +74,7 @@ export async function activate(context: vscode.ExtensionContext)
 		// Watch for settings changes, which should prompt the user to re-connect
 		vscode.workspace.onDidChangeConfiguration(onDidChangeConfiguration),
 
-		vscode.workspace.registerTextDocumentContentProvider(URI_SCHEME_VIOLATION_DESCRIPTION, new ViolationDescriptionProvider()),
+		vscode.workspace.registerTextDocumentContentProvider(URI_SCHEME_VIOLATION_DESCRIPTION, variables.violationDescriptionProvider),
 
 		// Watch for editor focus changing, which should change the 'understandFile' context
 		vscode.window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor),

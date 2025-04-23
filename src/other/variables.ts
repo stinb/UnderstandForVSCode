@@ -3,6 +3,7 @@
 
 import { FileSystemWatcher } from 'vscode';
 import { FileEvent, LanguageClient } from 'vscode-languageclient/node';
+import { ViolationDescriptionProvider } from './textProviders';
 
 
 /** Database state from the server, with UnableToOpen added */
@@ -26,11 +27,12 @@ export interface Db {
 
 /** Global variables used in different files */
 export const variables: Variables = {
-	db: { 'path': '', 'state': DbState.Finding },
+	db: { path: '', state: DbState.Finding },
 	fileSystemChanges: [],
 	fileSystemTimeout: undefined,
 	fileSystemWatcher: undefined,
 	languageClient: undefined,
+	violationDescriptionProvider: undefined,
 	watchedSettings: [],
 };
 
@@ -41,5 +43,6 @@ interface Variables {
 	fileSystemTimeout: NodeJS.Timeout,
 	fileSystemWatcher: FileSystemWatcher,
 	languageClient: LanguageClient,
+	violationDescriptionProvider: ViolationDescriptionProvider,
 	watchedSettings: string[],
 }

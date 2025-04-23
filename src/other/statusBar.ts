@@ -187,6 +187,9 @@ export function handleUnderstandChangedDatabaseState(params: Db)
 		changeMainStatus(MainState.Ready);
 	else
 		changeMainStatus(MainState.Progress);
+
+	if (params.state === DbState.Resolved)
+		variables.violationDescriptionProvider.handleProjectOpened();
 }
 
 

@@ -46,14 +46,16 @@ export class UnderstandHoverProvider implements vscode.HoverProvider {
 			usedIds.add(violation.code.value);
 
 			// Read and display content of detailed description
-			try {
-				const markdownString = new vscode.MarkdownString(await getViolationDescription(getId(violation.code.target), token));
-				markdownString.supportHtml = true;
-				markdownStrings.push(markdownString);
-			} catch (error) {
-				const errorString = `Failed to preview [${violation.code.target.fsPath}](${violation.code.target})`;
+			const id = getId(violation.code.target);
+			const string = await getViolationDescription(id, token);
+			if (string.length === 0) {
+				const errorString = `Failed to preview ${id}`;
 				markdownStrings.push(new vscode.MarkdownString(errorString));
+				continue;
 			}
+			const markdownString = new vscode.MarkdownString(string);
+			markdownString.supportHtml = true;
+			markdownStrings.push(markdownString);
 		}
 
 		return new vscode.Hover(markdownStrings);
