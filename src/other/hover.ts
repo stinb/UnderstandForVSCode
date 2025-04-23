@@ -4,6 +4,8 @@
 import * as vscode from 'vscode';
 
 import { getBooleanFromConfig } from './config';
+import { getViolationDescription } from './textProviders';
+import { getId } from './uriHandler';
 
 
 /** Show more information when the user hovers the mouse */
@@ -45,8 +47,7 @@ export class UnderstandHoverProvider implements vscode.HoverProvider {
 
 			// Read and display content of detailed description
 			try {
-				const content = await vscode.workspace.fs.readFile(violation.code.target);
-				const markdownString = new vscode.MarkdownString(content.toString());
+				const markdownString = new vscode.MarkdownString(await getViolationDescription(getId(violation.code.target), token));
 				markdownString.supportHtml = true;
 				markdownStrings.push(markdownString);
 			} catch (error) {

@@ -1,6 +1,7 @@
 'use strict';
 
 
+import * as vscode from 'vscode';
 import * as lc from 'vscode-languageclient/node';
 
 import { variables } from './variables';
@@ -75,6 +76,10 @@ function getLanguageClientOptions(): lc.LanguageClientOptions
 {
 	return {
 		documentSelector: documentSelector,
+		initializationOptions: {
+			uriScheme: vscode.env.uriScheme, // 'vscode'
+			uriAuthority: 'scitools.understand',
+		},
 	};
 }
 
