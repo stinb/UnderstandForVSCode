@@ -11,23 +11,7 @@ import { variables } from './variables';
 import { restartLsp } from './languageClient';
 
 
-/** Get an array of zero or more strings from the user config/options */
-export function getStringArrayFromConfig(id: string, defaultValue: string[] = []): string[]
-{
-	const value = getAnyFromConfig(id);
-
-	if (!Array.isArray(value))
-		return defaultValue;
-
-	for (let i = 0; i < value.length; i++)
-		if (typeof(value[i]) !== 'string')
-			return defaultValue;
-
-	return value;
-}
-
-
-/** Get a boolean from the user config/options */
+/** Get a boolean from the user settings */
 export function getBooleanFromConfig(id: string, defaultValue: boolean = false): boolean
 {
 	const value = getAnyFromConfig(id);
@@ -35,7 +19,7 @@ export function getBooleanFromConfig(id: string, defaultValue: boolean = false):
 }
 
 
-/** Get an integer from the user config/options */
+/** Get an integer from the user settings */
 export function getIntFromConfig(id: string, defaultValue: number = NaN): number
 {
 	const value = getAnyFromConfig(id);
@@ -43,7 +27,7 @@ export function getIntFromConfig(id: string, defaultValue: number = NaN): number
 }
 
 
-/** Get a string from the user config/options */
+/** Get a string from the user settings */
 export function getStringFromConfig(id: string, defaultValue: string = ''): string
 {
 	const value = getAnyFromConfig(id);
@@ -51,6 +35,7 @@ export function getStringFromConfig(id: string, defaultValue: string = ''): stri
 }
 
 
+/** Respond with an array of the given values from user settings */
 export function handleWorkspaceConfiguration(params: lc.ConfigurationParams)
 {
 	const result = [];
@@ -138,8 +123,21 @@ export async function getUserverPathIfUnix(): Promise<string>
 }
 
 
-/** Get a value of any type from the user config/options */
+/** Get a value of any type from the user settings */
 function getAnyFromConfig(id: string)
 {
-	return vscode.workspace.getConfiguration().get(id);
+	const config = vscode.workspace.getConfiguration();
+
+	// Fall back to old understand.project.paths string array
+	if (id === 'understand.project.path') {
+		const value = config.get(id);
+		if (typeof(value) !== 'string' || value.length === 0) {
+			const value = config.get('understand.project.paths');
+			if (Array.isArray(value))
+				return value[0];
+		}
+		return value;
+	}
+
+	return config.get(id);
 }
