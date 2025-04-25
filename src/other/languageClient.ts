@@ -66,8 +66,12 @@ export async function startLsp()
 /** Stop language client & language server */
 export async function stopLsp()
 {
-	if (variables.languageClient !== undefined && variables.languageClient.state === lc.State.Running)
-		return variables.languageClient.stop();
+	if (variables.languageClient === undefined || variables.languageClient.state !== lc.State.Running)
+		return;
+
+	return variables.languageClient.stop().then(() => {
+		variables.watchedSettings.length = 0;
+	});
 }
 
 
