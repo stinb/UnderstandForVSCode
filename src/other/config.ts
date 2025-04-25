@@ -38,6 +38,7 @@ export function getStringFromConfig(id: string, defaultValue: string = ''): stri
 /** Respond with an array of the given values from user settings */
 export function handleWorkspaceConfiguration(params: lc.ConfigurationParams)
 {
+	variables.watchedSettings.length = 0;
 	const result = [];
 	for (const item of params.items) {
 		if (typeof(item.section) !== 'string')
