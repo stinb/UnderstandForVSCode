@@ -30,6 +30,12 @@ export function setContext(name: string, enabled: boolean)
 /** When the editor changes (or when otherwise called) enable/disable the 'understandFile' context */
 export async function onDidChangeActiveTextEditor(editor: vscode.TextEditor | undefined)
 {
+	// Tell the server the new current editor
+	const params = {uri: ''};
+	if (editor !== undefined)
+		params.uri = editor.document.uri.toString();
+	variables.languageClient.sendNotification('understand/changedCurrentFile', params);
+
 	// Unresolved if no editor or the editor isn't a file
 	if (editor === undefined || editor.document.uri.scheme !== 'file')
 		return setContext(contexts.file, false);

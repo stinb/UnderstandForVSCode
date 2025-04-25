@@ -4,6 +4,7 @@
 import { FileSystemWatcher } from 'vscode';
 import { FileEvent, LanguageClient } from 'vscode-languageclient/node';
 import { ViolationDescriptionProvider } from './textProviders';
+import { AnnotationsViewProvider } from '../views/annotations';
 
 
 /** Database state from the server, with UnableToOpen added */
@@ -27,6 +28,7 @@ export interface Db {
 
 /** Global variables used in different files */
 export const variables: Variables = {
+	annotationsViewProvider: undefined,
 	db: { path: '', state: DbState.Finding },
 	fileSystemChanges: [],
 	fileSystemTimeout: undefined,
@@ -38,6 +40,7 @@ export const variables: Variables = {
 
 
 interface Variables {
+	annotationsViewProvider: AnnotationsViewProvider,
 	db: Db,
 	fileSystemChanges: FileEvent[],
 	fileSystemTimeout: NodeJS.Timeout,

@@ -17,11 +17,13 @@ import { documentSelector, startLsp, stopLsp, } from './other/languageClient';
 import { UnderstandUriHandler } from './other/uriHandler';
 import { variables } from './other/variables';
 import { URI_SCHEME_VIOLATION_DESCRIPTION, ViolationDescriptionProvider } from './other/textProviders';
+import { AnnotationsViewProvider } from './views/annotations';
 
 
 /** Activate the extension */
 export async function activate(context: vscode.ExtensionContext)
 {
+	variables.annotationsViewProvider = new AnnotationsViewProvider();
 	variables.fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**');
 	variables.violationDescriptionProvider = new ViolationDescriptionProvider();
 
@@ -79,7 +81,11 @@ export async function activate(context: vscode.ExtensionContext)
 		// Watch for editor focus changing, which should change the 'understandFile' context
 		vscode.window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor),
 
+		// Handle the violation-descriptions: URI
 		vscode.window.registerUriHandler(new UnderstandUriHandler()),
+
+		// Create web views
+		vscode.window.registerWebviewViewProvider('understand-annotations', variables.annotationsViewProvider),
 
 		// Watch for file changes, creations, and deletions
 		variables.fileSystemWatcher.onDidChange(onDidChange),

@@ -338,6 +338,25 @@
 					"when": "understandProject"
 				}
 			]
+		},
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"icon": "res/logoMonochrome.svg",
+					"id": "understand",
+					"title": "Understand"
+				}
+			]
+		},
+		"views": {
+			"understand": [
+				{
+					"icon": "$(comment)",
+					"id": "understand-annotations",
+					"name": "Annotations",
+					"type": "webview"
+				}
+			]
 		}
 	},
 	"dependencies": {
