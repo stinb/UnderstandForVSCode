@@ -65,6 +65,16 @@
 				"category": "Understand"
 			},
 			{
+				"command": "understand.annotations.deleteAnnotation",
+				"title": "Delete",
+				"category": "Understand: Annotations"
+			},
+			{
+				"command": "understand.annotations.editAnnotation",
+				"title": "Edit",
+				"category": "Understand: Annotations"
+			},
+			{
 				"command": "understand.references.findAllImplementations",
 				"title": "References: Find All Implementations",
 				"category": "Understand"
@@ -255,6 +265,14 @@
 					"when": "understandProject"
 				},
 				{
+					"command": "understand.annotations.deleteAnnotation",
+					"when": "false"
+				},
+				{
+					"command": "understand.annotations.editAnnotation",
+					"when": "false"
+				},
+				{
 					"command": "understand.exploreInUnderstand.currentFile",
 					"when": "understandProject && understandFile"
 				},
@@ -337,6 +355,18 @@
 					"command": "understand.violations.toggleVisibilityAndFocus",
 					"when": "understandProject"
 				}
+			],
+			"webview/context": [
+				{
+					"command": "understand.annotations.editAnnotation",
+					"when": "webviewId == 'understandAnnotations' && webviewSection == 'annotation'",
+					"group": "understand@1"
+				},
+				{
+					"command": "understand.annotations.deleteAnnotation",
+					"when": "webviewId == 'understandAnnotations' && webviewSection == 'annotation'",
+					"group": "understand@2"
+				}
 			]
 		},
 		"viewsContainers": {
@@ -352,7 +382,7 @@
 			"understand": [
 				{
 					"icon": "$(comment)",
-					"id": "understand-annotations",
+					"id": "understandAnnotations",
 					"name": "Annotations",
 					"type": "webview"
 				}

@@ -18,7 +18,7 @@ import {
 	handleProgress,
 	handleUnderstandChangedDatabaseState,
 } from './statusBar';
-import { handleUnderstandChangedAnnotations } from '../views/annotations';
+import { handleUnderstandChangedAnnotations } from '../viewProviders/annotations';
 
 
 /**

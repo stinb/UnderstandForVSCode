@@ -1,0 +1,79 @@
+/* The variables starting with vscode- are in the style of the web view html */
+
+
+:root
+{
+	--outline: 1px;
+	--spacing: 1rem;
+}
+
+body
+{
+	padding: 0;
+}
+
+.annotation
+{
+	background: var(--vscode-input-background);
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing);
+	margin: var(--spacing);
+	padding: var(--spacing)
+}
+
+.annotation:first-child
+{
+	margin-top: calc(var(--spacing) - 1rem + var(--outline));
+}
+
+.annotation:focus, button:focus-visible
+{
+	outline: var(--outline) solid var(--vscode-focusBorder);
+}
+
+.annotation:focus button, .annotation:hover button, button:focus
+{
+	opacity: 1;
+}
+
+.heading
+{
+	display: flex;
+	justify-content: space-between;
+}
+
+button
+{
+	height: 1.25rem;
+	width: 1.25rem;
+}
+
+button
+{
+	background: none;
+	border: none;
+	border-radius: 5px;
+	color: var(--vscode-editor-foreground);
+	cursor: pointer;
+	height: fit-content;
+	opacity: 1;
+	user-select: none;
+}
+
+button:hover
+{
+	background: var(--vscode-toolbar-hoverBackground);
+}
+
+.heading p
+{
+	column-gap: var(--spacing);
+	display: flex;
+	flex-wrap: wrap;
+}
+
+p
+{
+	margin: 0;
+}
