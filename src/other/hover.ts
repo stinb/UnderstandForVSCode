@@ -4,6 +4,8 @@
 import * as vscode from 'vscode';
 
 import { getBooleanFromConfig } from './config';
+import { getViolationDescription } from './textProviders';
+import { getId } from './uriHandler';
 
 
 /** Show more information when the user hovers the mouse */
@@ -11,7 +13,7 @@ export class UnderstandHoverProvider implements vscode.HoverProvider {
 	async provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<vscode.Hover>
 	{
 		// Stop if the user disabled detailed descriptions
-		if (!getBooleanFromConfig('violations.hover.detailedDescription', true))
+		if (!getBooleanFromConfig('understand.violations.hover.detailedDescription', true))
 			return new vscode.Hover([]);
 
 		const markdownStrings: vscode.MarkdownString[] = [];
@@ -44,15 +46,16 @@ export class UnderstandHoverProvider implements vscode.HoverProvider {
 			usedIds.add(violation.code.value);
 
 			// Read and display content of detailed description
-			try {
-				const content = await vscode.workspace.fs.readFile(violation.code.target);
-				const markdownString = new vscode.MarkdownString(content.toString());
-				markdownString.supportHtml = true;
-				markdownStrings.push(markdownString);
-			} catch (error) {
-				const errorString = `Failed to preview [${violation.code.target.fsPath}](${violation.code.target})`;
+			const id = getId(violation.code.target);
+			const string = await getViolationDescription(id, token);
+			if (string.length === 0) {
+				const errorString = `Failed to preview ${id}`;
 				markdownStrings.push(new vscode.MarkdownString(errorString));
+				continue;
 			}
+			const markdownString = new vscode.MarkdownString(string);
+			markdownString.supportHtml = true;
+			markdownStrings.push(markdownString);
 		}
 
 		return new vscode.Hover(markdownStrings);

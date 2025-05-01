@@ -2,46 +2,51 @@
 
 
 import * as vscode from 'vscode';
+import * as lc from 'vscode-languageclient/node';
 
 import * as fs from 'fs';
 import { Dirent } from 'fs';
 import { readdir } from 'fs/promises';
 import { variables } from './variables';
-import {
-	getInitializationOptions,
-	restartLsp,
-} from './languageClient';
+import { restartLsp } from './languageClient';
 
 
-/** Get an array from the user config/options */
-export function getArrayFromConfig(understandProject: string, defaultValue: any[] = []): any[]
+/** Get a boolean from the user settings */
+export function getBooleanFromConfig(id: string, defaultValue: boolean = false): boolean
 {
-	const value = getAnyFromConfig(understandProject);
-	return Array.isArray(value) ? value : defaultValue;
-}
-
-
-/** Get a boolean from the user config/options */
-export function getBooleanFromConfig(understandProject: string, defaultValue: boolean = false): boolean
-{
-	const value = getAnyFromConfig(understandProject);
+	const value = getAnyFromConfig(id);
 	return (typeof value === 'boolean') ? value : defaultValue;
 }
 
 
-/** Get an integer from the user config/options */
-export function getIntFromConfig(understandProject: string, defaultValue: number = NaN): number
+/** Get an integer from the user settings */
+export function getIntFromConfig(id: string, defaultValue: number = NaN): number
 {
-	const value = getAnyFromConfig(understandProject);
+	const value = getAnyFromConfig(id);
 	return (typeof value === 'number') ? Math.floor(value) : defaultValue;
 }
 
 
-/** Get a string from the user config/options */
-export function getStringFromConfig(understandProject: string, defaultValue: string = ''): string
+/** Get a string from the user settings */
+export function getStringFromConfig(id: string, defaultValue: string = ''): string
 {
-	const value = getAnyFromConfig(understandProject);
+	const value = getAnyFromConfig(id);
 	return (typeof value === 'string') ? value : defaultValue;
+}
+
+
+/** Respond with an array of the given values from user settings */
+export function handleWorkspaceConfiguration(params: lc.ConfigurationParams)
+{
+	variables.watchedSettings.length = 0;
+	const result = [];
+	for (const item of params.items) {
+		if (typeof(item.section) !== 'string')
+			continue;
+		variables.watchedSettings.push(item.section);
+		result.push(getAnyFromConfig(item.section));
+	}
+	return result;
 }
 
 
@@ -53,21 +58,20 @@ export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 		return;
 
 	// Decide whether to simply send the option to the server
-	const settingsToNotifyServer = [
-		'understand.analysis',
-	];
-	let shouldNotifyServer = false;
-	for (const setting of settingsToNotifyServer) {
-		if (event.affectsConfiguration(setting)) {
-			shouldNotifyServer = true;
-			break;
+	let shouldNotify = false;
+	const params = {
+		settings: {
+			result: [],
 		}
+	};
+	for (const setting of variables.watchedSettings) {
+		params.settings.result.push(getAnyFromConfig(setting));
+		if (event.affectsConfiguration(setting))
+			shouldNotify = true;
 	}
 
-	// Decide whether to restart both the server and the client
+	// Decide whether to simply send the option to the server
 	const settingsToRestart = [
-		'understand.files',
-		'understand.project',
 		'understand.server',
 	];
 	let shouldRestart = false;
@@ -78,8 +82,8 @@ export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 		}
 	}
 
-	if (shouldNotifyServer && !shouldRestart)
-		variables.languageClient.sendNotification('changeOptions', getInitializationOptions());
+	if (shouldNotify && !shouldRestart)
+		variables.languageClient.sendNotification('workspace/didChangeConfiguration', params);
 
 	if (shouldRestart)
 		restartLsp();
@@ -120,8 +124,21 @@ export async function getUserverPathIfUnix(): Promise<string>
 }
 
 
-/** Get a value of any type from the user config/options */
-function getAnyFromConfig(understandProject: string)
+/** Get a value of any type from the user settings */
+function getAnyFromConfig(id: string)
 {
-	return vscode.workspace.getConfiguration().get(`understand.${understandProject}`);
+	const config = vscode.workspace.getConfiguration();
+
+	// Fall back to old understand.project.paths string array
+	if (id === 'understand.project.path') {
+		const value = config.get(id);
+		if (typeof(value) !== 'string' || value.length === 0) {
+			const value = config.get('understand.project.paths');
+			if (Array.isArray(value))
+				return value[0];
+		}
+		return value;
+	}
+
+	return config.get(id);
 }

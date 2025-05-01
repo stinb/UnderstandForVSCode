@@ -3,6 +3,7 @@
 
 import * as vscode from 'vscode';
 
+import * as ai from './commands/ai';
 import * as analysis from './commands/analysis';
 import * as exploreInUnderstand from './commands/exploreInUnderstand';
 import * as references from './commands/references';
@@ -13,17 +14,24 @@ import { onDidChangeActiveTextEditor } from './other/context';
 import { onDidChange, onDidCreate, onDidDelete } from './other/fileSystem';
 import { UnderstandHoverProvider } from './other/hover';
 import { documentSelector, startLsp, stopLsp, } from './other/languageClient';
+import { UnderstandUriHandler } from './other/uriHandler';
 import { variables } from './other/variables';
+import { URI_SCHEME_VIOLATION_DESCRIPTION, ViolationDescriptionProvider } from './other/textProviders';
 
 
 /** Activate the extension */
 export async function activate(context: vscode.ExtensionContext)
 {
 	variables.fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**');
+	variables.violationDescriptionProvider = new ViolationDescriptionProvider();
 
 	// Commands visible in the palette are created in package.json
 
 	context.subscriptions.push(
+		// Commands: AI
+		vscode.commands.registerCommand('understand.ai.generateAiOverview', ai.generateAiOverview),
+		vscode.commands.registerCommand('understand.ai.stopAiGeneration', ai.stopAiGeneration),
+
 		// Commands: Analysis
 		vscode.commands.registerCommand('understand.analysis.analyzeAllFiles', analysis.analyzeAllFiles),
 		vscode.commands.registerCommand('understand.analysis.analyzeChangedFiles', analysis.analyzeChangedFiles),
@@ -66,8 +74,12 @@ export async function activate(context: vscode.ExtensionContext)
 		// Watch for settings changes, which should prompt the user to re-connect
 		vscode.workspace.onDidChangeConfiguration(onDidChangeConfiguration),
 
+		vscode.workspace.registerTextDocumentContentProvider(URI_SCHEME_VIOLATION_DESCRIPTION, variables.violationDescriptionProvider),
+
 		// Watch for editor focus changing, which should change the 'understandFile' context
 		vscode.window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor),
+
+		vscode.window.registerUriHandler(new UnderstandUriHandler()),
 
 		// Watch for file changes, creations, and deletions
 		variables.fileSystemWatcher.onDidChange(onDidChange),

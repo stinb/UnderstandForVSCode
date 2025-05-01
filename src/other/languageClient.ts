@@ -6,17 +6,17 @@ import * as lc from 'vscode-languageclient/node';
 
 import { variables } from './variables';
 import {
-	getArrayFromConfig,
-	getBooleanFromConfig,
 	getIntFromConfig,
 	getStringFromConfig,
 	getUserverPathIfUnix,
+	handleWorkspaceConfiguration,
 } from './config';
 import {
 	MainState,
 	changeMainStatus,
 	handleWindowWorkDoneProgressCreate,
 	handleProgress,
+	handleUnderstandChangedDatabaseState,
 } from './statusBar';
 
 
@@ -53,8 +53,10 @@ export async function startLsp()
 	changeMainStatus(MainState.Connecting);
 	return variables.languageClient.start().then(function() {
 		changeMainStatus(MainState.Ready);
-		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
 		variables.languageClient.onNotification('$/progress', handleProgress);
+		variables.languageClient.onNotification('understand/changedDatabaseState', handleUnderstandChangedDatabaseState);
+		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
+		variables.languageClient.onRequest('workspace/configuration', handleWorkspaceConfiguration);
 	}).catch(function() {
 		changeMainStatus(MainState.NoConnection);
 	});
@@ -64,25 +66,10 @@ export async function startLsp()
 /** Stop language client & language server */
 export async function stopLsp()
 {
-	if (variables.languageClient !== undefined && variables.languageClient.state === lc.State.Running)
-		return variables.languageClient.stop();
-}
+	if (variables.languageClient === undefined || variables.languageClient.state !== lc.State.Running)
+		return;
 
-
-/** Get value of initializationOptions object that the language client will send */
-export function getInitializationOptions()
-{
-	const pathFindingMethodManual = getStringFromConfig('project.pathFindingMethod') === 'Manual';
-	const projectPaths = getArrayFromConfig('project.paths');
-
-	// Warn the user if the method is automatic, a path is set, and it's ignored
-	if (!pathFindingMethodManual && projectPaths.length > 0)
-		vscode.window.showInformationMessage('Project path(s) ignored because setting "project.pathFindingMethod" is not "Manual"');
-
-	return {
-		automaticallyAnalyze: getBooleanFromConfig('analysis.automaticallyAnalyze', true),
-		projectPaths: pathFindingMethodManual ? projectPaths : [],
-	};
+	return variables.languageClient.stop();
 }
 
 
@@ -91,7 +78,10 @@ function getLanguageClientOptions(): lc.LanguageClientOptions
 {
 	return {
 		documentSelector: documentSelector,
-		initializationOptions: getInitializationOptions(),
+		initializationOptions: {
+			uriScheme: vscode.env.uriScheme, // 'vscode'
+			uriAuthority: 'scitools.understand',
+		},
 	};
 }
 
@@ -99,16 +89,12 @@ function getLanguageClientOptions(): lc.LanguageClientOptions
 /** Options for starting & communicating with the language server */
 async function getLanguageServerOptions(): Promise<lc.ServerOptions>
 {
-	// Workaround
-	const protocol = (process.platform === 'darwin')
-		? 'TCP Socket' : getStringFromConfig('server.communicationProtocol');
-
 	let transport: lc.Transport;
-	switch (protocol) {
+	switch (getStringFromConfig('understand.server.communicationProtocol')) {
 		case 'TCP Socket':
 			transport = {
 				kind: lc.TransportKind.socket,
-				port: getIntFromConfig('server.communicationTcpPort', 6789),
+				port: getIntFromConfig('understand.server.communicationTcpPort', 6789),
 			};
 			break;
 		default:
@@ -118,7 +104,7 @@ async function getLanguageServerOptions(): Promise<lc.ServerOptions>
 	}
 
 	return {
-		command: getStringFromConfig('server.executable') || await getUserverPathIfUnix() || 'userver',
+		command: getStringFromConfig('understand.server.executable') || await getUserverPathIfUnix() || 'userver',
 		transport: transport,
 		options: {
 			env: process.env, // Important for avoiding a bad analysis

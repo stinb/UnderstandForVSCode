@@ -2,7 +2,7 @@
 	"name": "understand",
 	"displayName": "Understand",
 	"description": "The Software Developer's Multi-Tool",
-	"version": "1.0.17",
+	"version": "1.0.18",
 	"publisher": "scitools",
 	"repository": {
 		"type": "git",
@@ -29,6 +29,16 @@
 	],
 	"contributes": {
 		"commands": [
+			{
+				"command": "understand.ai.generateAiOverview",
+				"title": "AI: Generate AI Overview",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.ai.stopAiGeneration",
+				"title": "AI: Stop AI Generation",
+				"category": "Understand"
+			},
 			{
 				"command": "understand.analysis.analyzeAllFiles",
 				"title": "Analysis: Analyze All Files",
@@ -168,13 +178,10 @@
 					"default": true,
 					"description": "Automatically analyze on project open, file save/create/delete"
 				},
-				"understand.project.paths": {
-					"type": "array",
-					"default": [],
-					"items": {
-						"type": "string"
-					},
-					"description": "Absolute path of each Understand project (PROJECT_NAME.und folder, most likely should be configured in Workspace/Folder Settings)"
+				"understand.project.path": {
+					"type": "string",
+					"description": "Absolute path of the Understand project (PROJECT_NAME.und folder, most likely should be configured in Workspace/Folder Settings)",
+					"scope": "machine-overridable"
 				},
 				"understand.project.pathFindingMethod": {
 					"type": "string",
@@ -183,7 +190,7 @@
 						"Automatic",
 						"Manual"
 					],
-					"description": "Either allow the language server to find the Understand project(s) automatically, or manually set it once"
+					"description": "Either allow the language server to find the Understand project automatically, or manually set it once"
 				},
 				"understand.server.communicationProtocol": {
 					"type": "string",
@@ -204,7 +211,8 @@
 				"understand.server.executable": {
 					"type": "string",
 					"default": "",
-					"description": "Command or full path of `userver`, the Understand Language server"
+					"description": "Command or full path of `userver`, the Understand Language server",
+					"scope": "machine-overridable"
 				},
 				"understand.trace.server": {
 					"type": "string",
@@ -227,16 +235,24 @@
 		"menus": {
 			"commandPalette": [
 				{
+					"command": "understand.ai.generateAiOverview",
+					"when": "understandProject && understandFile"
+				},
+				{
+					"command": "understand.ai.stopAiGeneration",
+					"when": "understandProject"
+				},
+				{
 					"command": "understand.analysis.analyzeAllFiles",
-					"when": "understandProject && !understandAnalyzing"
+					"when": "understandProject"
 				},
 				{
 					"command": "understand.analysis.analyzeChangedFiles",
-					"when": "understandProject && !understandAnalyzing"
+					"when": "understandProject"
 				},
 				{
 					"command": "understand.analysis.stopAnalyzingFiles",
-					"when": "understandProject && understandAnalyzing"
+					"when": "understandProject"
 				},
 				{
 					"command": "understand.exploreInUnderstand.currentFile",

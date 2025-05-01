@@ -7,7 +7,6 @@ import { variables } from '../other/variables';
 
 
 export const contexts = {
-	analyzing: 'understandAnalyzing',
 	project: 'understandProject',
 	file: 'understandFile',
 };
@@ -36,7 +35,7 @@ export async function onDidChangeActiveTextEditor(editor: vscode.TextEditor | un
 		return setContext(contexts.file, false);
 
 	// Resolved if the language server says so
-	const resolved: boolean = await variables.languageClient.sendRequest('isResolved', {
+	const resolved: boolean = await variables.languageClient.sendRequest('understand/isResolved', {
 		uri: editor.document.uri.toString(),
 	});
 	setContext(contexts.file, resolved);
