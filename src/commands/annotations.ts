@@ -14,13 +14,13 @@ interface AnnotationContext
 
 export function deleteAnnotation(context: AnnotationContext)
 {
-	vscode.window.showInformationMessage(`deleteAnnotation ${context.id}`);
-	// executeCommand('understand.server.analysis.analyzeAllFiles');
+	vscode.window.showInformationMessage(`deleteAnnotation ${context.id}`); // TODO
+	// executeCommand('understand.server.annotations.deleteAnnotation');
 }
 
 
 export function editAnnotation(context: AnnotationContext)
 {
-	vscode.window.showInformationMessage(`editAnnotation ${context.id}`);
-	// executeCommand('understand.server.analysis.analyzeAllFiles');
+	vscode.window.showInformationMessage(`editAnnotation ${context.id}`); // TODO
+	// executeCommand('understand.server.annotations.editAnnotation');
 }

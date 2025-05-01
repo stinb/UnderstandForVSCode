@@ -36,6 +36,7 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 		_context: vscode.WebviewViewResolveContext,
 		_token: vscode.CancellationToken)
 	{
+		console.log('resolve');
 		webviewView.webview.options = {
 			enableCommandUris: false,
 			enableForms: false,
@@ -66,20 +67,30 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 	/** Now that the view exists, draw the annotations */
 	private draw(annotations: Annotation[])
 	{
-		// TODO more button icon https://github.com/microsoft/vscode/issues/95199
+		// TODO change the button icon https://github.com/microsoft/vscode/issues/95199
 		const htmlParts = [];
 		htmlParts.push('<!DOCTYPE html>');
 		htmlParts.push('<html data-vscode-context=\'{"preventDefaultContextMenuItems": true}\'>');
+
 		htmlParts.push('<head>');
 		const cspSource = escapeHtml(this.view.cspSource);
 		htmlParts.push(`<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src ${cspSource}; style-src ${cspSource};">`);
 		htmlParts.push(`<link rel='stylesheet' href='${escapeHtml(this.style)}'>`);
 		htmlParts.push('</head>');
+
 		htmlParts.push('<body>');
+
+		htmlParts.push('<div>');
 		for (const annotation of annotations)
-			htmlParts.push(`<div class=annotation tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='heading'><p><span><b>${escapeHtml(annotation.position)}</b></span><span>${escapeHtml(annotation.author)}</span><span>${escapeHtml(annotation.lastModified)}</span></p><button role='Annotation Actions'>...</button></div><p>${escapeHtml(annotation.body)}</p></div>`);
+			htmlParts.push(`<div class=annotation tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='heading'><p><span><b>${escapeHtml(annotation.position)}</b></span><span>${escapeHtml(annotation.author)}</span><span>${escapeHtml(annotation.lastModified)}</span></p><button role='Annotation Actions'>...</button></div><code contenteditable>${escapeHtml(annotation.body)}</code></div>`);
 		annotations.length = 0;
+		htmlParts.push('</div>');
+
+		// Prevent the last code element from stealing focus
+		htmlParts.push('<span class="invisible">_</span>');
+
 		htmlParts.push(`<script src="${escapeHtml(this.script)}"></script>`);
+
 		htmlParts.push('</body>');
 		htmlParts.push('</html>');
 		this.view.html = htmlParts.join('');

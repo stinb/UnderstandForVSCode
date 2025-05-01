@@ -1,19 +1,18 @@
-/* The variables starting with vscode- are in the style of the web view html */
-
-
-:root
-{
+:root {
 	--outline: 1px;
 	--spacing: 1rem;
 }
 
-body
-{
+body {
 	padding: 0;
 }
 
-.annotation
-{
+::selection {
+	color: unset;
+	background: var(--vscode-selection-background);
+}
+
+.annotation {
 	background: var(--vscode-input-background);
 	display: flex;
 	flex-direction: column;
@@ -22,58 +21,70 @@ body
 	padding: var(--spacing)
 }
 
-.annotation:first-child
-{
+.annotation:first-child {
 	margin-top: calc(var(--spacing) - 1rem + var(--outline));
 }
 
-.annotation:focus, button:focus-visible
-{
+.annotation:focus, button:focus-visible, code:focus {
 	outline: var(--outline) solid var(--vscode-focusBorder);
 }
 
-.annotation:focus button, .annotation:hover button, button:focus
-{
+.annotation:focus button, .annotation:hover button, button:focus {
 	opacity: 1;
 }
 
-.heading
-{
+.heading {
 	display: flex;
 	justify-content: space-between;
 }
 
-button
-{
-	height: 1.25rem;
-	width: 1.25rem;
-}
-
-button
-{
+button {
 	background: none;
-	border: none;
 	border-radius: 5px;
+	border: none;
 	color: var(--vscode-editor-foreground);
 	cursor: pointer;
+	font-family: var(--vscode-font-family);
+	font-size: var(--vscode-font-size);
+	font-weight: var(--vscode-font-weight);
+	height: 1.25rem;
 	height: fit-content;
 	opacity: 1;
 	user-select: none;
+	width: 1.25rem;
 }
 
-button:hover
-{
+button:hover {
 	background: var(--vscode-toolbar-hoverBackground);
 }
 
-.heading p
-{
+.heading p {
 	column-gap: var(--spacing);
 	display: flex;
 	flex-wrap: wrap;
 }
 
-p
-{
+p {
 	margin: 0;
+}
+
+span:not(:first-child) {
+	color: var(--vscode-list-deemphasizedForeground);
+}
+
+code {
+	background: none;
+	border-radius: 0;
+	color: var(--vscode-editor-foreground);
+	font-family: var(--vscode-font-family);
+	margin: -2px -6px;
+	padding: 2px 6px;
+	white-space: pre-wrap;
+	word-break: keep-all;
+}
+
+.invisible {
+	opacity: 0;
+	pointer-events: none;
+	user-select: none;
 }
