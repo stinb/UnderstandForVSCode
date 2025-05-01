@@ -1,5 +1,10 @@
 # Change Log
 
+# [1.0.18] - 2025 May 1
+- Add command `understand.ai.generateAiOverview`
+- Simplify setting: `understand.project.paths` to `understand.project.path`
+- Improve actions and status in bottom-left status bar items
+
 # [1.0.17] - 2025 Apr 17
 - Fix problem with inter-process communication on Mac
 
