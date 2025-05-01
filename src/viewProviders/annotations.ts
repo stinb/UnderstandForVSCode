@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 
 import { escapeHtml } from '../other/html';
 import { variables } from '../other/variables';
+import { deleteAnnotation } from '../commands/annotations';
 
 
 interface Annotation
@@ -17,6 +18,14 @@ interface Annotation
 }
 
 
+interface Message
+{
+	method: string,
+	id?: string,
+	body?: string,
+}
+
+
 interface AnnotationParams
 {
 	annotations: Annotation[],
@@ -26,9 +35,36 @@ interface AnnotationParams
 export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 {
 	private annotations: Annotation[] = [];
+	private editing: boolean = false;
 	private script: string;
 	private style: string;
 	private view: vscode.Webview;
+
+
+	edit(id: string)
+	{
+		this.postMessage({method: 'edit', id: id});
+	}
+
+
+	handleMessage(message: Message)
+	{
+		switch (message.method) {
+			case 'delete':
+				deleteAnnotation({id: message.id});
+				break;
+			case 'finishedEditing':
+				this.editing = false;
+				console.log(message);
+				variables.languageClient.sendRequest('understand/updateAnnotation', {id: message.id, body: message.body});
+				if (this.annotations.length)
+					this.draw(this.annotations);
+				break;
+			case 'startedEditing':
+				this.editing = true;
+				break;
+		}
+	}
 
 
 	resolveWebviewView(
@@ -36,7 +72,7 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 		_context: vscode.WebviewViewResolveContext,
 		_token: vscode.CancellationToken)
 	{
-		console.log('resolve');
+		webviewView.webview.onDidReceiveMessage(this.handleMessage, this);
 		webviewView.webview.options = {
 			enableCommandUris: false,
 			enableForms: false,
@@ -67,6 +103,11 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 	/** Now that the view exists, draw the annotations */
 	private draw(annotations: Annotation[])
 	{
+		if (this.editing) {
+			this.annotations = annotations;
+			return;
+		}
+
 		// TODO change the button icon https://github.com/microsoft/vscode/issues/95199
 		const htmlParts = [];
 		htmlParts.push('<!DOCTYPE html>');
@@ -82,7 +123,7 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 
 		htmlParts.push('<div>');
 		for (const annotation of annotations)
-			htmlParts.push(`<div class=annotation tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='heading'><p><span><b>${escapeHtml(annotation.position)}</b></span><span>${escapeHtml(annotation.author)}</span><span>${escapeHtml(annotation.lastModified)}</span></p><button role='Annotation Actions'>...</button></div><code contenteditable>${escapeHtml(annotation.body)}</code></div>`);
+			htmlParts.push(`<div class=annotation id="${escapeHtml(annotation.id)}" tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='heading'><p><span><b>${escapeHtml(annotation.position)}</b></span><span>${escapeHtml(annotation.author)}</span><span>${escapeHtml(annotation.lastModified)}</span></p><button role='Annotation Actions'>...</button></div><code contenteditable>${escapeHtml(annotation.body)}</code></div>`);
 		annotations.length = 0;
 		htmlParts.push('</div>');
 
@@ -94,6 +135,12 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 		htmlParts.push('</body>');
 		htmlParts.push('</html>');
 		this.view.html = htmlParts.join('');
+	}
+
+
+	private postMessage(message: Message)
+	{
+		this.view.postMessage(message);
 	}
 }
 

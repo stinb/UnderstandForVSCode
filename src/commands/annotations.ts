@@ -3,9 +3,11 @@
 
 import * as vscode from 'vscode';
 
-import { executeCommand } from './helpers';
+import { variables } from '../other/variables';
 
 
+// Created in JSON in the `data-vscode-context` attribute in
+// - `AnnotationsViewProvider.draw`
 interface AnnotationContext
 {
 	id: string,
@@ -14,13 +16,16 @@ interface AnnotationContext
 
 export function deleteAnnotation(context: AnnotationContext)
 {
-	vscode.window.showInformationMessage(`deleteAnnotation ${context.id}`); // TODO
-	// executeCommand('understand.server.annotations.deleteAnnotation');
+	vscode.window.showWarningMessage(
+		'Delete annotation', {modal: true}, 'Delete'
+	).then(choice => {
+		if (choice === 'Delete')
+			variables.languageClient.sendRequest('understand/deleteAnnotation', {id: context.id});
+	});
 }
 
 
-export function editAnnotation(context: AnnotationContext)
+export function startEditingAnnotation(context: AnnotationContext)
 {
-	vscode.window.showInformationMessage(`editAnnotation ${context.id}`); // TODO
-	// executeCommand('understand.server.annotations.editAnnotation');
+	variables.annotationsViewProvider.edit(context.id);
 }

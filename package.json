@@ -70,7 +70,7 @@
 				"category": "Understand: Annotations"
 			},
 			{
-				"command": "understand.annotations.editAnnotation",
+				"command": "understand.annotations.startEditingAnnotation",
 				"title": "Edit",
 				"category": "Understand: Annotations"
 			},
@@ -269,7 +269,7 @@
 					"when": "false"
 				},
 				{
-					"command": "understand.annotations.editAnnotation",
+					"command": "understand.annotations.startEditingAnnotation",
 					"when": "false"
 				},
 				{
@@ -358,7 +358,7 @@
 			],
 			"webview/context": [
 				{
-					"command": "understand.annotations.editAnnotation",
+					"command": "understand.annotations.startEditingAnnotation",
 					"when": "webviewId == 'understandAnnotations' && webviewSection == 'annotation'",
 					"group": "understand@1"
 				},

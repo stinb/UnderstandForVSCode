@@ -43,7 +43,7 @@ export async function activate(context: vscode.ExtensionContext)
 
 		// Commands: Annotations
 		vscode.commands.registerCommand('understand.annotations.deleteAnnotation', annotations.deleteAnnotation),
-		vscode.commands.registerCommand('understand.annotations.editAnnotation', annotations.editAnnotation),
+		vscode.commands.registerCommand('understand.annotations.startEditingAnnotation', annotations.startEditingAnnotation),
 
 		// Commands: Explore in Understand
 		vscode.commands.registerCommand('understand.exploreInUnderstand.currentFile', exploreInUnderstand.currentFile),
