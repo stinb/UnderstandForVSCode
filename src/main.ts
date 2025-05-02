@@ -42,6 +42,7 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.analysis.stopAnalyzingFiles', analysis.stopAnalyzingFiles),
 
 		// Commands: Annotations
+		vscode.commands.registerCommand('understand.annotations.addAnnotation', annotations.addAnnotation),
 		vscode.commands.registerCommand('understand.annotations.deleteAnnotation', annotations.deleteAnnotation),
 		vscode.commands.registerCommand('understand.annotations.startEditingAnnotation', annotations.startEditingAnnotation),
 

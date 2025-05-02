@@ -36,8 +36,9 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 {
 	private annotations: Annotation[] = [];
 	private editing: boolean = false;
-	private script: string;
-	private style: string;
+	private uriScript: string;
+	private uriStyle: string;
+	private uriStyleIcons: string;
 	private view: vscode.Webview;
 
 
@@ -55,7 +56,6 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 				break;
 			case 'finishedEditing':
 				this.editing = false;
-				console.log(message);
 				variables.languageClient.sendRequest('understand/updateAnnotation', {id: message.id, body: message.body});
 				if (this.annotations.length)
 					this.draw(this.annotations);
@@ -80,8 +80,9 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 			localResourceRoots: [variables.extensionUri],
 			portMapping: [],
 		};
-		this.script = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.js')).toString();
-		this.style = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.css')).toString();
+		this.uriScript = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.js')).toString();
+		this.uriStyle = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.css')).toString();
+		this.uriStyleIcons = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'codicon.css')).toString();
 		this.view = webviewView.webview;
 		this.draw(this.annotations);
 	}
@@ -108,29 +109,29 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 			return;
 		}
 
-		// TODO change the button icon https://github.com/microsoft/vscode/issues/95199
 		const htmlParts = [];
 		htmlParts.push('<!DOCTYPE html>');
 		htmlParts.push('<html data-vscode-context=\'{"preventDefaultContextMenuItems": true}\'>');
 
 		htmlParts.push('<head>');
 		const cspSource = escapeHtml(this.view.cspSource);
-		htmlParts.push(`<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src ${cspSource}; style-src ${cspSource};">`);
-		htmlParts.push(`<link rel='stylesheet' href='${escapeHtml(this.style)}'>`);
+		htmlParts.push(`<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; font-src ${cspSource}; script-src ${cspSource}; style-src ${cspSource};">`);
+		htmlParts.push(`<link rel='stylesheet' href='${escapeHtml(this.uriStyle)}'>`);
+		htmlParts.push(`<link rel='stylesheet' href='${escapeHtml(this.uriStyleIcons)}'>`);
 		htmlParts.push('</head>');
 
 		htmlParts.push('<body>');
 
 		htmlParts.push('<div>');
 		for (const annotation of annotations)
-			htmlParts.push(`<div class=annotation id="${escapeHtml(annotation.id)}" tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='heading'><p><span><b>${escapeHtml(annotation.position)}</b></span><span>${escapeHtml(annotation.author)}</span><span>${escapeHtml(annotation.lastModified)}</span></p><button role='Annotation Actions'>...</button></div><code contenteditable>${escapeHtml(annotation.body)}</code></div>`);
+			htmlParts.push(`<div class=annotation id="${escapeHtml(annotation.id)}" tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='heading'><p><span><b>${escapeHtml(annotation.position)}</b></span><span>${escapeHtml(annotation.author)}</span><span>${escapeHtml(annotation.lastModified)}</span></p><button class='codicon codicon-more'></button></div><code contenteditable data-vscode-context=\'{"preventDefaultContextMenuItems":false,"webviewSection":"annotationBody"}\'>${escapeHtml(annotation.body)}</code></div>`);
 		annotations.length = 0;
 		htmlParts.push('</div>');
 
 		// Prevent the last code element from stealing focus
 		htmlParts.push('<span class="invisible">_</span>');
 
-		htmlParts.push(`<script src="${escapeHtml(this.script)}"></script>`);
+		htmlParts.push(`<script src="${escapeHtml(this.uriScript)}"></script>`);
 
 		htmlParts.push('</body>');
 		htmlParts.push('</html>');
