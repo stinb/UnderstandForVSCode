@@ -14,59 +14,50 @@ interface AnnotationContext
 }
 
 
-export function addAnnotation(args: any)
+export async function addAnnotation(args: any, extra: any)
 {
-	// Invoked from the file explorer
-	if (args && typeof args.fsPath === 'string') {
+	const editor = vscode.window.activeTextEditor;
+
+	// Invoked from
+	// - Right-clicking a file in the file explorer
+	// - Right-clicking the file name in an editor tab
+	if (args && typeof args.path === 'string' && extra) {
+		if (args.scheme !== 'file') {
+			vscode.window.showErrorMessage('Expected a file to annotate');
+			return;
+		}
+
+		const targetUri = vscode.Uri.file(args.path);
+
+		// Open the editor and its focus on its annotations
+		if (!editor || editor.document.uri.path !== args.path)
+			await vscode.window.showTextDocument(targetUri).then(focusOnAnnotations);
+
 		variables.languageClient.sendRequest('understand/addAnnotation', {
 			kind: 'file',
 			textDocument: {
-				uri: vscode.Uri.file(args.fsPath),
+				uri: targetUri.toString(),
 			},
 		});
 		return;
 	}
 
-	// Invoked from the editor
-	const editor = vscode.window.activeTextEditor;
-	if (editor === undefined) {
-		vscode.window.showErrorMessage('Expected an editor to annotate');
-		return;
-	}
+	// Invoked from
+	// - Command, hopefully in an editor
 	switch (args) {
 		case 'entity':
-			variables.languageClient.sendRequest('understand/addAnnotation', {
-				kind: 'entity',
-				position: {
-					line: editor.selection.start.line,
-					character: editor.selection.start.character,
-				},
-				textDocument: {
-					uri: editor.document.uri.toString(),
-				},
-			});
+			addEntityAnnotation();
 			break;
 		case 'file':
-			variables.languageClient.sendRequest('understand/addAnnotation', {
-				kind: 'file',
-				textDocument: {
-					uri: editor.document.uri.toString(),
-				},
-			});
+			addFileAnnotation();
 			break;
 		case 'line':
-			variables.languageClient.sendRequest('understand/addAnnotation', {
-				kind: 'line',
-				textDocument: {
-					uri: editor.document.uri.toString(),
-				},
-				position: {
-					line: editor.selection.start.line,
-					character: 0,
-				}
-			});
+			addLineAnnotation();
 			break;
 		default:
+			if (editor === undefined)
+				showNoEditorError();
+			await focusOnAnnotations();
 			variables.languageClient.sendRequest('understand/addAnnotation', {
 				kind: 'auto',
 				position: {
@@ -79,6 +70,65 @@ export function addAnnotation(args: any)
 			});
 			break;
 	}
+}
+
+
+export async function addEntityAnnotation()
+{
+	const editor = vscode.window.activeTextEditor;
+	if (!editor)
+		return showNoEditorError();
+
+	await focusOnAnnotations();
+
+	variables.languageClient.sendRequest('understand/addAnnotation', {
+		kind: 'entity',
+		position: {
+			line: editor.selection.start.line,
+			character: editor.selection.start.character,
+		},
+		textDocument: {
+			uri: editor.document.uri.toString(),
+		},
+	});
+}
+
+
+export async function addLineAnnotation()
+{
+	const editor = vscode.window.activeTextEditor;
+	if (!editor)
+		return showNoEditorError();
+
+	await focusOnAnnotations();
+
+	variables.languageClient.sendRequest('understand/addAnnotation', {
+		kind: 'line',
+		textDocument: {
+			uri: editor.document.uri.toString(),
+		},
+		position: {
+			line: editor.selection.start.line,
+			character: 0,
+		}
+	});
+}
+
+
+export async function addFileAnnotation()
+{
+	const editor = vscode.window.activeTextEditor;
+	if (!editor)
+		return showNoEditorError();
+
+	await focusOnAnnotations();
+
+	variables.languageClient.sendRequest('understand/addAnnotation', {
+		kind: 'file',
+		textDocument: {
+			uri: editor.document.uri.toString(),
+		},
+	});
 }
 
 
@@ -96,4 +146,16 @@ export function deleteAnnotation(context: AnnotationContext)
 export function startEditingAnnotation(context: AnnotationContext)
 {
 	variables.annotationsViewProvider.edit(context.id);
+}
+
+
+async function focusOnAnnotations()
+{
+	return vscode.commands.executeCommand('understandAnnotations.focus');
+}
+
+
+function showNoEditorError()
+{
+	vscode.window.showErrorMessage('Expected an editor to annotate');
 }

@@ -67,7 +67,26 @@
 			{
 				"command": "understand.annotations.addAnnotation",
 				"title": "Add Annotation",
-				"category": "Understand: Annotations"
+				"category": "Understand: Annotations",
+				"icon": "$(add)"
+			},
+			{
+				"command": "understand.annotations.addEntityAnnotation",
+				"title": "Add Entity Annotation",
+				"category": "Understand: Annotations",
+				"icon": "res/newEntity.svg"
+			},
+			{
+				"command": "understand.annotations.addFileAnnotation",
+				"title": "Add File Annotation",
+				"category": "Understand: Annotations",
+				"icon": "$(new-file)"
+			},
+			{
+				"command": "understand.annotations.addLineAnnotation",
+				"title": "Add Line Annotation",
+				"category": "Understand: Annotations",
+				"icon": "res/newLine.svg"
 			},
 			{
 				"command": "understand.annotations.deleteAnnotation",
@@ -270,6 +289,18 @@
 					"when": "understandFile"
 				},
 				{
+					"command": "understand.annotations.addEntityAnnotation",
+					"when": "false"
+				},
+				{
+					"command": "understand.annotations.addFileAnnotation",
+					"when": "false"
+				},
+				{
+					"command": "understand.annotations.addLineAnnotation",
+					"when": "false"
+				},
+				{
 					"command": "understand.analysis.stopAnalyzingFiles",
 					"when": "understandProject"
 				},
@@ -365,10 +396,39 @@
 					"when": "understandProject"
 				}
 			],
+			"editor/context": [
+				{
+					"command": "understand.annotations.addAnnotation",
+					"when": "understandFile"
+				}
+			],
+			"editor/title/context": [
+				{
+					"command": "understand.annotations.addAnnotation",
+					"when": "understandFile"
+				}
+			],
 			"explorer/context": [
 				{
 					"command": "understand.annotations.addAnnotation",
 					"when": "understandProject && !explorerResourceIsFolder"
+				}
+			],
+			"view/title": [
+				{
+					"command": "understand.annotations.addFileAnnotation",
+					"when": "view == understandAnnotations",
+					"group": "navigation@1"
+				},
+				{
+					"command": "understand.annotations.addLineAnnotation",
+					"when": "view == understandAnnotations",
+					"group": "navigation@2"
+				},
+				{
+					"command": "understand.annotations.addEntityAnnotation",
+					"when": "view == understandAnnotations",
+					"group": "navigation@3"
 				}
 			],
 			"webview/context": [

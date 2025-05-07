@@ -149,7 +149,8 @@ function handleKeyDown(event)
 /** @type {(obj: any) => obj is Message} */
 function isMessage(obj)
 {
-	return Object.prototype.toString.call(obj) === '[object Object]' && typeof obj.method === 'string';
+	return obj !== null && !Array.isArray(obj) && typeof(obj) === 'object'
+		&& typeof obj.method === 'string';
 }
 
 

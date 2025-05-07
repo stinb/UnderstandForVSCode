@@ -12,6 +12,7 @@ interface Annotation
 {
 	author: string,
 	body: string,
+	focused: boolean,
 	id: string,
 	lastModified: string,
 	position: string,
@@ -29,6 +30,7 @@ interface Message
 interface AnnotationParams
 {
 	annotations: Annotation[],
+	focused: string,
 }
 
 
@@ -89,20 +91,20 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 
 
 	/** Update HTML now or do it after it's created */
-	update(annotations: Annotation[])
+	update(annotations: Annotation[], focused: string)
 	{
 		if (this.view === undefined) {
 			this.annotations = annotations;
 		}
 		else {
 			this.annotations.length = 0;
-			this.draw(annotations);
+			this.draw(annotations, focused);
 		}
 	}
 
 
 	/** Now that the view exists, draw the annotations */
-	private draw(annotations: Annotation[])
+	private draw(annotations: Annotation[], focused: string = '')
 	{
 		if (this.editing) {
 			this.annotations = annotations;
@@ -124,7 +126,7 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 
 		htmlParts.push('<div>');
 		for (const annotation of annotations)
-			htmlParts.push(`<div class=annotation id="${escapeHtml(annotation.id)}" tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='heading'><p><span><b>${escapeHtml(annotation.position)}</b></span><span>${escapeHtml(annotation.author)}</span><span>${escapeHtml(annotation.lastModified)}</span></p><button class='codicon codicon-more'></button></div><code contenteditable data-vscode-context=\'{"preventDefaultContextMenuItems":false,"webviewSection":"annotationBody"}\'>${escapeHtml(annotation.body)}</code></div>`);
+			htmlParts.push(`<div class=annotation id="${escapeHtml(annotation.id)}" tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='heading'><p><span><b>${escapeHtml(annotation.position)}</b></span></p><p><span>${escapeHtml(annotation.author)}</span><span>${escapeHtml(annotation.lastModified)}</span><button class='codicon codicon-more'></button></p></div><code contenteditable data-vscode-context=\'{"preventDefaultContextMenuItems":false,"webviewSection":"annotationBody"}\'>${escapeHtml(annotation.body)}</code></div>`);
 		annotations.length = 0;
 		htmlParts.push('</div>');
 
@@ -136,6 +138,9 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 		htmlParts.push('</body>');
 		htmlParts.push('</html>');
 		this.view.html = htmlParts.join('');
+
+		if (focused)
+			this.postMessage({method: 'edit', id: focused});
 	}
 
 
@@ -149,5 +154,5 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 /** Tell the Annotations view to update its HTML */
 export function handleUnderstandChangedAnnotations(params: AnnotationParams)
 {
-	variables.annotationsViewProvider.update(params.annotations);
+	variables.annotationsViewProvider.update(params.annotations, params.focused);
 }

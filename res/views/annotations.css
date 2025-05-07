@@ -70,7 +70,7 @@ p {
 	margin: 0;
 }
 
-span:not(:first-child) {
+p:not(:first-child) {
 	color: var(--vscode-list-deemphasizedForeground);
 }
 
