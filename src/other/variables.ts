@@ -1,9 +1,10 @@
 'use strict';
 
 
-import { FileSystemWatcher } from 'vscode';
+import { FileSystemWatcher, Uri } from 'vscode';
 import { FileEvent, LanguageClient } from 'vscode-languageclient/node';
 import { ViolationDescriptionProvider } from './textProviders';
+import { AnnotationsViewProvider } from '../viewProviders/annotations';
 
 
 /** Database state from the server, with UnableToOpen added */
@@ -27,7 +28,9 @@ export interface Db {
 
 /** Global variables used in different files */
 export const variables: Variables = {
+	annotationsViewProvider: undefined,
 	db: { path: '', state: DbState.Finding },
+	extensionUri: undefined,
 	fileSystemChanges: [],
 	fileSystemTimeout: undefined,
 	fileSystemWatcher: undefined,
@@ -38,7 +41,9 @@ export const variables: Variables = {
 
 
 interface Variables {
+	annotationsViewProvider: AnnotationsViewProvider,
 	db: Db,
+	extensionUri: Uri,
 	fileSystemChanges: FileEvent[],
 	fileSystemTimeout: NodeJS.Timeout,
 	fileSystemWatcher: FileSystemWatcher,

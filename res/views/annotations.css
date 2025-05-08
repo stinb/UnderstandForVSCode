@@ -1,0 +1,104 @@
+:root {
+	--outline: 1px;
+	--spacing: 1rem;
+}
+
+@font-face {
+	font-family: 'codicon';
+	src: url('https://file%2B.vscode-resource.vscode-cdn.net/c%3A/SciTools/UnderstandForVSCode/res/codicon.ttf') format('ttf');
+	font-display: block;
+}
+
+body {
+	padding: 0;
+}
+
+::selection {
+	color: unset;
+	background: var(--vscode-selection-background);
+}
+
+.annotation {
+	background: var(--vscode-input-background);
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing);
+	margin: var(--spacing);
+	padding: var(--spacing)
+}
+
+.annotation:first-child {
+	margin-top: calc(var(--spacing) - 1rem + var(--outline));
+}
+
+.annotation:focus, button:focus-visible, code:focus {
+	outline: var(--outline) solid var(--vscode-focusBorder);
+}
+
+.annotation:focus button, .annotation:hover button, button:focus, .annotation:has(code:focus) button {
+	opacity: 1;
+}
+
+.heading {
+	display: flex;
+	justify-content: space-between;
+}
+
+button {
+	background: none;
+	border-radius: 5px;
+	border: none;
+	color: var(--vscode-editor-foreground);
+	cursor: pointer;
+	height: 1.25rem;
+	opacity: 0;
+	padding: 0;
+	width: 1.25rem;
+}
+
+button:hover {
+	background: var(--vscode-toolbar-hoverBackground);
+}
+
+.heading p {
+	column-gap: var(--spacing);
+	display: flex;
+	flex-wrap: wrap;
+}
+
+p {
+	margin: 0;
+}
+
+p:not(:first-child) {
+	color: var(--vscode-list-deemphasizedForeground);
+}
+
+code {
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 5;
+	background: none;
+	border-radius: 0;
+	color: var(--vscode-editor-foreground);
+	display: -webkit-box;
+	font-family: var(--vscode-font-family);
+	margin: -2px -6px;
+	overflow: hidden;
+	padding: 2px 6px;
+	white-space: pre-wrap;
+	word-break: keep-all;
+}
+
+.annotation:focus code, .annotation:hover code, .annotation:has(button:focus) code {
+	overflow: auto;
+}
+
+code:focus {
+	-webkit-line-clamp: unset;
+}
+
+.invisible {
+	opacity: 0;
+	pointer-events: none;
+	user-select: none;
+}

@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 
 import * as ai from './commands/ai';
 import * as analysis from './commands/analysis';
+import * as annotations from './commands/annotations';
 import * as exploreInUnderstand from './commands/exploreInUnderstand';
 import * as references from './commands/references';
 import * as settings from './commands/settings';
@@ -17,11 +18,14 @@ import { documentSelector, startLsp, stopLsp, } from './other/languageClient';
 import { UnderstandUriHandler } from './other/uriHandler';
 import { variables } from './other/variables';
 import { URI_SCHEME_VIOLATION_DESCRIPTION, ViolationDescriptionProvider } from './other/textProviders';
+import { AnnotationsViewProvider } from './viewProviders/annotations';
 
 
 /** Activate the extension */
 export async function activate(context: vscode.ExtensionContext)
 {
+	variables.annotationsViewProvider = new AnnotationsViewProvider();
+	variables.extensionUri = context.extensionUri;
 	variables.fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**');
 	variables.violationDescriptionProvider = new ViolationDescriptionProvider();
 
@@ -36,6 +40,14 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.analysis.analyzeAllFiles', analysis.analyzeAllFiles),
 		vscode.commands.registerCommand('understand.analysis.analyzeChangedFiles', analysis.analyzeChangedFiles),
 		vscode.commands.registerCommand('understand.analysis.stopAnalyzingFiles', analysis.stopAnalyzingFiles),
+
+		// Commands: Annotations
+		vscode.commands.registerCommand('understand.annotations.addAnnotation', annotations.addAnnotation),
+		vscode.commands.registerCommand('understand.annotations.addEntityAnnotation', annotations.addEntityAnnotation),
+		vscode.commands.registerCommand('understand.annotations.addFileAnnotation', annotations.addFileAnnotation),
+		vscode.commands.registerCommand('understand.annotations.addLineAnnotation', annotations.addLineAnnotation),
+		vscode.commands.registerCommand('understand.annotations.deleteAnnotation', annotations.deleteAnnotation),
+		vscode.commands.registerCommand('understand.annotations.startEditingAnnotation', annotations.startEditingAnnotation),
 
 		// Commands: Explore in Understand
 		vscode.commands.registerCommand('understand.exploreInUnderstand.currentFile', exploreInUnderstand.currentFile),
@@ -79,7 +91,11 @@ export async function activate(context: vscode.ExtensionContext)
 		// Watch for editor focus changing, which should change the 'understandFile' context
 		vscode.window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor),
 
+		// Handle the violation-descriptions: URI
 		vscode.window.registerUriHandler(new UnderstandUriHandler()),
+
+		// Create web views
+		vscode.window.registerWebviewViewProvider('understandAnnotations', variables.annotationsViewProvider),
 
 		// Watch for file changes, creations, and deletions
 		variables.fileSystemWatcher.onDidChange(onDidChange),

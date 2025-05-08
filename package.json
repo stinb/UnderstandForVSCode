@@ -31,98 +31,132 @@
 		"commands": [
 			{
 				"command": "understand.ai.generateAiOverview",
-				"title": "AI: Generate AI Overview",
-				"category": "Understand"
+				"title": "Generate AI Overview",
+				"category": "Understand: AI"
 			},
 			{
 				"command": "understand.ai.stopAiGeneration",
-				"title": "AI: Stop AI Generation",
-				"category": "Understand"
+				"title": "Stop AI Generation",
+				"category": "Understand: AI"
 			},
 			{
 				"command": "understand.analysis.analyzeAllFiles",
-				"title": "Analysis: Analyze All Files",
-				"category": "Understand"
+				"title": "Analyze All Files",
+				"category": "Understand: Analysis"
 			},
 			{
 				"command": "understand.analysis.analyzeChangedFiles",
-				"title": "Analysis: Analyze Changed Files",
-				"category": "Understand"
+				"title": "Analyze Changed Files",
+				"category": "Understand: Analysis"
 			},
 			{
 				"command": "understand.analysis.stopAnalyzingFiles",
-				"title": "Analysis: Stop Analyzing Files",
-				"category": "Understand"
+				"title": "Stop Analyzing Files",
+				"category": "Understand: Analysis"
 			},
 			{
 				"command": "understand.exploreInUnderstand.currentFile",
-				"title": "Explore in Understand: Current File",
-				"category": "Understand"
+				"title": "Current File",
+				"category": "Understand: Explore in Understand"
 			},
 			{
 				"command": "understand.exploreInUnderstand.newProject",
-				"title": "Explore in Understand: New Project",
-				"category": "Understand"
+				"title": "New Project",
+				"category": "Understand: Explore in Understand"
+			},
+			{
+				"command": "understand.annotations.addAnnotation",
+				"title": "Add Annotation",
+				"category": "Understand: Annotations",
+				"icon": "$(add)"
+			},
+			{
+				"command": "understand.annotations.addEntityAnnotation",
+				"title": "Add Entity Annotation",
+				"category": "Understand: Annotations",
+				"icon": "res/newEntity.svg"
+			},
+			{
+				"command": "understand.annotations.addFileAnnotation",
+				"title": "Add File Annotation",
+				"category": "Understand: Annotations",
+				"icon": "$(new-file)"
+			},
+			{
+				"command": "understand.annotations.addLineAnnotation",
+				"title": "Add Line Annotation",
+				"category": "Understand: Annotations",
+				"icon": "res/newLine.svg"
+			},
+			{
+				"command": "understand.annotations.deleteAnnotation",
+				"title": "Delete",
+				"category": "Understand: Annotations"
+			},
+			{
+				"command": "understand.annotations.startEditingAnnotation",
+				"title": "Edit",
+				"category": "Understand: Annotations"
 			},
 			{
 				"command": "understand.references.findAllImplementations",
-				"title": "References: Find All Implementations",
-				"category": "Understand"
+				"title": "Find All Implementations",
+				"category": "Understand: References"
 			},
 			{
 				"command": "understand.references.findAllReferences",
-				"title": "References: Find All References",
-				"category": "Understand"
+				"title": "Find All References",
+				"category": "Understand: References"
 			},
 			{
 				"command": "understand.references.goToDeclaration",
-				"title": "References: Go to Declaration",
-				"category": "Understand"
+				"title": "Go to Declaration",
+				"category": "Understand: References"
 			},
 			{
 				"command": "understand.references.goToDefinition",
-				"title": "References: Go to Definition",
-				"category": "Understand"
+				"title": "Go to Definition",
+				"category": "Understand: References"
 			},
 			{
 				"command": "understand.references.goToImplementations",
-				"title": "References: Go to Implementations",
-				"category": "Understand"
+				"title": "Go to Implementations",
+				"category": "Understand: References"
 			},
 			{
 				"command": "understand.references.goToReferences",
-				"title": "References: Go to References",
-				"category": "Understand"
+				"title": "Go to References",
+				"category": "Understand: References"
 			},
 			{
 				"command": "understand.references.goToTypeDefinition",
-				"title": "References: Go to Type Definition",
-				"category": "Understand"
+				"title": "Go to Type Definition",
+				"category": "Understand: References"
 			},
 			{
 				"command": "understand.references.peekDeclaration",
-				"title": "References: Peek Declaration",
-				"category": "Understand"
+				"title": "Peek Declaration",
+				"category": "Understand: References"
 			},
 			{
 				"command": "understand.references.peekDefinition",
-				"title": "References: Peek Definition",
-				"category": "Understand"
+				"title": "Peek Definition",
+				"category": "Understand: References"
 			},
 			{
 				"command": "understand.references.peekImplementations",
-				"title": "References: Peek Implementations",
-				"category": "Understand"
+				"title": "Peek Implementations",
+				"category": "Understand: References"
 			},
 			{
 				"command": "understand.references.peekReferences",
-				"title": "References: Peek References",
-				"category": "Understand"
+				"title": "Peek References",
+				"category": "Understand: References"
 			},
 			{
 				"command": "understand.references.peekTypeDefinition",
-				"title": "References: Peek Type Definition",
-				"category": "Understand"
+				"title": "Peek Type Definition",
+				"category": "Understand: References"
 			},
 			{
 				"command": "understand.settings.showSettings",
@@ -136,38 +170,38 @@
 			},
 			{
 				"command": "understand.violations.fix",
-				"title": "Violations: Fix",
-				"category": "Understand"
+				"title": "Fix",
+				"category": "Understand: Violations"
 			},
 			{
 				"command": "understand.violations.goToNextViolationInAllFiles",
-				"title": "Violations: Go to Next Violation in All Files (Error/Warning/Info)",
-				"category": "Understand"
+				"title": "Go to Next Violation in All Files (Error/Warning/Info)",
+				"category": "Understand: Violations"
 			},
 			{
 				"command": "understand.violations.goToNextViolationInCurrentFile",
-				"title": "Violations: Go to Next Violation in Current File (Error/Warning/Info)",
-				"category": "Understand"
+				"title": "Go to Next Violation in Current File (Error/Warning/Info)",
+				"category": "Understand: Violations"
 			},
 			{
 				"command": "understand.violations.goToPreviousViolationInAllFiles",
-				"title": "Violations: Go to Previous Violation in All Files (Error/Warning/Info)",
-				"category": "Understand"
+				"title": "Go to Previous Violation in All Files (Error/Warning/Info)",
+				"category": "Understand: Violations"
 			},
 			{
 				"command": "understand.violations.goToPreviousViolationInCurrentFile",
-				"title": "Violations: Go to Previous Violation in Current File (Error/Warning/Info)",
-				"category": "Understand"
+				"title": "Go to Previous Violation in Current File (Error/Warning/Info)",
+				"category": "Understand: Violations"
 			},
 			{
 				"command": "understand.violations.ignore",
-				"title": "Violations: Ignore",
-				"category": "Understand"
+				"title": "Ignore",
+				"category": "Understand: Violations"
 			},
 			{
 				"command": "understand.violations.toggleVisibilityAndFocus",
-				"title": "Violations: Toggle Visibility and Focus",
-				"category": "Understand"
+				"title": "Toggle Visibility and Focus",
+				"category": "Understand: Violations"
 			}
 		],
 		"configuration": {
@@ -236,7 +270,7 @@
 			"commandPalette": [
 				{
 					"command": "understand.ai.generateAiOverview",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.ai.stopAiGeneration",
@@ -251,67 +285,91 @@
 					"when": "understandProject"
 				},
 				{
+					"command": "understand.annotations.addAnnotation",
+					"when": "understandFile"
+				},
+				{
+					"command": "understand.annotations.addEntityAnnotation",
+					"when": "false"
+				},
+				{
+					"command": "understand.annotations.addFileAnnotation",
+					"when": "false"
+				},
+				{
+					"command": "understand.annotations.addLineAnnotation",
+					"when": "false"
+				},
+				{
 					"command": "understand.analysis.stopAnalyzingFiles",
 					"when": "understandProject"
 				},
 				{
+					"command": "understand.annotations.deleteAnnotation",
+					"when": "false"
+				},
+				{
+					"command": "understand.annotations.startEditingAnnotation",
+					"when": "false"
+				},
+				{
 					"command": "understand.exploreInUnderstand.currentFile",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.exploreInUnderstand.newProject"
 				},
 				{
 					"command": "understand.references.findAllImplementations",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.references.findAllReferences",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.references.goToDeclaration",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.references.goToDefinition",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.references.goToImplementations",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.references.goToReferences",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.references.goToTypeDefinition",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.references.peekDeclaration",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.references.peekDefinition",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.references.peekImplementations",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.references.peekReferences",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.references.peekTypeDefinition",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.violations.fix",
-					"when": "understandProject && understandFile && !editorReadonly"
+					"when": "understandFile && !editorReadonly"
 				},
 				{
 					"command": "understand.violations.goToNextViolationInAllFiles",
@@ -319,7 +377,7 @@
 				},
 				{
 					"command": "understand.violations.goToNextViolationInCurrentFile",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.violations.goToPreviousViolationInAllFiles",
@@ -327,15 +385,81 @@
 				},
 				{
 					"command": "understand.violations.goToPreviousViolationInCurrentFile",
-					"when": "understandProject && understandFile"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.violations.ignore",
-					"when": "understandProject && understandFile && !editorReadonly"
+					"when": "understandFile && !editorReadonly"
 				},
 				{
 					"command": "understand.violations.toggleVisibilityAndFocus",
 					"when": "understandProject"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "understand.annotations.addAnnotation",
+					"when": "understandFile"
+				}
+			],
+			"editor/title/context": [
+				{
+					"command": "understand.annotations.addAnnotation",
+					"when": "understandFile"
+				}
+			],
+			"explorer/context": [
+				{
+					"command": "understand.annotations.addAnnotation",
+					"when": "understandProject && !explorerResourceIsFolder"
+				}
+			],
+			"view/title": [
+				{
+					"command": "understand.annotations.addFileAnnotation",
+					"when": "view == understandAnnotations",
+					"group": "navigation@1"
+				},
+				{
+					"command": "understand.annotations.addLineAnnotation",
+					"when": "view == understandAnnotations",
+					"group": "navigation@2"
+				},
+				{
+					"command": "understand.annotations.addEntityAnnotation",
+					"when": "view == understandAnnotations",
+					"group": "navigation@3"
+				}
+			],
+			"webview/context": [
+				{
+					"command": "understand.annotations.startEditingAnnotation",
+					"when": "webviewId == 'understandAnnotations' && webviewSection == 'annotation'",
+					"group": "understand@1"
+				},
+				{
+					"command": "understand.annotations.deleteAnnotation",
+					"when": "webviewId == 'understandAnnotations' && webviewSection == 'annotation'",
+					"group": "understand@2"
+				}
+			]
+		},
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"icon": "res/logoMonochrome.svg",
+					"id": "understand",
+					"title": "Understand"
+				}
+			]
+		},
+		"views": {
+			"understand": [
+				{
+					"icon": "$(comment)",
+					"id": "understandAnnotations",
+					"name": "Annotations",
+					"type": "webview"
 				}
 			]
 		}
