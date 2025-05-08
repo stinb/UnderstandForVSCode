@@ -56,6 +56,9 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 			case 'delete':
 				deleteAnnotation({id: message.id});
 				break;
+			case 'error':
+				vscode.window.showErrorMessage(message.body);
+				break;
 			case 'finishedEditing':
 				this.editing = false;
 				variables.languageClient.sendRequest('understand/updateAnnotation', {id: message.id, body: message.body});

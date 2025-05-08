@@ -79,8 +79,13 @@ function handleMessageEvent(event)
 			if (!message.id)
 				break;
 			const annotation = document.getElementById(message.id);
-			if (!annotation)
+			if (!annotation) {
+				vscode.postMessage({
+					method: 'error',
+					body: 'The entity is not declared in this file. This UI is not supported yet.',
+				});
 				break;
+			}
 			const annotationBody = annotation.querySelector('code');
 			if (!annotationBody)
 				break;
