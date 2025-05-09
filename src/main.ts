@@ -11,19 +11,21 @@ import * as references from './commands/references';
 import * as settings from './commands/settings';
 import * as violations from './commands/violations';
 import { onDidChangeConfiguration } from './other/config';
-import { onDidChangeActiveTextEditor } from './other/context';
+import { onDidChangeActiveTextEditor, onDidChangeTextEditorSelection } from './other/context';
 import { onDidChange, onDidCreate, onDidDelete } from './other/fileSystem';
 import { UnderstandHoverProvider } from './other/hover';
 import { documentSelector, startLsp, stopLsp, } from './other/languageClient';
 import { UnderstandUriHandler } from './other/uriHandler';
 import { variables } from './other/variables';
 import { URI_SCHEME_VIOLATION_DESCRIPTION, ViolationDescriptionProvider } from './other/textProviders';
+import { AiViewProvider } from './viewProviders/ai';
 import { AnnotationsViewProvider } from './viewProviders/annotations';
 
 
 /** Activate the extension */
 export async function activate(context: vscode.ExtensionContext)
 {
+	variables.aiViewProvider = new AiViewProvider();
 	variables.annotationsViewProvider = new AnnotationsViewProvider();
 	variables.extensionUri = context.extensionUri;
 	variables.fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**');
@@ -34,6 +36,7 @@ export async function activate(context: vscode.ExtensionContext)
 	context.subscriptions.push(
 		// Commands: AI
 		vscode.commands.registerCommand('understand.ai.generateAiOverview', ai.generateAiOverview),
+		vscode.commands.registerCommand('understand.ai.regenerateAiOverview', ai.generateAiOverview),
 		vscode.commands.registerCommand('understand.ai.stopAiGeneration', ai.stopAiGeneration),
 
 		// Commands: Analysis
@@ -90,11 +93,13 @@ export async function activate(context: vscode.ExtensionContext)
 
 		// Watch for editor focus changing, which should change the 'understandFile' context
 		vscode.window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor),
+		vscode.window.onDidChangeTextEditorSelection(onDidChangeTextEditorSelection),
 
 		// Handle the violation-descriptions: URI
 		vscode.window.registerUriHandler(new UnderstandUriHandler()),
 
 		// Create web views
+		vscode.window.registerWebviewViewProvider('understandAi', variables.aiViewProvider),
 		vscode.window.registerWebviewViewProvider('understandAnnotations', variables.annotationsViewProvider),
 
 		// Watch for file changes, creations, and deletions

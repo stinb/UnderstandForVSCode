@@ -27,10 +27,6 @@ body {
 	padding: var(--spacing)
 }
 
-.annotation:first-child {
-	margin-top: calc(var(--spacing) - 1rem + var(--outline));
-}
-
 .annotation:focus, button:focus-visible, code:focus {
 	outline: var(--outline) solid var(--vscode-focusBorder);
 }
@@ -93,7 +89,7 @@ code {
 	overflow: auto;
 }
 
-code:focus {
+code:focus, .ai code {
 	-webkit-line-clamp: unset;
 }
 

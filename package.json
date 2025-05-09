@@ -35,6 +35,11 @@
 				"category": "Understand: AI"
 			},
 			{
+				"command": "understand.ai.regenerateAiOverview",
+				"title": "Regenerate AI Overview",
+				"category": "Understand: AI"
+			},
+			{
 				"command": "understand.ai.stopAiGeneration",
 				"title": "Stop AI Generation",
 				"category": "Understand: AI"
@@ -56,7 +61,7 @@
 			},
 			{
 				"command": "understand.exploreInUnderstand.currentFile",
-				"title": "Current File",
+				"title": "Explore File in Understand",
 				"category": "Understand: Explore in Understand"
 			},
 			{
@@ -400,6 +405,10 @@
 				{
 					"command": "understand.annotations.addAnnotation",
 					"when": "understandFile"
+				},
+				{
+					"command": "understand.exploreInUnderstand.currentFile",
+					"when": "understandFile"
 				}
 			],
 			"editor/title/context": [
@@ -433,6 +442,11 @@
 			],
 			"webview/context": [
 				{
+					"command": "understand.ai.regenerateAiOverview",
+					"when": "webviewId == 'understandAi' && webviewSection == 'annotation'",
+					"group": "understand@1"
+				},
+				{
 					"command": "understand.annotations.startEditingAnnotation",
 					"when": "webviewId == 'understandAnnotations' && webviewSection == 'annotation'",
 					"group": "understand@1"
@@ -455,6 +469,12 @@
 		},
 		"views": {
 			"understand": [
+				{
+					"icon": "$(sparkle)",
+					"id": "understandAi",
+					"name": "AI",
+					"type": "webview"
+				},
 				{
 					"icon": "$(comment)",
 					"id": "understandAnnotations",

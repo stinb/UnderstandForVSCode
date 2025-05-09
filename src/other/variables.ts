@@ -4,6 +4,7 @@
 import { FileSystemWatcher, Uri } from 'vscode';
 import { FileEvent, LanguageClient } from 'vscode-languageclient/node';
 import { ViolationDescriptionProvider } from './textProviders';
+import { AiViewProvider } from '../viewProviders/ai';
 import { AnnotationsViewProvider } from '../viewProviders/annotations';
 
 
@@ -28,6 +29,7 @@ export interface Db {
 
 /** Global variables used in different files */
 export const variables: Variables = {
+	aiViewProvider: undefined,
 	annotationsViewProvider: undefined,
 	db: { path: '', state: DbState.Finding },
 	extensionUri: undefined,
@@ -41,6 +43,7 @@ export const variables: Variables = {
 
 
 interface Variables {
+	aiViewProvider: AiViewProvider,
 	annotationsViewProvider: AnnotationsViewProvider,
 	db: Db,
 	extensionUri: Uri,

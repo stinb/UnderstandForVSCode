@@ -48,6 +48,16 @@ export async function onDidChangeActiveTextEditor(editor: vscode.TextEditor | un
 }
 
 
+/** When the text cursor moves, notify the server */
+export async function onDidChangeTextEditorSelection(event: vscode.TextEditorSelectionChangeEvent)
+{
+	if (!event.selections.length)
+		return;
+
+	variables.languageClient.sendNotification('understand/changedCurrentFileCursor', event.selections[0].active);
+}
+
+
 /** Actually set the context */
 function setContextHelper(name: string, enabled: boolean)
 {

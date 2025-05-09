@@ -18,6 +18,7 @@ import {
 	handleProgress,
 	handleUnderstandChangedDatabaseState,
 } from './statusBar';
+import { handleUnderstandChangedAi } from '../viewProviders/ai';
 import { handleUnderstandChangedAnnotations } from '../viewProviders/annotations';
 
 
@@ -55,6 +56,7 @@ export async function startLsp()
 	return variables.languageClient.start().then(function() {
 		changeMainStatus(MainState.Ready);
 		variables.languageClient.onNotification('$/progress', handleProgress);
+		variables.languageClient.onNotification('understand/changedAi', handleUnderstandChangedAi);
 		variables.languageClient.onNotification('understand/changedAnnotations', handleUnderstandChangedAnnotations);
 		variables.languageClient.onNotification('understand/changedDatabaseState', handleUnderstandChangedDatabaseState);
 		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
