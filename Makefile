@@ -1,6 +1,7 @@
 # Variables
-WATCH  := $(wildcard src/*.ts) $(wildcard src/commands/*.ts) $(wildcard src/other/*.ts) $(wildcard src/viewProviders/*.ts) package.json $(wildcard res/*) $(wildcard res/views/*) $(wildcard *.md) Makefile
+WATCH := $(wildcard src/*.ts) $(wildcard src/commands/*.ts) $(wildcard src/other/*.ts) $(wildcard src/viewProviders/*.ts) package.json $(wildcard res/*) $(wildcard res/views/*) $(wildcard *.md) Makefile
 OUTPUT := understand.vsix
+ESBUILD := node node_modules/esbuild/bin/esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node --minify
 
 # Targets
 $(OUTPUT): $(WATCH)
@@ -14,10 +15,13 @@ $(OUTPUT): $(WATCH)
 # Commands
 clean:
 	git clean -dfX
-watch: node_modules
-	npm run esbuild-watch
+debug:
+	$(ESBUILD)
+	code --extensionDevelopmentPath="$(CURDIR)"
 install: $(OUTPUT)
 	code --install-extension $(OUTPUT)
 run: $(OUTPUT)
 	code --install-extension $(OUTPUT)
 	code
+watch: node_modules
+	$(ESBUILD) --watch

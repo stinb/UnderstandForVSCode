@@ -29,14 +29,20 @@ export interface Db {
 
 /** Global variables used in different files */
 export const variables: Variables = {
+	// @ts-ignore initialized in `activate`
 	aiViewProvider: undefined,
+	// @ts-ignore initialized in `activate`
 	annotationsViewProvider: undefined,
 	db: { path: '', state: DbState.Finding },
+	// @ts-ignore initialized in `activate`
 	extensionUri: undefined,
 	fileSystemChanges: [],
 	fileSystemTimeout: undefined,
+	// @ts-ignore initialized in `activate`
 	fileSystemWatcher: undefined,
+	// @ts-ignore TODO audit this
 	languageClient: undefined,
+	// @ts-ignore initialized in `activate`
 	violationDescriptionProvider: undefined,
 	watchedSettings: [],
 };
@@ -48,7 +54,7 @@ interface Variables {
 	db: Db,
 	extensionUri: Uri,
 	fileSystemChanges: FileEvent[],
-	fileSystemTimeout: NodeJS.Timeout,
+	fileSystemTimeout?: NodeJS.Timeout,
 	fileSystemWatcher: FileSystemWatcher,
 	languageClient: LanguageClient,
 	violationDescriptionProvider: ViolationDescriptionProvider,

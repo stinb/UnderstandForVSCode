@@ -38,15 +38,30 @@ function handleClick(event)
 	if (!(event.target instanceof HTMLButtonElement))
 		return;
 
-	event.preventDefault();
-	const rect = event.target.getBoundingClientRect();
-	const mouseEventInit = {
-		bubbles: true,
-		clientX: rect.x,
-		clientY: rect.y + rect.height,
-	};
-	event.target.dispatchEvent(new MouseEvent('contextmenu', mouseEventInit));
-	event.stopPropagation();
+	const classes = event.target.classList;
+	// Regenerate: get annotation ID and send regenerate command
+	if (classes.contains('regenerate')) {
+		let parent = event.target.parentElement;
+		while (parent && !parent.classList.contains('annotation'))
+			parent = parent.parentElement;
+		if (!parent || !parent.id) {
+			vscode.postMessage({method: 'error', 'body': 'Failed to find annoation ID'});
+			return;
+		}
+		vscode.postMessage({method: 'regenerate', 'id': parent.id});
+	}
+	// More: right click
+	else {
+		event.preventDefault();
+		const rect = event.target.getBoundingClientRect();
+		const mouseEventInit = {
+			bubbles: true,
+			clientX: rect.x,
+			clientY: rect.y + rect.height,
+		};
+		event.target.dispatchEvent(new MouseEvent('contextmenu', mouseEventInit));
+		event.stopPropagation();
+	}
 }
 
 

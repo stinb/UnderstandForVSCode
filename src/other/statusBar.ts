@@ -121,11 +121,15 @@ function createStatusBar()
 /** Handler: create progress */
 export function handleWindowWorkDoneProgressCreate(params: lc.WorkDoneProgressCreateParams)
 {
-	// Delete the progress item if it already exists for some reason
 	const token = params.token.toString();
-	if (progressStatusBarItems.has(token)) {
-		progressStatusBarItems.delete(token);
-		progressStatusBarItems.get(token).dispose();
+
+	// Delete the progress item if it already exists for some reason
+	{
+		const otherItem = progressStatusBarItems.get(token);
+		if (otherItem) {
+			progressStatusBarItems.delete(token);
+			otherItem.dispose();
+		}
 	}
 
 	// Create the progress item
@@ -144,8 +148,8 @@ export function handleProgress(params: ProgressParams)
 
 	// Optionally change the progress bar status bar item for the database
 	const token = params.token.toString();
-	if (progressStatusBarItems.has(token)) {
-		const progressStatusBarItem = progressStatusBarItems.get(token);
+	const progressStatusBarItem = progressStatusBarItems.get(token);
+	if (progressStatusBarItem) {
 		if ('cancellable' in progress) {
 			if (progress.cancellable) {
 				const markdownString = new vscode.MarkdownString();
@@ -163,7 +167,8 @@ export function handleProgress(params: ProgressParams)
 			progressStatusBarItem.show();
 		}
 		else if ('percentage' in progress) {
-			progressStatusBarItem.text = statusBarItemTitleAndPercent(progressStatusBarItem.originalText, progress.percentage);
+			const originalText = progressStatusBarItem.originalText || '';
+			progressStatusBarItem.text = statusBarItemTitleAndPercent(originalText, progress.percentage);
 		}
 		else if (progress.kind === 'end') {
 			progressStatusBarItems.delete(token);

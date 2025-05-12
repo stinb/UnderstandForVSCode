@@ -56,7 +56,7 @@ export async function addAnnotation(args: any, extra: any)
 			break;
 		default:
 			if (editor === undefined)
-				showNoEditorError();
+				return showNoEditorError();
 			await focusOnAnnotations();
 			variables.languageClient.sendRequest('understand/addAnnotation', {
 				kind: 'auto',

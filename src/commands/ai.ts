@@ -1,13 +1,23 @@
 'use strict';
 
 
-import { executeAtPosition } from './helpers';
+import { executeAtPosition, executeCommand } from './helpers';
+
+
+/** From JSON created in `AiViewProvider` */
+interface AiAnnotation {
+	id: string,
+}
 
 
 /** Generate an AI overview of the entity */
-export function generateAiOverview()
+export function generateAiOverview(context?: AiAnnotation)
 {
-	executeAtPosition('understand.server.ai.generateAiOverview');
+	const command = 'understand.server.ai.generateAiOverview';
+	if (context)
+		executeCommand(command, [{annotationId: context.id}]);
+	else
+		executeAtPosition(command);
 }
 
 

@@ -19,14 +19,6 @@ interface Annotation
 }
 
 
-interface Message
-{
-	method: string,
-	id?: string,
-	body?: string,
-}
-
-
 interface AnnotationParams
 {
 	annotations: Annotation[],
@@ -37,16 +29,20 @@ interface AnnotationParams
 export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 {
 	private annotations: Annotation[] = [];
-	private editing: boolean = false;
-	private uriScript: string;
-	private uriStyle: string;
-	private uriStyleIcons: string;
-	private view: vscode.Webview;
+	private editing = false;
+	private uriScript = '';
+	private uriStyle = '';
+	private uriStyleIcons = '';
+	private view?: vscode.Webview;
 
 
 	edit(id: string)
 	{
-		this.postMessage({method: 'edit', id: id});
+		if (!this.view)
+			return;
+
+		const message = {method: 'edit', id: id};
+		this.view.postMessage(message);
 	}
 
 
@@ -62,8 +58,8 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 			case 'finishedEditing':
 				this.editing = false;
 				variables.languageClient.sendRequest('understand/updateAnnotation', {id: message.id, body: message.body});
-				if (this.annotations.length)
-					this.draw(this.annotations);
+				if (this.annotations.length && this.view)
+					this.draw(this.view, this.annotations);
 				break;
 			case 'startedEditing':
 				this.editing = true;
@@ -89,7 +85,7 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 		this.uriStyle = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.css')).toString();
 		this.uriStyleIcons = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'codicon.css')).toString();
 		this.view = webviewView.webview;
-		this.draw(this.annotations);
+		this.draw(this.view, this.annotations);
 	}
 
 
@@ -101,13 +97,13 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 		}
 		else {
 			this.annotations.length = 0;
-			this.draw(annotations, focused);
+			this.draw(this.view, annotations, focused);
 		}
 	}
 
 
 	/** Now that the view exists, draw the annotations */
-	private draw(annotations: Annotation[], focused: string = '')
+	private draw(view: vscode.Webview, annotations: Annotation[], focused: string = '')
 	{
 		if (this.editing) {
 			this.annotations = annotations;
@@ -119,7 +115,7 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 		htmlParts.push('<html data-vscode-context=\'{"preventDefaultContextMenuItems": true}\'>');
 
 		htmlParts.push('<head>');
-		const cspSource = escapeHtml(this.view.cspSource);
+		const cspSource = escapeHtml(view.cspSource);
 		htmlParts.push(`<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; font-src ${cspSource}; script-src ${cspSource}; style-src ${cspSource};">`);
 		htmlParts.push(`<link rel='stylesheet' href='${escapeHtml(this.uriStyle)}'>`);
 		htmlParts.push(`<link rel='stylesheet' href='${escapeHtml(this.uriStyleIcons)}'>`);
@@ -140,16 +136,12 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 
 		htmlParts.push('</body>');
 		htmlParts.push('</html>');
-		this.view.html = htmlParts.join('');
+		view.html = htmlParts.join('');
 
-		if (focused)
-			this.postMessage({method: 'edit', id: focused});
-	}
-
-
-	private postMessage(message: Message)
-	{
-		this.view.postMessage(message);
+		if (focused) {
+			const message: Message = {method: 'edit', id: focused};
+			view.postMessage(message);
+		}
 	}
 }
 

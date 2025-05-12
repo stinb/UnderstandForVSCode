@@ -9,14 +9,16 @@ import { URI_SCHEME_VIOLATION_DESCRIPTION } from './textProviders';
 /** Get the part before the second slash */
 export function getCollection(uri: vscode.Uri): string
 {
-	return /^\/([^\/]*)/.exec(uri.path)[1];
+	const match = /^\/([^\/]*)/.exec(uri.path);
+	return match ? match[1] : '';
 }
 
 
 /** Get the part after the last slash */
 export function getId(uri: vscode.Uri): string
 {
-	return /[^\/]*$/.exec(uri.path)[0];
+	const match = /[^\/]*$/.exec(uri.path);
+	return match ? match[0] : '';
 }
 
 

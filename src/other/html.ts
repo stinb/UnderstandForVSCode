@@ -4,19 +4,19 @@ export function escapeHtml(s: string)
 }
 
 
-const entityMap = {
-	'&': '&amp;',
-	'<': '&lt;',
-	'>': '&gt;',
-	'"': '&quot;',
-	"'": '&#39;',
-	'/': '&#x2F;',
-	'`': '&#x60;',
-	'=': '&#x3D;',
-};
+const entityMap = new Map([
+	['&', '&amp;'],
+	['<', '&lt;'],
+	['>', '&gt;'],
+	['"', '&quot;'],
+	["'", '&#39;'],
+	['/', '&#x2F;'],
+	['`', '&#x60;'],
+	['=', '&#x3D;'],
+]);
 
 
 function fromEntityMap(s: string)
 {
-	return entityMap[s];
+	return entityMap.get(s) || '';
 }

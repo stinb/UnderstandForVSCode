@@ -59,7 +59,7 @@ export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 
 	// Decide whether to simply send the option to the server
 	let shouldNotify = false;
-	const params = {
+	const params: { settings: { result: any[] } } = {
 		settings: {
 			result: [],
 		}
