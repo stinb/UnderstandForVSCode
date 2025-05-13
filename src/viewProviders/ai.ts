@@ -6,26 +6,33 @@ import * as vscode from 'vscode';
 import { escapeHtml } from '../other/html';
 import { variables } from '../other/variables';
 import { executeCommand } from '../commands/helpers';
+import { escape } from 'querystring';
 
 
-interface AiAnnotation
+type AiAnnotation =
 {
 	body: string,
 	id: string,
 	position: string,
-}
+};
 
 
-interface AiParams
+type AiAnnotationSection =
 {
+	name: string,
 	annotations: AiAnnotation[],
-	focused: string,
-}
+};
+
+
+type AiParams =
+{
+	annotationSections: AiAnnotationSection[],
+};
 
 
 export class AiViewProvider implements vscode.WebviewViewProvider
 {
-	private annotations: AiAnnotation[] = [];
+	private annotationSections: AiAnnotationSection[] = [];
 	private uriScript = '';
 	private uriStyle = '';
 	private uriStyleIcons = '';
@@ -59,25 +66,25 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 		this.uriStyle = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.css')).toString();
 		this.uriStyleIcons = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'codicon.css')).toString();
 		this.view = webviewView.webview;
-		this.draw(this.view, this.annotations);
+		this.draw(this.view, this.annotationSections);
 	}
 
 
 	/** Update HTML now or do it after it's created */
-	update(annotations: AiAnnotation[])
+	update(annotationSections: AiAnnotationSection[])
 	{
 		if (this.view === undefined) {
-			this.annotations = annotations;
+			this.annotationSections = annotationSections;
 		}
 		else {
-			this.annotations.length = 0;
-			this.draw(this.view, annotations);
+			this.annotationSections.length = 0;
+			this.draw(this.view, annotationSections);
 		}
 	}
 
 
 	/** Now that the view exists, draw the annotations */
-	private draw(view: vscode.Webview, annotations: AiAnnotation[], focused: string = '')
+	private draw(view: vscode.Webview, annotationSections: AiAnnotationSection[], focused: string = '')
 	{
 		const htmlParts = [];
 		htmlParts.push('<!DOCTYPE html>');
@@ -93,9 +100,12 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 		htmlParts.push('<body>');
 
 		htmlParts.push('<div>');
-		for (const annotation of annotations)
-			htmlParts.push(`<div class="ai annotation" id="${escapeHtml(annotation.id)}" tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='heading'><p><span><b>${escapeHtml(annotation.position)}</b></span></p><button class='regenerate codicon codicon-sync'></button></div><code>${escapeHtml(annotation.body)}</code></div>`);
-		annotations.length = 0;
+		for (const section of annotationSections) {
+			htmlParts.push(`<h2>${escapeHtml(section.name)}</h2>`);
+			for (const annotation of section.annotations)
+				htmlParts.push(`<div class="ai annotation" id="${escapeHtml(annotation.id)}" tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='heading'><p><span><b>${escapeHtml(annotation.position)}</b></span></p><button class='regenerate codicon codicon-sync'></button></div><code>${escapeHtml(annotation.body)}</code></div>`);
+		}
+		annotationSections.length = 0;
 		htmlParts.push('</div>');
 
 		// Prevent the last code element from stealing focus
@@ -118,5 +128,5 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 /** Tell the AI view to update its HTML */
 export function handleUnderstandChangedAi(params: AiParams)
 {
-	variables.aiViewProvider.update(params.annotations);
+	variables.aiViewProvider.update(params.annotationSections);
 }
