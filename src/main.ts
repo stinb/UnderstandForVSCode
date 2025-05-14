@@ -22,13 +22,16 @@ import { AiViewProvider } from './viewProviders/ai';
 import { AnnotationsViewProvider } from './viewProviders/annotations';
 
 
+let fileSystemWatcher: vscode.FileSystemWatcher | undefined;
+
+
 /** Activate the extension */
 export async function activate(context: vscode.ExtensionContext)
 {
 	variables.aiViewProvider = new AiViewProvider();
 	variables.annotationsViewProvider = new AnnotationsViewProvider();
 	variables.extensionUri = context.extensionUri;
-	variables.fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**');
+	fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**');
 	variables.violationDescriptionProvider = new ViolationDescriptionProvider();
 
 	// Commands visible in the palette are created in package.json
@@ -103,9 +106,9 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.window.registerWebviewViewProvider('understandAnnotations', variables.annotationsViewProvider),
 
 		// Watch for file changes, creations, and deletions
-		variables.fileSystemWatcher.onDidChange(onDidChange),
-		variables.fileSystemWatcher.onDidCreate(onDidCreate),
-		variables.fileSystemWatcher.onDidDelete(onDidDelete),
+		fileSystemWatcher.onDidChange(onDidChange),
+		fileSystemWatcher.onDidCreate(onDidCreate),
+		fileSystemWatcher.onDidDelete(onDidDelete),
 	);
 
 	startLsp();

@@ -11,6 +11,9 @@ import { variables } from './variables';
 import { restartLsp } from './languageClient';
 
 
+const watchedSettings: string[] = [];
+
+
 /** Get a boolean from the user settings */
 export function getBooleanFromConfig(id: string, defaultValue: boolean = false): boolean
 {
@@ -38,12 +41,12 @@ export function getStringFromConfig(id: string, defaultValue: string = ''): stri
 /** Respond with an array of the given values from user settings */
 export function handleWorkspaceConfiguration(params: lc.ConfigurationParams)
 {
-	variables.watchedSettings.length = 0;
+	watchedSettings.length = 0;
 	const result = [];
 	for (const item of params.items) {
 		if (typeof(item.section) !== 'string')
 			continue;
-		variables.watchedSettings.push(item.section);
+		watchedSettings.push(item.section);
 		result.push(getAnyFromConfig(item.section));
 	}
 	return result;
@@ -64,7 +67,7 @@ export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 			result: [],
 		}
 	};
-	for (const setting of variables.watchedSettings) {
+	for (const setting of watchedSettings) {
 		params.settings.result.push(getAnyFromConfig(setting));
 		if (event.affectsConfiguration(setting))
 			shouldNotify = true;

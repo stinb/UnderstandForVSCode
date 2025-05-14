@@ -3,7 +3,7 @@
 
 import * as vscode from 'vscode';
 
-import { DbState, variables } from './variables';
+import { variables } from './variables';
 
 
 export const URI_SCHEME_VIOLATION_DESCRIPTION = 'understand-violation-description';

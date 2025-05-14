@@ -12,32 +12,81 @@ export const contexts = {
 };
 
 
+const DELAY_MILLISECONDS = 100;
+
+
+let editor: vscode.TextEditor | undefined;
+let editorTimeout: NodeJS.Timeout | undefined;
+let selectionTimeout: NodeJS.Timeout | undefined;
+
+
 /** Enable/disable a context, which can enable/disable commands in package.json */
-export function setContext(name: string, enabled: boolean)
+export async function setContext(name: string, enabled: boolean)
 {
-	setContextHelper(name, enabled);
+	setContextImpl(name, enabled);
 
 	// If the project context was set, then set the file context also
 	if (name === contexts.project) {
-		if (enabled)
-			onDidChangeActiveTextEditor(vscode.window.activeTextEditor);
-		else
-			setContextHelper(contexts.file, false);
+		const editor = vscode.window.activeTextEditor;
+		if (enabled && editor) {
+			const resolved: boolean = await variables.languageClient.sendRequest('understand/isResolved', {
+				uri: editor.document.uri.toString(),
+			});
+			setContextImpl(contexts.file, resolved);
+		}
+		else {
+			setContextImpl(contexts.file, false);
+		}
 	}
 }
 
 
-/** When the editor changes (or when otherwise called) enable/disable the 'understandFile' context */
-export async function onDidChangeActiveTextEditor(editor: vscode.TextEditor | undefined)
+export async function onDidChangeActiveTextEditor(newEditor: vscode.TextEditor | undefined)
 {
-	// Tell the server the new current editor
-	const params = {uri: ''};
-	if (editor !== undefined)
-		params.uri = editor.document.uri.toString();
-	variables.languageClient.sendNotification('understand/changedCurrentFile', params);
+	if (newEditor && newEditor.document.uri.scheme !== 'file')
+		return;
+
+	editor = newEditor;
+	if (!editorTimeout)
+		editorTimeout = setTimeout(sendEditor, DELAY_MILLISECONDS);
+	else
+		editorTimeout.refresh();
+}
+
+
+/** When the text cursor moves, notify the server */
+export async function onDidChangeTextEditorSelection(event: vscode.TextEditorSelectionChangeEvent)
+{
+	if (event.textEditor.document.uri.scheme !== 'file')
+		return;
+
+	if (!selectionTimeout)
+		selectionTimeout = setTimeout(sendSelection, DELAY_MILLISECONDS);
+	else
+		selectionTimeout.refresh();
+}
+
+
+/** When the editor changes enable/disable the 'understandFile' context */
+async function sendEditor()
+{
+	const isFile = editor && editor.document.uri.scheme === 'file';
+
+	if (!editor || isFile) {
+		// Tell the server the new current editor
+		const params = {character: 0, line: 0, uri: ''};
+		if (editor) {
+			params.uri = editor.document.uri.toString();
+			if (editor.selections.length) {
+				params.character = editor.selections[0].active.character;
+				params.line = editor.selections[0].active.line;
+			}
+		}
+		variables.languageClient.sendNotification('understand/changedCurrentFile', params);
+	}
 
 	// Unresolved if no editor or the editor isn't a file
-	if (editor === undefined || editor.document.uri.scheme !== 'file')
+	if (!editor || !isFile)
 		return setContext(contexts.file, false);
 
 	// Resolved if the language server says so
@@ -48,18 +97,18 @@ export async function onDidChangeActiveTextEditor(editor: vscode.TextEditor | un
 }
 
 
-/** When the text cursor moves, notify the server */
-export async function onDidChangeTextEditorSelection(event: vscode.TextEditorSelectionChangeEvent)
+/** When the editor changes, tell the server */
+function sendSelection()
 {
-	if (!event.selections.length || event.textEditor.document.uri.scheme !== 'file')
+	if (!editor || !editor.selections.length || editor.document.uri.scheme !== 'file')
 		return;
 
-	variables.languageClient.sendNotification('understand/changedCurrentFileCursor', event.selections[0].active);
+	variables.languageClient.sendNotification('understand/changedCurrentFileCursor', editor.selections[0].active);
 }
 
 
 /** Actually set the context */
-function setContextHelper(name: string, enabled: boolean)
+function setContextImpl(name: string, enabled: boolean)
 {
 	vscode.commands.executeCommand('setContext', name, enabled || undefined);
 }

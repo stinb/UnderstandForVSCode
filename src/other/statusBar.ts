@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import * as lc from 'vscode-languageclient/node';
 
 import { contexts, setContext } from './context';
-import { Db, DbState, variables, } from './variables';
+import { variables, } from './variables';
 
 
 /** Main state of the language server & client */
@@ -14,6 +14,24 @@ export enum MainState {
 	Ready,
 	NoConnection,
 	Progress,
+}
+
+/** Database state from the server, with UnableToOpen added */
+enum DbState {
+	Finding = -3,   // getting settings and finding the project
+	NoProject = -2, // a project was not found manually or automatically
+	UnableToOpen = -1, // the server failed to open the db
+	Empty,          // the db will not be ready (unresolved and empty from a new sample)
+	Resolved,       // the db is ready
+	Resolving,      // the db is not ready yet
+	Unresolved,     // the db will not be ready
+	WrongVersion,   // the db will not be ready (not resolved due to an old parse version)
+}
+
+/** A project that has a path, database, and database state */
+interface Db {
+	path: string,
+	state: DbState,
 }
 
 /**
@@ -38,6 +56,8 @@ interface StatusBarItem extends vscode.StatusBarItem {
 }
 
 
+let db = { path: '', state: DbState.Finding };
+
 let mainStatusBarItem: vscode.StatusBarItem;
 let progressStatusBarItems = new Map<string, StatusBarItem>();
 
@@ -57,7 +77,7 @@ export function changeMainStatus(status: MainState)
 			setContext(contexts.project, false);
 			break;
 		case MainState.Ready:
-			switch (variables.db.state) {
+			switch (db.state) {
 				case DbState.Finding:
 					mainStatusBarItem.text = '$(loading~spin) Understand';
 					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server, finding project');
@@ -186,7 +206,7 @@ export function handleProgress(params: ProgressParams)
 
 export function handleUnderstandChangedDatabaseState(params: Db)
 {
-	variables.db = params;
+	db = params;
 
 	if (progressStatusBarItems.size === 0)
 		changeMainStatus(MainState.Ready);
@@ -205,7 +225,7 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 	const markdownString = new vscode.MarkdownString(title);
 
 	// Add the database path and state
-	markdownString.appendText(`\n\n${databaseToString(variables.db)}`);
+	markdownString.appendText(`\n\n${databaseToString(db)}`);
 
 	// Define commands
 	const commands: StatusBarCommand[] = [
@@ -237,7 +257,7 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 		case MainState.Connecting:
 			break;
 		case MainState.Ready:
-			switch (variables.db.state) {
+			switch (db.state) {
 				case DbState.Finding:
 					enabledCommands.add('understand.settings.showSettingsProject');
 					break;
@@ -275,7 +295,7 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 
 
 /** Create text of status bar item: title and percent */
-function statusBarItemTitleAndPercent(title: string, percentage: number | undefined)
+function statusBarItemTitleAndPercent(title: string, percentage?: number)
 {
 	if (percentage === undefined)
 		return title;

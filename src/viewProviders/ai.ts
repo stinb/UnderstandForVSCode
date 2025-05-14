@@ -6,10 +6,9 @@ import * as vscode from 'vscode';
 import { escapeHtml } from '../other/html';
 import { variables } from '../other/variables';
 import { executeCommand } from '../commands/helpers';
-import { escape } from 'querystring';
 
 
-type AiAnnotation =
+type Card =
 {
 	body: string,
 	id: string,
@@ -17,22 +16,22 @@ type AiAnnotation =
 };
 
 
-type AiAnnotationSection =
+type Section =
 {
 	name: string,
-	annotations: AiAnnotation[],
+	cards: Card[],
 };
 
 
 type AiParams =
 {
-	annotationSections: AiAnnotationSection[],
+	annotationSections: Section[],
 };
 
 
 export class AiViewProvider implements vscode.WebviewViewProvider
 {
-	private annotationSections: AiAnnotationSection[] = [];
+	private annotationSections: Section[] = [];
 	private uriScript = '';
 	private uriStyle = '';
 	private uriStyleIcons = '';
@@ -43,7 +42,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 	{
 		switch (message.method) {
 			case 'regenerate':
-				executeCommand('understand.server.ai.generateAiOverview', [{annotationId: message.id}]);
+				executeCommand('understand.server.ai.generateAiOverview', [{uniqueName: message.id}]);
 				break;
 		}
 	}
@@ -71,7 +70,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 
 
 	/** Update HTML now or do it after it's created */
-	update(annotationSections: AiAnnotationSection[])
+	update(annotationSections: Section[])
 	{
 		if (this.view === undefined) {
 			this.annotationSections = annotationSections;
@@ -84,7 +83,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 
 
 	/** Now that the view exists, draw the annotations */
-	private draw(view: vscode.Webview, annotationSections: AiAnnotationSection[], focused: string = '')
+	private draw(view: vscode.Webview, annotationSections: Section[], focused: string = '')
 	{
 		const htmlParts = [];
 		htmlParts.push('<!DOCTYPE html>');
@@ -101,9 +100,9 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 
 		htmlParts.push('<div>');
 		for (const section of annotationSections) {
-			htmlParts.push(`<h2>${escapeHtml(section.name)}</h2>`);
-			for (const annotation of section.annotations)
-				htmlParts.push(`<div class="ai annotation" id="${escapeHtml(annotation.id)}" tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='heading'><p><span><b>${escapeHtml(annotation.position)}</b></span></p><button class='regenerate codicon codicon-sync'></button></div><code>${escapeHtml(annotation.body)}</code></div>`);
+			htmlParts.push(`<h4>${escapeHtml(section.name)}</h4>`);
+			for (const card of section.cards)
+				htmlParts.push(`<div class="ai annotation" id="${escapeHtml(card.id)}" tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(card.id))}}'><div class='heading'><p><span><b>${escapeHtml(card.position)}</b></span></p><button class='regenerate codicon ${card.body ? 'codicon-refresh' : 'codicon-run'}'></button></div>${drawBody(card.body)}</div>`);
 		}
 		annotationSections.length = 0;
 		htmlParts.push('</div>');
@@ -129,4 +128,10 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 export function handleUnderstandChangedAi(params: AiParams)
 {
 	variables.aiViewProvider.update(params.annotationSections);
+}
+
+
+function drawBody(body: string)
+{
+	return body ? `<code>${escapeHtml(body)}</code>` : '';
 }

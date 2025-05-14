@@ -15,7 +15,7 @@ export function generateAiOverview(context?: AiAnnotation)
 {
 	const command = 'understand.server.ai.generateAiOverview';
 	if (context)
-		executeCommand(command, [{annotationId: context.id}]);
+		executeCommand(command, [{uniqueName: context.id}]);
 	else
 		executeAtPosition(command);
 }
