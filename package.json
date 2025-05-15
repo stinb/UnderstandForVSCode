@@ -490,14 +490,8 @@
 	"devDependencies": {
 		"@types/node": "^20.11.10",
 		"@types/vscode": "^1.85.0",
-		"@vscode/vsce": "^3.3.2",
+		"@vscode/vsce": "^3.4.0",
 		"esbuild": "^0.25.4",
 		"typescript": "^5.3.3"
-	},
-	"scripts": {
-		"vscode:prepublish": "npm run esbuild-base",
-		"esbuild-base": "esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node --minify",
-		"esbuild": "npm run esbuild-base",
-		"esbuild-watch": "npm run esbuild-base -- -watch"
 	}
 }

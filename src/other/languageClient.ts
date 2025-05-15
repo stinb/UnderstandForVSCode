@@ -20,6 +20,7 @@ import {
 } from './statusBar';
 import { handleUnderstandChangedAi } from '../viewProviders/ai';
 import { handleUnderstandChangedAnnotations } from '../viewProviders/annotations';
+import { onDidChangeActiveTextEditor, onDidChangeTextEditorSelection } from './context';
 
 
 /**
@@ -55,6 +56,11 @@ export async function startLsp()
 	changeMainStatus(MainState.Connecting);
 	return variables.languageClient.start().then(function() {
 		changeMainStatus(MainState.Ready);
+		const editor = vscode.window.activeTextEditor;
+		if (editor) {
+			onDidChangeActiveTextEditor(editor);
+			onDidChangeTextEditorSelection({textEditor: editor, selections: [], kind: undefined});
+		}
 		variables.languageClient.onNotification('$/progress', handleProgress);
 		variables.languageClient.onNotification('understand/changedAi', handleUnderstandChangedAi);
 		variables.languageClient.onNotification('understand/changedAnnotations', handleUnderstandChangedAnnotations);

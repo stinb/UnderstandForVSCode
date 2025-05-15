@@ -74,14 +74,9 @@ async function sendEditor()
 
 	if (!editor || isFile) {
 		// Tell the server the new current editor
-		const params = {character: 0, line: 0, uri: ''};
-		if (editor) {
+		const params = {uri: ''};
+		if (editor)
 			params.uri = editor.document.uri.toString();
-			if (editor.selections.length) {
-				params.character = editor.selections[0].active.character;
-				params.line = editor.selections[0].active.line;
-			}
-		}
 		variables.languageClient.sendNotification('understand/changedCurrentFile', params);
 	}
 
