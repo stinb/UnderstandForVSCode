@@ -1,6 +1,23 @@
+type AiCard = {
+	body: string,
+	id: string,
+	position: string,
+};
+
+type AiSection = {
+	name: string,
+	cards: AiCard[],
+};
+
+
 type DeleteMessage = {
 	method: 'delete',
 	id: string,
+};
+
+type DrawAiMessage = {
+	method: 'drawAi',
+	sections: AiSection[],
 };
 
 type EditMessage = {
@@ -28,4 +45,4 @@ type StartedEditingMessage = {
 	method: 'startedEditing',
 };
 
-type Message = DeleteMessage | EditMessage | ErrorMessage | FinishedEditingMessage | RegenerateMessage | StartedEditingMessage;
+type Message = DeleteMessage | DrawAiMessage | EditMessage | ErrorMessage | FinishedEditingMessage | RegenerateMessage | StartedEditingMessage;

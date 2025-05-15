@@ -65,7 +65,8 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 		this.uriStyle = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.css')).toString();
 		this.uriStyleIcons = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'codicon.css')).toString();
 		this.view = webviewView.webview;
-		this.draw(this.view, this.annotationSections);
+		this.drawFirst(this.view);
+		this.drawUpdate(this.view, this.annotationSections);
 	}
 
 
@@ -77,13 +78,13 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 		}
 		else {
 			this.annotationSections.length = 0;
-			this.draw(this.view, annotationSections);
+			this.drawUpdate(this.view, annotationSections);
 		}
 	}
 
 
-	/** Now that the view exists, draw the annotations */
-	private draw(view: vscode.Webview, annotationSections: Section[], focused: string = '')
+	/** Now that the view exists, initialize page */
+	private drawFirst(view: vscode.Webview)
 	{
 		const htmlParts = [];
 		htmlParts.push('<!DOCTYPE html>');
@@ -98,13 +99,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 
 		htmlParts.push('<body>');
 
-		htmlParts.push('<div>');
-		for (const section of annotationSections) {
-			htmlParts.push(`<h4>${escapeHtml(section.name)}</h4>`);
-			for (const card of section.cards)
-				htmlParts.push(`<div class="ai annotation" id="${escapeHtml(card.id)}" tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(card.id))}}'><div class='heading'><p><span><b>${escapeHtml(card.position)}</b></span></p><button class='regenerate codicon ${card.body ? 'codicon-refresh' : 'codicon-run'}'></button></div>${drawBody(card.body)}</div>`);
-		}
-		annotationSections.length = 0;
+		htmlParts.push('<div id="sections">');
 		htmlParts.push('</div>');
 
 		// Prevent the last code element from stealing focus
@@ -115,11 +110,19 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 		htmlParts.push('</body>');
 		htmlParts.push('</html>');
 		view.html = htmlParts.join('');
+	}
 
-		if (focused) {
-			const message: Message = {method: 'edit', id: focused};
-			view.postMessage(message);
-		}
+
+	private drawUpdate(view: vscode.Webview, annotationSections: Section[])
+	{
+		this.postMessage(view, {method: 'drawAi', sections: annotationSections});
+		annotationSections.length = 0;
+	}
+
+
+	private postMessage(view: vscode.Webview, message: Message)
+	{
+		view.postMessage(message);
 	}
 }
 
@@ -128,10 +131,4 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 export function handleUnderstandChangedAi(params: AiParams)
 {
 	variables.aiViewProvider.update(params.annotationSections);
-}
-
-
-function drawBody(body: string)
-{
-	return body ? `<code>${escapeHtml(body)}</code>` : '';
 }

@@ -60,10 +60,19 @@ button:hover {
 	background: var(--vscode-toolbar-hoverBackground);
 }
 
+.ai:has(code:empty) button {
+	opacity: 1;
+}
+
 .heading p {
 	column-gap: var(--spacing);
 	display: flex;
 	flex-wrap: wrap;
+}
+
+.ai:has(code:empty) .heading b {
+	color: var(--vscode-list-deemphasizedForeground);
+	font-weight: normal;
 }
 
 p {
@@ -93,8 +102,12 @@ code {
 	overflow: auto;
 }
 
-code:focus, .ai code {
+code:focus, code:not([contenteditable]) {
 	-webkit-line-clamp: unset;
+}
+
+code:empty:not([contenteditable]) {
+	display: none;
 }
 
 .invisible {

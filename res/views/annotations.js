@@ -2,11 +2,25 @@
 'use strict';
 
 
-/** @typedef {{
+/**
+@typedef {{
+	body: string,
+	id: string,
+	position: string,
+}} AiCard
+
+@typedef {{
+	name: string,
+	cards: AiCard[],
+}} AiSection
+
+@typedef {{
 	method: string,
 	id?: string,
 	body?: string,
-}} Message */
+	sections?: AiSection[],
+}} Message
+*/
 
 
 /** @type {{
@@ -16,6 +30,65 @@
 }} */
 // @ts-ignore
 const vscode = acquireVsCodeApi();
+
+
+/**
+ * Make elements and get the innermost one
+ * @param {HTMLElement} parent
+ * @param {string[]} tagNames
+ */
+function createElements(parent, tagNames)
+{
+	for (const tagName of tagNames) {
+		const child = document.createElement(tagName);
+		parent.appendChild(child);
+		parent = child;
+	}
+	return parent;
+}
+
+
+/** @param {AiSection[] | undefined} sections */
+function drawAi(sections)
+{
+	const sectionsUi = document.getElementById('sections');
+	if (!sectionsUi)
+		return;
+	sectionsUi.innerHTML = '';
+
+	if (!sections)
+		return;
+
+	for (const section of sections) {
+		const sectionHeaderUi = document.createElement('h4');
+		sectionHeaderUi.innerText = section.name;
+		sectionsUi.appendChild(sectionHeaderUi);
+
+		for (const card of section.cards) {
+			const cardUi = document.createElement('div');
+			cardUi.className = 'ai annotation';
+			cardUi.dataset.vscodeContext='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(card.id))}}';
+			cardUi.id = card.id;
+			cardUi.tabIndex = 0;
+			sectionsUi.appendChild(cardUi);
+
+			const headingUi = document.createElement('div');
+			headingUi.className = 'heading';
+			cardUi.appendChild(headingUi);
+
+			const boldUi = createElements(headingUi, ['p', 'span', 'b']);
+			boldUi.innerText = card.position;
+
+			const button = document.createElement('button');
+			button.className = `regenerate codicon ${card.body ? 'codicon-refresh' : 'codicon-run'}`;
+			headingUi.appendChild(button);
+
+			const codeUi = document.createElement('code');
+			codeUi.innerText = card.body;
+			cardUi.appendChild(codeUi);
+		}
+	}
+}
 
 
 /** @param {FocusEvent} event */
@@ -86,10 +159,13 @@ function handleFocus(event)
 function handleMessageEvent(event)
 {
 	const message = event.data;
-	if (!isMessage(event.data))
+	if (!isMessage(message))
 		return;
 
 	switch (message.method) {
+		case 'drawAi':
+			drawAi(message.sections);
+			break;
 		case 'edit': {
 			if (!message.id)
 				break;
@@ -132,14 +208,22 @@ function handleKeyDown(event)
 	}
 	else if ((event.target instanceof HTMLDivElement) && event.target.classList.contains('annotation')) {
 		switch (event.code) {
-			case 'ArrowDown':
-				if (event.target.nextElementSibling instanceof HTMLElement)
-					event.target.nextElementSibling.focus();
+			case 'ArrowDown': {
+				let sibling = event.target.nextElementSibling;
+				while (sibling && !sibling.classList.contains('annotation'))
+					sibling = sibling.nextElementSibling;
+				if (sibling instanceof HTMLElement)
+					sibling.focus();
 				break;
-			case 'ArrowUp':
-				if (event.target.previousElementSibling instanceof HTMLElement)
-					event.target.previousElementSibling.focus();
+			}
+			case 'ArrowUp': {
+				let sibling = event.target.previousElementSibling;
+				while (sibling && !sibling.classList.contains('annotation'))
+					sibling = sibling.previousElementSibling;
+				if (sibling instanceof HTMLElement)
+					sibling.focus();
 				break;
+			}
 			case 'Delete':
 				vscode.postMessage({method: 'delete', id: event.target.id});
 				break;
