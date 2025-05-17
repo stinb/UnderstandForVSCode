@@ -125,7 +125,7 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 
 		htmlParts.push('<div>');
 		for (const annotation of annotations)
-			htmlParts.push(`<div class=annotation id="${escapeHtml(annotation.id)}" tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='heading'><p><span><b>${escapeHtml(annotation.position)}</b></span></p><p><span>${escapeHtml(annotation.author)}</span><span>${escapeHtml(annotation.lastModified)}</span><button class='codicon codicon-more'></button></p></div><code contenteditable data-vscode-context=\'{"preventDefaultContextMenuItems":false,"webviewSection":"annotationBody"}\'>${escapeHtml(annotation.body)}</code></div>`);
+			htmlParts.push(`<div class=annotation id="${escapeHtml(annotation.id)}" tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='cardHeader'><p><span><b>${escapeHtml(annotation.position)}</b></span></p><p><span>${escapeHtml(annotation.author)}</span><span>${escapeHtml(annotation.lastModified)}</span><button class='codicon codicon-more'></button></p></div><code class='body' contenteditable data-vscode-context=\'{"preventDefaultContextMenuItems":false,"webviewSection":"annotationBody"}\'>${escapeHtml(annotation.body)}</code></div>`);
 		annotations.length = 0;
 		htmlParts.push('</div>');
 

@@ -13,7 +13,7 @@ body {
 	padding: 0;
 }
 
-h1, h2, h3, h4, h5, h6 {
+.sectionHeader {
 	margin-left: var(--spacing);
 }
 
@@ -39,7 +39,7 @@ h1, h2, h3, h4, h5, h6 {
 	opacity: 1;
 }
 
-.heading {
+.cardHeader {
 	display: flex;
 	justify-content: space-between;
 }
@@ -60,30 +60,30 @@ button:hover {
 	background: var(--vscode-toolbar-hoverBackground);
 }
 
-.ai:has(code:empty) button {
+.ai:has(.body:empty) button {
 	opacity: 1;
 }
 
-.heading p {
+.cardHeader p {
 	column-gap: var(--spacing);
 	display: flex;
 	flex-wrap: wrap;
 }
 
-.ai:has(code:empty) .heading b {
+.ai:has(code:empty) .cardHeader b {
 	color: var(--vscode-list-deemphasizedForeground);
 	font-weight: normal;
 }
 
-p {
+.cardHeader p {
 	margin: 0;
 }
 
-p:not(:first-child) {
+.cardHeader p:not(:first-child) {
 	color: var(--vscode-list-deemphasizedForeground);
 }
 
-code {
+code.body {
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 5;
 	background: none;
@@ -98,15 +98,23 @@ code {
 	word-break: keep-all;
 }
 
-.annotation:focus code, .annotation:hover code, .annotation:has(button:focus) code {
+.annotation:focus code.body, .annotation:hover code.body, .annotation:has(button:focus) code.body {
 	overflow: auto;
 }
 
-code:focus, code:not([contenteditable]) {
+code.body:focus, code.body:not([contenteditable]) {
 	-webkit-line-clamp: unset;
 }
 
-code:empty:not([contenteditable]) {
+.body > :first-child {
+	margin-top: 0;
+}
+
+.body > :last-child {
+	margin-bottom: 0;
+}
+
+.body:empty:not([contenteditable]) {
 	display: none;
 }
 
