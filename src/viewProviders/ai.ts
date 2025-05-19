@@ -22,28 +22,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 	private uriScript = '';
 	private uriStyle = '';
 	private uriStyleIcons = '';
-	private view?: vscode.Webview;
-
-
-	handleMessage(message: Message)
-	{
-		switch (message.method) {
-			case 'open': {
-				const uri: vscode.Uri = vscode.Uri.parse(message.uri);
-				if (uri.scheme !== 'file')
-					break;
-				const position = new vscode.Position(message.line, message.character);
-				const options: vscode.TextDocumentShowOptions = {
-					selection: new vscode.Selection(position, position),
-				};
-				vscode.window.showTextDocument(uri, options);
-				break;
-			}
-			case 'regenerate':
-				executeCommand('understand.server.ai.generateAiOverview', [{uniqueName: message.id}]);
-				break;
-		}
-	}
+	private view?: vscode.WebviewView;
 
 
 	resolveWebviewView(
@@ -51,6 +30,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 		_context: vscode.WebviewViewResolveContext,
 		_token: vscode.CancellationToken)
 	{
+		webviewView.onDidChangeVisibility(this.handleChangeVisibility, this);
 		webviewView.webview.onDidReceiveMessage(this.handleMessage, this);
 		webviewView.webview.options = {
 			enableCommandUris: false,
@@ -63,21 +43,21 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 		this.uriScript = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.js')).toString();
 		this.uriStyle = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.css')).toString();
 		this.uriStyleIcons = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'codicon.css')).toString();
-		this.view = webviewView.webview;
-		this.drawFirst(this.view);
-		this.drawUpdate(this.view, this.annotationSections);
+		this.view = webviewView;
+		this.drawFirst(this.view.webview);
+		this.drawUpdate(this.view.webview, this.annotationSections);
 	}
 
 
 	/** Update HTML now or do it after it's created */
 	update(annotationSections: Section[])
 	{
-		if (this.view === undefined) {
+		if (this.view === undefined || !this.view.visible) {
 			this.annotationSections = annotationSections;
 		}
 		else {
 			this.annotationSections.length = 0;
-			this.drawUpdate(this.view, annotationSections);
+			this.drawUpdate(this.view.webview, annotationSections);
 		}
 	}
 
@@ -117,6 +97,34 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 	{
 		this.postMessage(view, {method: 'drawAi', sections: annotationSections});
 		annotationSections.length = 0;
+	}
+
+
+	private handleChangeVisibility()
+	{
+		if (this.view && this.view.visible)
+			this.drawUpdate(this.view.webview, this.annotationSections);
+	}
+
+
+	private handleMessage(message: Message)
+	{
+		switch (message.method) {
+			case 'open': {
+				const uri: vscode.Uri = vscode.Uri.parse(message.uri);
+				if (uri.scheme !== 'file')
+					break;
+				const position = new vscode.Position(message.line, message.character);
+				const options: vscode.TextDocumentShowOptions = {
+					selection: new vscode.Selection(position, position),
+				};
+				vscode.window.showTextDocument(uri, options);
+				break;
+			}
+			case 'regenerate':
+				executeCommand('understand.server.ai.generateAiOverview', [{uniqueName: message.id}]);
+				break;
+		}
 	}
 
 

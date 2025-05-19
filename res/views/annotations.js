@@ -3,29 +3,9 @@
 
 
 /**
-@typedef {{
-	body: string,
-	id: string,
-	positionCharacter: number,
-	positionLine: number,
-	positionTitle: string,
-	positionUri: string,
-}} Card
-
-@typedef {{
-	name: string,
-	cards: Card[],
-}} AiSection
-
-@typedef {{
-	method: string,
-	body?: string,
-	character?: number,
-	id?: string,
-	line?: number,
-	sections?: AiSection[],
-	uri?: string,
-}} Message
+@typedef {import('../../src/viewProviders/message').Card} Card
+@typedef {import('../../src/viewProviders/message').Message} Message
+@typedef {import('../../src/viewProviders/message').Section} Section
 */
 
 
@@ -45,7 +25,7 @@ const md = markdownit();
 const domParser = new DOMParser();
 
 
-/** @param {AiSection[] | undefined} sections */
+/** @param {Section[] | undefined} sections */
 function drawAi(sections)
 {
 	const sectionsUi = document.getElementById('sections');
@@ -144,7 +124,7 @@ function handleClick(event)
 	// Position: go to a location
 	if (classes.contains('position')) {
 		const data = event.target.dataset;
-		if (data.positionCharacter === undefined || data.positionLine === undefined) {
+		if (!data.positionCharacter || !data.positionLine || !data.positionUri) {
 			vscode.postMessage({
 				method: 'error',
 				body: 'Failed to find the position of the annotation',
@@ -201,6 +181,7 @@ function handleFocus(event)
 /** @param {MessageEvent} event */
 function handleMessageEvent(event)
 {
+	console.log('handleMessageEvent');
 	const message = event.data;
 	if (!isMessage(message))
 		return;
