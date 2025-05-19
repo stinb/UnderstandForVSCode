@@ -28,10 +28,19 @@ body {
 	flex-direction: column;
 	gap: var(--spacing);
 	margin: var(--spacing);
-	padding: var(--spacing)
+	padding: var(--spacing);
+	line-height: 1.5em;
 }
 
-.annotation:focus, button:focus-visible, code:focus {
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus {
+	outline: none;
+}
+
+.annotation:focus, button:focus-visible, a:focus-visible, code:focus {
 	outline: var(--outline) solid var(--vscode-focusBorder);
 }
 
@@ -44,13 +53,21 @@ body {
 	justify-content: space-between;
 }
 
+.cardHeader a {
+	cursor: pointer;
+	font-weight: bold;
+}
+
 button {
+	align-items: center;
 	background: none;
 	border-radius: 5px;
 	border: none;
 	color: var(--vscode-editor-foreground);
 	cursor: pointer;
+	display: flex;
 	height: 1.25rem;
+	justify-content: center;
 	opacity: 0;
 	padding: 0;
 	width: 1.25rem;
@@ -58,6 +75,11 @@ button {
 
 button:hover {
 	background: var(--vscode-toolbar-hoverBackground);
+}
+
+button * {
+	pointer-events: none;
+	user-select: none;
 }
 
 .ai:has(.body:empty) button {

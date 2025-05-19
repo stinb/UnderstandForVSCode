@@ -6,6 +6,7 @@ import * as vscode from 'vscode';
 import { escapeHtml } from '../other/html';
 import { variables } from '../other/variables';
 import { deleteAnnotation } from '../commands/annotations';
+import { Message } from './message';
 
 
 interface Annotation
@@ -15,7 +16,7 @@ interface Annotation
 	focused: boolean,
 	id: string,
 	lastModified: string,
-	position: string,
+	positionTitle: string,
 }
 
 
@@ -30,6 +31,7 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 {
 	private annotations: Annotation[] = [];
 	private editing = false;
+	private uriScriptMarkdown = '';
 	private uriScript = '';
 	private uriStyle = '';
 	private uriStyleIcons = '';
@@ -81,6 +83,7 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 			localResourceRoots: [variables.extensionUri],
 			portMapping: [],
 		};
+		this.uriScriptMarkdown = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'markdown-it.min.js')).toString();
 		this.uriScript = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.js')).toString();
 		this.uriStyle = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.css')).toString();
 		this.uriStyleIcons = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'codicon.css')).toString();
@@ -125,13 +128,14 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 
 		htmlParts.push('<div>');
 		for (const annotation of annotations)
-			htmlParts.push(`<div class=annotation id="${escapeHtml(annotation.id)}" tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='cardHeader'><p><span><b>${escapeHtml(annotation.position)}</b></span></p><p><span>${escapeHtml(annotation.author)}</span><span>${escapeHtml(annotation.lastModified)}</span><button class='codicon codicon-more'></button></p></div><code class='body' contenteditable data-vscode-context=\'{"preventDefaultContextMenuItems":false,"webviewSection":"annotationBody"}\'>${escapeHtml(annotation.body)}</code></div>`);
+			htmlParts.push(`<div class=annotation id="${escapeHtml(annotation.id)}" tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='cardHeader'><p><span><b>${escapeHtml(annotation.positionTitle)}</b></span></p><p><span>${escapeHtml(annotation.author)}</span><span>${escapeHtml(annotation.lastModified)}</span><button class='more codicon codicon-more'></button></p></div><code class='body' contenteditable data-vscode-context=\'{"preventDefaultContextMenuItems":false,"webviewSection":"annotationBody"}\'>${escapeHtml(annotation.body)}</code></div>`);
 		annotations.length = 0;
 		htmlParts.push('</div>');
 
 		// Prevent the last code element from stealing focus
 		htmlParts.push('<span class="invisible">_</span>');
 
+		htmlParts.push(`<script src="${escapeHtml(this.uriScriptMarkdown)}"></script>`);
 		htmlParts.push(`<script src="${escapeHtml(this.uriScript)}"></script>`);
 
 		htmlParts.push('</body>');

@@ -1,48 +1,59 @@
-type AiCard = {
+export type Card = {
 	body: string,
 	id: string,
-	position: string,
+	lastModified: string,
+	positionCharacter: number,
+	positionLine: number,
+	positionTitle: string,
+	positionUri: string,
 };
 
-type AiSection = {
+export type Section = {
 	name: string,
-	cards: AiCard[],
+	cards: Card[],
 };
 
 
-type DeleteMessage = {
+export type DeleteMessage = {
 	method: 'delete',
 	id: string,
 };
 
-type DrawAiMessage = {
+export type DrawAiMessage = {
 	method: 'drawAi',
-	sections: AiSection[],
+	sections: Section[],
 };
 
-type EditMessage = {
+export type EditMessage = {
 	method: 'edit',
 	id: string,
 };
 
-type ErrorMessage = {
+export type ErrorMessage = {
 	method: 'error',
 	body: string,
 };
 
-type FinishedEditingMessage = {
+export type FinishedEditingMessage = {
 	method: 'finishedEditing',
 	id: string,
 	body: string,
 };
 
-type RegenerateMessage = {
+export type OpenMessage = {
+	method: 'open',
+	character: number,
+	line: number,
+	uri: string,
+};
+
+export type RegenerateMessage = {
 	method: 'regenerate',
 	id: string,
 };
 
-type StartedEditingMessage = {
+export type StartedEditingMessage = {
 	method: 'startedEditing',
 };
 
-type Message = DeleteMessage | DrawAiMessage | EditMessage | ErrorMessage | FinishedEditingMessage | RegenerateMessage | StartedEditingMessage;
+export type Message = DeleteMessage | DrawAiMessage | EditMessage | ErrorMessage | FinishedEditingMessage | OpenMessage | RegenerateMessage | StartedEditingMessage;

@@ -6,21 +6,7 @@ import * as vscode from 'vscode';
 import { escapeHtml } from '../other/html';
 import { variables } from '../other/variables';
 import { executeCommand } from '../commands/helpers';
-
-
-type Card =
-{
-	body: string,
-	id: string,
-	position: string,
-};
-
-
-type Section =
-{
-	name: string,
-	cards: Card[],
-};
+import { Message, Section } from './message';
 
 
 type AiParams =
@@ -32,6 +18,7 @@ type AiParams =
 export class AiViewProvider implements vscode.WebviewViewProvider
 {
 	private annotationSections: Section[] = [];
+	private uriScriptMarkdown = '';
 	private uriScript = '';
 	private uriStyle = '';
 	private uriStyleIcons = '';
@@ -41,6 +28,17 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 	handleMessage(message: Message)
 	{
 		switch (message.method) {
+			case 'open': {
+				const uri: vscode.Uri = vscode.Uri.parse(message.uri);
+				if (uri.scheme !== 'file')
+					break;
+				const position = new vscode.Position(message.line, message.character);
+				const options: vscode.TextDocumentShowOptions = {
+					selection: new vscode.Selection(position, position),
+				};
+				vscode.window.showTextDocument(uri, options);
+				break;
+			}
 			case 'regenerate':
 				executeCommand('understand.server.ai.generateAiOverview', [{uniqueName: message.id}]);
 				break;
@@ -61,6 +59,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 			localResourceRoots: [variables.extensionUri],
 			portMapping: [],
 		};
+		this.uriScriptMarkdown = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'markdown-it.min.js')).toString();
 		this.uriScript = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.js')).toString();
 		this.uriStyle = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.css')).toString();
 		this.uriStyleIcons = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'codicon.css')).toString();
@@ -105,6 +104,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 		// Prevent the last code element from stealing focus
 		htmlParts.push('<span class="invisible">_</span>');
 
+		htmlParts.push(`<script src="${escapeHtml(this.uriScriptMarkdown)}"></script>`);
 		htmlParts.push(`<script src="${escapeHtml(this.uriScript)}"></script>`);
 
 		htmlParts.push('</body>');
