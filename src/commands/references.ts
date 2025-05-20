@@ -1,6 +1,3 @@
-'use strict';
-
-
 import * as vscode from 'vscode';
 
 
@@ -75,4 +72,3 @@ export function peekTypeDefinition()
 {
 	vscode.commands.executeCommand('editor.action.peekTypeDefinition');
 }
-

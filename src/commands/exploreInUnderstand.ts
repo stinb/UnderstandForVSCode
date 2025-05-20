@@ -1,6 +1,3 @@
-'use strict';
-
-
 import * as vscode from 'vscode';
 
 import { executeAtPosition, executeCommand } from './helpers';

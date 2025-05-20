@@ -1,6 +1,3 @@
-'use strict';
-
-
 import * as vscode from 'vscode';
 
 import * as ai from './commands/ai';
@@ -20,6 +17,7 @@ import { variables } from './other/variables';
 import { URI_SCHEME_VIOLATION_DESCRIPTION, ViolationDescriptionProvider } from './other/textProviders';
 import { AiViewProvider } from './viewProviders/ai';
 import { AnnotationsViewProvider } from './viewProviders/annotations';
+import { InfoTreeProvider } from './viewProviders/info';
 
 
 let fileSystemWatcher: vscode.FileSystemWatcher | undefined;
@@ -31,6 +29,7 @@ export async function activate(context: vscode.ExtensionContext)
 	variables.aiViewProvider = new AiViewProvider();
 	variables.annotationsViewProvider = new AnnotationsViewProvider();
 	variables.extensionUri = context.extensionUri;
+	variables.infoTreeProvider = new InfoTreeProvider();
 	fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**');
 	variables.violationDescriptionProvider = new ViolationDescriptionProvider();
 
@@ -104,6 +103,7 @@ export async function activate(context: vscode.ExtensionContext)
 		// Create web views
 		vscode.window.registerWebviewViewProvider('understandAi', variables.aiViewProvider),
 		vscode.window.registerWebviewViewProvider('understandAnnotations', variables.annotationsViewProvider),
+		vscode.window.registerTreeDataProvider('understandInfo', variables.infoTreeProvider),
 
 		// Watch for file changes, creations, and deletions
 		fileSystemWatcher.onDidChange(onDidChange),

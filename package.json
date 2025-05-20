@@ -480,6 +480,12 @@
 					"id": "understandAnnotations",
 					"name": "Annotations",
 					"type": "webview"
+				},
+				{
+					"icon": "$(info)",
+					"id": "understandInfo",
+					"name": "Info",
+					"type": "tree"
 				}
 			]
 		}
