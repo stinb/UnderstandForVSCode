@@ -181,7 +181,6 @@ function handleFocus(event)
 /** @param {MessageEvent} event */
 function handleMessageEvent(event)
 {
-	console.log('handleMessageEvent');
 	const message = event.data;
 	if (!isMessage(message))
 		return;
