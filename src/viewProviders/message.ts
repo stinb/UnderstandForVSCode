@@ -1,4 +1,5 @@
 export type Card = {
+	author: string,
 	body: string,
 	id: string,
 	lastModified: string,

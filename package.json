@@ -472,7 +472,7 @@
 				{
 					"icon": "$(sparkle)",
 					"id": "understandAi",
-					"name": "AI",
+					"name": "AI Overview",
 					"type": "webview"
 				},
 				{

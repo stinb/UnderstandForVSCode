@@ -6,30 +6,19 @@ import * as vscode from 'vscode';
 import { escapeHtml } from '../other/html';
 import { variables } from '../other/variables';
 import { deleteAnnotation } from '../commands/annotations';
-import { Message } from './message';
-
-
-interface Annotation
-{
-	author: string,
-	body: string,
-	focused: boolean,
-	id: string,
-	lastModified: string,
-	positionTitle: string,
-}
+import { Message, Card } from './message';
 
 
 interface AnnotationParams
 {
-	annotations: Annotation[],
+	annotations: Card[],
 	focused: string,
 }
 
 
 export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 {
-	private annotations: Annotation[] = [];
+	private annotations: Card[] = [];
 	private editing = false;
 	private uriScriptMarkdown = '';
 	private uriScript = '';
@@ -93,7 +82,7 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 
 
 	/** Update HTML now or do it after it's created */
-	update(annotations: Annotation[], focused: string)
+	update(annotations: Card[], focused: string)
 	{
 		if (this.view === undefined) {
 			this.annotations = annotations;
@@ -106,7 +95,7 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 
 
 	/** Now that the view exists, draw the annotations */
-	private draw(view: vscode.Webview, annotations: Annotation[], focused: string = '')
+	private draw(view: vscode.Webview, annotations: Card[], focused: string = '')
 	{
 		if (this.editing) {
 			this.annotations = annotations;
