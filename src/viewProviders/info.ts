@@ -10,9 +10,7 @@ import {
 	TreeItemCollapsibleState,
 	Uri
 } from 'vscode';
-
-
-type Key = TreeItem;
+import { variables } from '../other/variables';
 
 
 export class InfoTreeProvider implements TreeDataProvider<Key>
@@ -71,6 +69,33 @@ export class InfoTreeProvider implements TreeDataProvider<Key>
 		return element;
 	}
 }
+
+
+export function handleUnderstandChangedInfo(params: {})
+{
+	// TODO
+	// variables.infoTreeProvider.update(params);
+}
+
+
+type Key = TreeItem;
+
+
+type Position = {
+	uri: string,
+	line: number,
+	character: number,
+};
+
+
+type Field = {
+	label: string,
+	description?: string,
+	tooltip?: string,
+	position?: Position,
+	iconName?: string,
+	children?: [],
+};
 
 
 class ApiGroupItem extends TreeItem
