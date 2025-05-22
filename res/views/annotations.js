@@ -68,7 +68,7 @@ function drawAi(sections)
 			sectionHeaderUi.appendChild(buttonUi);
 
 			const spanUi = document.createElement('span');
-			spanUi.className = `codicon ${card.body ? 'codicon-refresh' : 'codicon-run'}`;
+			spanUi.className = `codicon ${card.body ? 'codicon-refresh' : 'codicon-sparkle'}`;
 			buttonUi.appendChild(spanUi);
 
 			const bodyUi = document.createElement('div');
