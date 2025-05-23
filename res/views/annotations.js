@@ -42,6 +42,18 @@ function drawAi(sections)
 		sectionHeaderUi.innerText = section.name;
 		sectionsUi.appendChild(sectionHeaderUi);
 
+		const emptyCardIds = getEmptyCardIds(section.cards);
+		if (emptyCardIds.length > 1) {
+			const buttonUi = document.createElement('button');
+			buttonUi.className = 'generateMany';
+			buttonUi.dataset.uniqueNames = JSON.stringify(emptyCardIds);
+			sectionHeaderUi.appendChild(buttonUi);
+
+			const spanUi = document.createElement('span');
+			spanUi.className = 'codicon codicon-sparkle';
+			buttonUi.appendChild(spanUi);
+		}
+
 		for (const card of section.cards) {
 			const cardUi = document.createElement('div');
 			cardUi.className = 'ai annotation';
@@ -85,7 +97,10 @@ function drawAi(sections)
 }
 
 
-/** @param {HTMLElement} descendant */
+/**
+ * @param {HTMLElement} descendant
+ * @returns {string}
+ */
 function getAnnotationParentId(descendant)
 {
 	let parent = descendant.parentElement;
@@ -96,6 +111,20 @@ function getAnnotationParentId(descendant)
 		return '';
 	}
 	return parent.id;
+}
+
+
+/**
+ * @param {Card[]} cards
+ * @returns {string[]}
+ */
+function getEmptyCardIds(cards)
+{
+	const result = [];
+	for (const card of cards)
+		if (card.body.length === 0)
+			result.push(card.id);
+	return result;
 }
 
 
@@ -121,8 +150,27 @@ function handleClick(event)
 
 	const classes = event.target.classList;
 
+	// Generate many: generate overviews of several entities
+	if (classes.contains('generateMany')) {
+		if (!event.target.dataset.uniqueNames)
+			return;
+		const uniqueNames = JSON.parse(event.target.dataset.uniqueNames);
+		vscode.postMessage({method: 'generateMany', uniqueNames: uniqueNames});
+	}
+	// More: view the right click context menu
+	else if (classes.contains('more')) {
+		event.preventDefault();
+		const rect = event.target.getBoundingClientRect();
+		const mouseEventInit = {
+			bubbles: true,
+			clientX: rect.x,
+			clientY: rect.y + rect.height,
+		};
+		event.target.dispatchEvent(new MouseEvent('contextmenu', mouseEventInit));
+		event.stopPropagation();
+	}
 	// Position: go to a location
-	if (classes.contains('position')) {
+	else if (classes.contains('position')) {
 		const data = event.target.dataset;
 		if (!data.positionCharacter || !data.positionLine || !data.positionUri) {
 			vscode.postMessage({
@@ -144,19 +192,7 @@ function handleClick(event)
 		// Get the parent annotation and send its ID
 		const id = getAnnotationParentId(event.target);
 		if (id)
-			vscode.postMessage({method: 'regenerate', 'id': id});
-	}
-	// More: right click
-	else if (classes.contains('more')) {
-		event.preventDefault();
-		const rect = event.target.getBoundingClientRect();
-		const mouseEventInit = {
-			bubbles: true,
-			clientX: rect.x,
-			clientY: rect.y + rect.height,
-		};
-		event.target.dispatchEvent(new MouseEvent('contextmenu', mouseEventInit));
-		event.stopPropagation();
+			vscode.postMessage({method: 'regenerate', uniqueName: id});
 	}
 }
 

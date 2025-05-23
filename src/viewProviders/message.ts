@@ -41,6 +41,11 @@ export type FinishedEditingMessage = {
 	body: string,
 };
 
+export type GenerateManyMessage = {
+	method: 'generateMany',
+	uniqueNames: string[],
+};
+
 export type OpenMessage = {
 	method: 'open',
 	character: number,
@@ -50,11 +55,11 @@ export type OpenMessage = {
 
 export type RegenerateMessage = {
 	method: 'regenerate',
-	id: string,
+	uniqueName: string,
 };
 
 export type StartedEditingMessage = {
 	method: 'startedEditing',
 };
 
-export type Message = DeleteMessage | DrawAiMessage | EditMessage | ErrorMessage | FinishedEditingMessage | OpenMessage | RegenerateMessage | StartedEditingMessage;
+export type Message = DeleteMessage | DrawAiMessage | EditMessage | ErrorMessage | FinishedEditingMessage | GenerateManyMessage | OpenMessage | RegenerateMessage | StartedEditingMessage;

@@ -13,13 +13,18 @@ body {
 	padding: 0;
 }
 
-.sectionHeader {
-	margin-left: var(--spacing);
-}
-
 ::selection {
 	color: unset;
 	background: var(--vscode-selection-background);
+}
+
+.sectionHeader {
+	margin: var(--spacing);
+}
+
+.sectionHeader, .cardHeader {
+	display: flex;
+	justify-content: space-between;
 }
 
 .annotation {
@@ -44,13 +49,9 @@ a:focus {
 	outline: var(--outline) solid var(--vscode-focusBorder);
 }
 
-.annotation:focus button, .annotation:hover button, button:focus, .annotation:has(code:focus) button {
+.sectionHeader button, button:focus, .ai:has(.body:empty) button,
+.annotation:focus button, .annotation:hover button, .annotation:has(code:focus) button {
 	opacity: 1;
-}
-
-.cardHeader {
-	display: flex;
-	justify-content: space-between;
 }
 
 .cardHeader a {
@@ -80,10 +81,6 @@ button:hover {
 button * {
 	pointer-events: none;
 	user-select: none;
-}
-
-.ai:has(.body:empty) button {
-	opacity: 1;
 }
 
 .cardHeader p {

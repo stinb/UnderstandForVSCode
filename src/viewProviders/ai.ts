@@ -110,6 +110,9 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 	private handleMessage(message: Message)
 	{
 		switch (message.method) {
+			case 'generateMany':
+				executeCommand('understand.server.ai.generateAiOverview', message.uniqueNames);
+				break;
 			case 'open': {
 				const uri: vscode.Uri = vscode.Uri.parse(message.uri);
 				if (uri.scheme !== 'file')
@@ -122,7 +125,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 				break;
 			}
 			case 'regenerate':
-				executeCommand('understand.server.ai.generateAiOverview', [{uniqueName: message.id}]);
+				executeCommand('understand.server.ai.generateAiOverview', [message.uniqueName]);
 				break;
 		}
 	}
