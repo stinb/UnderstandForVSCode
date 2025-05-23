@@ -37,23 +37,27 @@ function drawAi(sections)
 		return;
 
 	for (const section of sections) {
-		const sectionHeaderUi = document.createElement('h4');
-		sectionHeaderUi.className = 'sectionHeader';
-		sectionHeaderUi.innerText = section.name;
-		sectionsUi.appendChild(sectionHeaderUi);
+		// Header
+		if (section.name) {
+			const sectionHeaderUi = document.createElement('h4');
+			sectionHeaderUi.className = 'sectionHeader';
+			sectionHeaderUi.innerText = section.name;
+			sectionsUi.appendChild(sectionHeaderUi);
 
-		const emptyCardIds = getEmptyCardIds(section.cards);
-		if (emptyCardIds.length > 1) {
-			const buttonUi = document.createElement('button');
-			buttonUi.className = 'generateMany';
-			buttonUi.dataset.uniqueNames = JSON.stringify(emptyCardIds);
-			sectionHeaderUi.appendChild(buttonUi);
+			const emptyCardIds = getEmptyCardIds(section.cards);
+			if (emptyCardIds.length > 1) {
+				const buttonUi = document.createElement('button');
+				buttonUi.className = 'generateMany';
+				buttonUi.dataset.uniqueNames = JSON.stringify(emptyCardIds);
+				sectionHeaderUi.appendChild(buttonUi);
 
-			const spanUi = document.createElement('span');
-			spanUi.className = 'codicon codicon-sparkle';
-			buttonUi.appendChild(spanUi);
+				const spanUi = document.createElement('span');
+				spanUi.className = 'codicon codicon-sparkle';
+				buttonUi.appendChild(spanUi);
+			}
 		}
 
+		// Cards
 		for (const card of section.cards) {
 			const cardUi = document.createElement('div');
 			cardUi.className = 'ai annotation';
@@ -62,9 +66,9 @@ function drawAi(sections)
 			cardUi.tabIndex = 0;
 			sectionsUi.appendChild(cardUi);
 
-			const sectionHeaderUi = document.createElement('div');
-			sectionHeaderUi.className = 'cardHeader';
-			cardUi.appendChild(sectionHeaderUi);
+			const cardHeaderUi = document.createElement('div');
+			cardHeaderUi.className = 'cardHeader';
+			cardUi.appendChild(cardHeaderUi);
 
 			const anchorUi = document.createElement('a');
 			anchorUi.className = 'position';
@@ -73,11 +77,11 @@ function drawAi(sections)
 			anchorUi.dataset.positionUri = card.positionUri;
 			anchorUi.innerText = card.positionTitle;
 			anchorUi.tabIndex = 0;
-			sectionHeaderUi.appendChild(anchorUi);
+			cardHeaderUi.appendChild(anchorUi);
 
 			const buttonUi = document.createElement('button');
 			buttonUi.className = 'regenerate';
-			sectionHeaderUi.appendChild(buttonUi);
+			cardHeaderUi.appendChild(buttonUi);
 
 			const spanUi = document.createElement('span');
 			spanUi.className = `codicon ${card.body ? 'codicon-refresh' : 'codicon-sparkle'}`;
