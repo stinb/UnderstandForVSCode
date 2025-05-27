@@ -71,6 +71,12 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.references.peekImplementations', references.peekImplementations),
 		vscode.commands.registerCommand('understand.references.peekReferences', references.peekReferences),
 		vscode.commands.registerCommand('understand.references.peekTypeDefinition', references.peekTypeDefinition),
+		vscode.commands.registerCommand('understand.references.disableBrowseMode', () => {
+			vscode.workspace.getConfiguration().update('understand.references.browseMode', false);
+		}),
+		vscode.commands.registerCommand('understand.references.enableBrowseMode', () => {
+			vscode.workspace.getConfiguration().update('understand.references.browseMode', true);
+		}),
 
 		// Commands: Settings
 		vscode.commands.registerCommand('understand.settings.showSettings', settings.showSettings),

@@ -34,7 +34,7 @@ export class ReferencesTreeProvider implements TreeDataProvider<Key>
 		}
 
 		if (element === undefined)
-			return [new EntItem('MAGIC', '@lMAGIC@kc5MAGIC=0234@f./fastgrep/regmagic.h', new MarkdownString('```c\n#define MAGIC 0234\n```\n'))];
+			return [new EntItem('MAGIC', 'Macro', '@lMAGIC@kc5MAGIC=0234@f./fastgrep/regmagic.h', new MarkdownString('```c\n#define MAGIC 0234\n```\n'))];
 	}
 
 
@@ -60,12 +60,13 @@ class EntItem extends TreeItem
 	private uniqueName: string;
 
 
-	constructor(name: string, uniqueName: string, hover: MarkdownString)
+	constructor(name: string, kind: string, uniqueName: string, hover: MarkdownString)
 	{
 		super(name, TreeItemCollapsibleState.Expanded);
 
-		this.uniqueName = uniqueName;
+		this.description = `\u2003${kind}`;
 		this.tooltip = hover;
+		this.uniqueName = uniqueName;
 	}
 }
 
@@ -94,7 +95,7 @@ class RefItem extends TreeItem
 
 		// @ts-ignore this matches all input strings
 		const filename = /[^/]*$/.exec(uri.toString())[0];
-		this.description = `${filename}(${line})`;
+		this.description = `\u2003${filename}\u2003${line}`;
 
 		this.tooltip = new MarkdownString(`${longKind}\u2003${line} ${column}\u2003${uri.fsPath}\n\n\`\`\`c\n${snippet}\n\`\`\``)
 	}

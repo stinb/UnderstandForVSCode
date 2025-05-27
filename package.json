@@ -164,6 +164,36 @@
 				"category": "Understand: References"
 			},
 			{
+				"command": "understand.references.collapse",
+				"title": "Collapse",
+				"category": "Understand: References",
+				"icon": "$(collapse-all)"
+			},
+			{
+				"command": "understand.references.disableBrowseMode",
+				"title": "Disable Browse Mode",
+				"category": "Understand: References",
+				"icon": "res/browseModeEnabled.svg"
+			},
+			{
+				"command": "understand.references.enableBrowseMode",
+				"title": "Enable Browse Mode",
+				"category": "Understand: References",
+				"icon": "res/browseModeDisabled.svg"
+			},
+			{
+				"command": "understand.references.dismissAllEntities",
+				"title": "Dismiss All Entities",
+				"category": "Understand: References",
+				"icon": "$(clear-all)"
+			},
+			{
+				"command": "understand.references.dismiss",
+				"title": "Dismiss",
+				"category": "Understand: References",
+				"icon": "$(close)"
+			},
+			{
 				"command": "understand.settings.showSettings",
 				"title": "Settings",
 				"category": "Understand"
@@ -230,6 +260,11 @@
 						"Manual"
 					],
 					"description": "Either allow the language server to find the Understand project automatically, or manually set it once"
+				},
+				"understand.references.browseMode": {
+					"type": "boolean",
+					"default": true,
+					"description": "Whether the References view follows the editor text cursor"
 				},
 				"understand.server.communicationProtocol": {
 					"type": "string",
@@ -438,6 +473,33 @@
 					"command": "understand.annotations.addEntityAnnotation",
 					"when": "view == understandAnnotations",
 					"group": "navigation@3"
+				},
+				{
+					"command": "understand.references.disableBrowseMode",
+					"when": "view == understandReferences && config.understand.references.browseMode",
+					"group": "navigation@1"
+				},
+				{
+					"command": "understand.references.enableBrowseMode",
+					"when": "view == understandReferences && !config.understand.references.browseMode",
+					"group": "navigation@1"
+				},
+				{
+					"command": "understand.references.dismissAllEntities",
+					"when": "view == understandReferences",
+					"group": "navigation@2"
+				},
+				{
+					"command": "understand.references.collapse",
+					"when": "view == understandReferences",
+					"group": "navigation@3"
+				}
+			],
+			"view/item/context" : [
+				{
+					"command": "understand.references.dismiss",
+					"when": "view == understandReferences",
+					"group": "inline"
 				}
 			],
 			"webview/context": [
