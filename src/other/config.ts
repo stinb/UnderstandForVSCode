@@ -127,23 +127,6 @@ export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 }
 
 
-/** Change a booleaen setting at the level that will actually affect it */
-export function setBooleanInConfig(id: string, value: boolean)
-{
-	const config = vscode.workspace.getConfiguration();
-	const inspection = config.inspect(id);
-	if (inspection?.workspaceFolderValue !== undefined) {
-		config.update(id, value, vscode.ConfigurationTarget.WorkspaceFolder);
-		return;
-	}
-	if (inspection?.workspaceValue !== undefined) {
-		config.update(id, value, vscode.ConfigurationTarget.Workspace);
-		return;
-	}
-	config.update(id, value, vscode.ConfigurationTarget.Global);
-}
-
-
 /** Get a value of any type from the user settings */
 function getAnyFromConfig(id: string)
 {

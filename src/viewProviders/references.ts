@@ -1,22 +1,30 @@
-import * as vscode from 'vscode';
 import {
 	EventEmitter,
 	MarkdownString,
 	ProviderResult,
-	TextDocumentShowOptions,
 	TreeDataProvider,
 	TreeItem,
 	TreeItemCollapsibleState,
 	Uri
 } from 'vscode';
-import { variables } from '../other/variables';
-import { getBooleanFromConfig } from '../other/config';
 
 
 export class ReferencesTreeProvider implements TreeDataProvider<Key>
 {
 	private emitter = new EventEmitter<void>();
 	onDidChangeTreeData = this.emitter.event;
+
+
+	collapse()
+	{
+		// TODO
+	}
+
+
+	expand()
+	{
+		// TODO
+	}
 
 
 	getChildren(element?: Key): ProviderResult<TreeItem[]>
@@ -69,7 +77,7 @@ class EntItem extends TreeItem
 		super(name, TreeItemCollapsibleState.Expanded);
 
 		this.description = `\u2003${kind}`;
-		this.contextValue = 'understandEntity';
+		this.contextValue = name == 'MAGIC' ? 'understandUnpinnedEntity' : 'understandPinnedEntity';
 		this.tooltip = hover;
 		this.uniqueName = uniqueName;
 	}
@@ -82,20 +90,10 @@ class RefItem extends TreeItem
 	{
 		super(shortKind);
 
-		type OpenArgs = [Uri, TextDocumentShowOptions];
-
-		const openArgs: OpenArgs = [
-			uri,
-			{
-				preserveFocus: getBooleanFromConfig('understand.referencesView.preserveFocus'),
-				selection: new vscode.Range(line, column, line, column),
-			},
-		];
-
 		this.command = {
 			title: `Go to ${shortKind}`,
-			command: 'vscode.open',
-			arguments: openArgs,
+			command: 'understand.referencesView.goToReference',
+			arguments: [uri, line, column],
 		};
 
 		this.contextValue = 'understandReference';

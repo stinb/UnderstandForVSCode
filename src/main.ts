@@ -5,9 +5,10 @@ import * as analysis from './commands/analysis';
 import * as annotations from './commands/annotations';
 import * as exploreInUnderstand from './commands/exploreInUnderstand';
 import * as references from './commands/references';
+import * as referencesView from './commands/referencesView';
 import * as settings from './commands/settings';
 import * as violations from './commands/violations';
-import { onDidChangeConfiguration, setBooleanInConfig } from './other/config';
+import { onDidChangeConfiguration } from './other/config';
 import { onDidChangeActiveTextEditor, onDidChangeTextEditorSelection } from './other/context';
 import { onDidChange, onDidCreate, onDidDelete } from './other/fileSystem';
 import { UnderstandHoverProvider } from './other/hover';
@@ -32,6 +33,14 @@ export async function activate(context: vscode.ExtensionContext)
 	variables.referencesTreeProvider = new ReferencesTreeProvider();
 	fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**');
 	variables.violationDescriptionProvider = new ViolationDescriptionProvider();
+
+	vscode.window.registerTreeDataProvider('understandReferences', variables.referencesTreeProvider);
+	const treeView = vscode.window.createTreeView('understandReferences', {
+		canSelectMany: true,
+		treeDataProvider: variables.referencesTreeProvider,
+		showCollapseAll: true,
+	});
+	context.subscriptions.push(treeView);
 
 	// Commands visible in the palette are created in package.json
 
@@ -73,18 +82,9 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.references.peekTypeDefinition', references.peekTypeDefinition),
 
 		// Commands: References View
-		vscode.commands.registerCommand('understand.referencesView.disableBrowseMode', () => {
-			setBooleanInConfig('understand.referencesView.browseMode', false);
-		}),
-		vscode.commands.registerCommand('understand.referencesView.enableBrowseMode', () => {
-			setBooleanInConfig('understand.referencesView.browseMode', true);
-		}),
-		vscode.commands.registerCommand('understand.referencesView.viewAsList', () => {
-			setBooleanInConfig('understand.referencesView.viewAsTree', false);
-		}),
-		vscode.commands.registerCommand('understand.referencesView.viewAsTree', () => {
-			setBooleanInConfig('understand.referencesView.viewAsTree', true);
-		}),
+		vscode.commands.registerCommand('understand.referencesView.collapse', referencesView.collapse),
+		vscode.commands.registerCommand('understand.referencesView.expand', referencesView.expand),
+		vscode.commands.registerCommand('understand.referencesView.goToReference', referencesView.goToReference),
 
 		// Commands: Settings
 		vscode.commands.registerCommand('understand.settings.showSettings', settings.showSettings),
@@ -118,7 +118,7 @@ export async function activate(context: vscode.ExtensionContext)
 		// Create web views
 		vscode.window.registerWebviewViewProvider('understandAi', variables.aiViewProvider),
 		vscode.window.registerWebviewViewProvider('understandAnnotations', variables.annotationsViewProvider),
-		vscode.window.registerTreeDataProvider('understandReferences', variables.referencesTreeProvider),
+		// vscode.window.registerTreeDataProvider('understandReferences', variables.referencesTreeProvider),
 
 		// Watch for file changes, creations, and deletions
 		fileSystemWatcher.onDidChange(onDidChange),

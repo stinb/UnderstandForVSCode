@@ -170,28 +170,10 @@
 				"icon": "$(collapse-all)"
 			},
 			{
-				"command": "understand.referencesView.disableBrowseMode",
-				"title": "Disable Browse Mode",
-				"category": "Understand: References View",
-				"icon": "res/browseModeEnabled.svg"
-			},
-			{
-				"command": "understand.referencesView.dismiss",
-				"title": "Dismiss",
+				"command": "understand.referencesView.dismissEntity",
+				"title": "Dismiss Entity",
 				"category": "Understand: References View",
 				"icon": "$(close)"
-			},
-			{
-				"command": "understand.referencesView.dismissAllEntities",
-				"title": "Dismiss All Entities",
-				"category": "Understand: References View",
-				"icon": "$(clear-all)"
-			},
-			{
-				"command": "understand.referencesView.enableBrowseMode",
-				"title": "Enable Browse Mode",
-				"category": "Understand: References View",
-				"icon": "res/browseModeDisabled.svg"
 			},
 			{
 				"command": "understand.referencesView.expand",
@@ -200,22 +182,15 @@
 				"icon": "$(expand-all)"
 			},
 			{
+				"command": "understand.referencesView.goToReference",
+				"title": "Go to Reference",
+				"category": "Understand: References View"
+			},
+			{
 				"command": "understand.referencesView.pinEntity",
 				"title": "Pin Entity",
 				"category": "Understand: References View",
 				"icon": "$(pin)"
-			},
-			{
-				"command": "understand.referencesView.viewAsList",
-				"title": "View as List",
-				"category": "Understand: References View",
-				"icon": "$(list-tree)"
-			},
-			{
-				"command": "understand.referencesView.viewAsTree",
-				"title": "View as Tree",
-				"category": "Understand: References View",
-				"icon": "$(list-flat)"
 			},
 			{
 				"command": "understand.settings.showSettings",
@@ -292,20 +267,23 @@
 					],
 					"description": "Either allow the language server to find the Understand project automatically, or manually set it once"
 				},
-				"understand.referencesView.browseMode": {
-					"type": "boolean",
-					"default": true,
-					"description": "Whether the References view follows the editor text cursor"
+				"understand.referencesView.organization": {
+					"type": "string",
+					"default": "Files",
+					"enum": [
+						"Files",
+						"Flat"
+					],
+					"enumDescriptions": [
+						"Grouped by files (entity > files > references)",
+						"Ungrouped (entity > references)"
+					],
+					"description": "How the references are grouped"
 				},
 				"understand.referencesView.preserveFocus": {
 					"type": "boolean",
 					"default": true,
-					"description": "Whether going to a reference will keep focus on the References view"
-				},
-				"understand.referencesView.viewAsTree": {
-					"type": "boolean",
-					"default": true,
-					"description": "Whether the References view groups references by file, otherwise as a flat list"
+					"description": "Enable to keep focus on the References view, otherwise focus on the editor"
 				},
 				"understand.server.communicationProtocol": {
 					"type": "string",
@@ -453,11 +431,11 @@
 					"when": "false"
 				},
 				{
-					"command": "understand.referencesView.dismiss",
+					"command": "understand.referencesView.dismissEntity",
 					"when": "false"
 				},
 				{
-					"command": "understand.referencesView.dismissAllEntities",
+					"command": "understand.referencesView.goToReference",
 					"when": "false"
 				},
 				{
@@ -533,54 +511,29 @@
 				},
 				{
 					"command": "understand.referencesView.collapse",
-					"when": "view == understandReferences",
+					"when": "view == understandReferences && config.understand.referencesView.organization != 'Flat'",
 					"group": "navigation@1"
 				},
 				{
 					"command": "understand.referencesView.expand",
-					"when": "view == understandReferences",
+					"when": "view == understandReferences && config.understand.referencesView.organization != 'Flat'",
 					"group": "navigation@2"
-				},
-				{
-					"command": "understand.referencesView.viewAsList",
-					"when": "view == understandReferences && config.understand.referencesView.viewAsTree",
-					"group": "navigation@3"
-				},
-				{
-					"command": "understand.referencesView.viewAsTree",
-					"when": "view == understandReferences && !config.understand.referencesView.viewAsTree",
-					"group": "navigation@3"
-				},
-				{
-					"command": "understand.referencesView.disableBrowseMode",
-					"when": "view == understandReferences && config.understand.referencesView.browseMode",
-					"group": "navigation@4"
-				},
-				{
-					"command": "understand.referencesView.enableBrowseMode",
-					"when": "view == understandReferences && !config.understand.referencesView.browseMode",
-					"group": "navigation@4"
 				},
 				{
 					"command": "understand.settings.showSettingsReferencesView",
 					"when": "view == understandReferences",
-					"group": "navigation@5"
-				},
-				{
-					"command": "understand.referencesView.dismissAllEntities",
-					"when": "view == understandReferences",
-					"group": "navigation@6"
+					"group": "navigation@3"
 				}
 			],
 			"view/item/context" : [
 				{
 					"command": "understand.referencesView.pinEntity",
-					"when": "view == understandReferences && viewItem == understandEntity",
+					"when": "view == understandReferences && viewItem == understandUnpinnedEntity",
 					"group": "inline@1"
 				},
 				{
-					"command": "understand.referencesView.dismiss",
-					"when": "view == understandReferences",
+					"command": "understand.referencesView.dismissEntity",
+					"when": "view == understandReferences && viewItem == understandPinnedEntity",
 					"group": "inline@2"
 				}
 			],
