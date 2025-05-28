@@ -10,6 +10,7 @@ import {
 	Uri
 } from 'vscode';
 import { variables } from '../other/variables';
+import { getBooleanFromConfig } from '../other/config';
 
 
 export class ReferencesTreeProvider implements TreeDataProvider<Key>
@@ -34,7 +35,10 @@ export class ReferencesTreeProvider implements TreeDataProvider<Key>
 		}
 
 		if (element === undefined)
-			return [new EntItem('MAGIC', 'Macro', '@lMAGIC@kc5MAGIC=0234@f./fastgrep/regmagic.h', new MarkdownString('```c\n#define MAGIC 0234\n```\n'))];
+			return [
+				new EntItem('regexec', 'Function', '@lregexec@kregexec@f./fastgrep/regexp.c', new MarkdownString('```c\nint regexec(regexp *prog, char *string);\n```\n')),
+				new EntItem('MAGIC', 'Macro', '@lMAGIC@kc5MAGIC=0234@f./fastgrep/regmagic.h', new MarkdownString('```c\n#define MAGIC 0234\n```\n')),
+			];
 	}
 
 
@@ -65,6 +69,7 @@ class EntItem extends TreeItem
 		super(name, TreeItemCollapsibleState.Expanded);
 
 		this.description = `\u2003${kind}`;
+		this.contextValue = 'understandEntity';
 		this.tooltip = hover;
 		this.uniqueName = uniqueName;
 	}
@@ -81,7 +86,10 @@ class RefItem extends TreeItem
 
 		const openArgs: OpenArgs = [
 			uri,
-			{ selection: new vscode.Range(line, column, line, column) },
+			{
+				preserveFocus: getBooleanFromConfig('understand.referencesView.preserveFocus'),
+				selection: new vscode.Range(line, column, line, column),
+			},
 		];
 
 		this.command = {
@@ -89,6 +97,8 @@ class RefItem extends TreeItem
 			command: 'vscode.open',
 			arguments: openArgs,
 		};
+
+		this.contextValue = 'understandReference';
 
 		line += 1;
 		column += 1;

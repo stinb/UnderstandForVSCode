@@ -38,6 +38,40 @@ export function getStringFromConfig(id: string, defaultValue: string = ''): stri
 }
 
 
+/** Get the executable path of userver if UNIX-like, otherwise an empty string */
+export async function getUserverPathIfUnix(): Promise<string>
+{
+	// Fail if not UNIX-like
+	if (process.platform === 'win32')
+		return '';
+
+	// Fail if no PATH environment variable
+	const pathCompontents = process.env.PATH;
+	if (typeof pathCompontents !== 'string')
+		return '';
+
+	// Start reading all of the directories of the PATH environment variable
+	const promises: Promise<Dirent[]>[] = [];
+	for (const path of pathCompontents.split(':'))
+		promises.push(readdir(path, {withFileTypes: true}).catch(() => []));
+
+	// Starting at the first part, try to find userver
+	for (const dir of await Promise.all(promises))
+		for (const file of dir)
+			if (file.name === 'userver' && (file.isFile() || file.isSymbolicLink()))
+				return `${file.path}/${file.name}`;
+
+	// Try to find it in the default location on Mac
+	if (process.platform === 'darwin') {
+		const path = '/Applications/Understand.app/Contents/MacOS/userver';
+		if (fs.existsSync(path))
+			return path;
+	}
+
+	return '';
+}
+
+
 /** Respond with an array of the given values from user settings */
 export function handleWorkspaceConfiguration(params: lc.ConfigurationParams)
 {
@@ -93,37 +127,20 @@ export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 }
 
 
-/** Get the executable path of userver if UNIX-like, otherwise an empty string */
-export async function getUserverPathIfUnix(): Promise<string>
+/** Change a booleaen setting at the level that will actually affect it */
+export function setBooleanInConfig(id: string, value: boolean)
 {
-	// Fail if not UNIX-like
-	if (process.platform === 'win32')
-		return '';
-
-	// Fail if no PATH environment variable
-	const pathCompontents = process.env.PATH;
-	if (typeof pathCompontents !== 'string')
-		return '';
-
-	// Start reading all of the directories of the PATH environment variable
-	const promises: Promise<Dirent[]>[] = [];
-	for (const path of pathCompontents.split(':'))
-		promises.push(readdir(path, {withFileTypes: true}).catch(() => []));
-
-	// Starting at the first part, try to find userver
-	for (const dir of await Promise.all(promises))
-		for (const file of dir)
-			if (file.name === 'userver' && (file.isFile() || file.isSymbolicLink()))
-				return `${file.path}/${file.name}`;
-
-	// Try to find it in the default location on Mac
-	if (process.platform === 'darwin') {
-		const path = '/Applications/Understand.app/Contents/MacOS/userver';
-		if (fs.existsSync(path))
-			return path;
+	const config = vscode.workspace.getConfiguration();
+	const inspection = config.inspect(id);
+	if (inspection?.workspaceFolderValue !== undefined) {
+		config.update(id, value, vscode.ConfigurationTarget.WorkspaceFolder);
+		return;
 	}
-
-	return '';
+	if (inspection?.workspaceValue !== undefined) {
+		config.update(id, value, vscode.ConfigurationTarget.Workspace);
+		return;
+	}
+	config.update(id, value, vscode.ConfigurationTarget.Global);
 }
 
 

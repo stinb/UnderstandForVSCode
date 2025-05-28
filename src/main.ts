@@ -7,7 +7,7 @@ import * as exploreInUnderstand from './commands/exploreInUnderstand';
 import * as references from './commands/references';
 import * as settings from './commands/settings';
 import * as violations from './commands/violations';
-import { onDidChangeConfiguration } from './other/config';
+import { onDidChangeConfiguration, setBooleanInConfig } from './other/config';
 import { onDidChangeActiveTextEditor, onDidChangeTextEditorSelection } from './other/context';
 import { onDidChange, onDidCreate, onDidDelete } from './other/fileSystem';
 import { UnderstandHoverProvider } from './other/hover';
@@ -71,16 +71,25 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.references.peekImplementations', references.peekImplementations),
 		vscode.commands.registerCommand('understand.references.peekReferences', references.peekReferences),
 		vscode.commands.registerCommand('understand.references.peekTypeDefinition', references.peekTypeDefinition),
-		vscode.commands.registerCommand('understand.references.disableBrowseMode', () => {
-			vscode.workspace.getConfiguration().update('understand.references.browseMode', false);
+
+		// Commands: References View
+		vscode.commands.registerCommand('understand.referencesView.disableBrowseMode', () => {
+			setBooleanInConfig('understand.referencesView.browseMode', false);
 		}),
-		vscode.commands.registerCommand('understand.references.enableBrowseMode', () => {
-			vscode.workspace.getConfiguration().update('understand.references.browseMode', true);
+		vscode.commands.registerCommand('understand.referencesView.enableBrowseMode', () => {
+			setBooleanInConfig('understand.referencesView.browseMode', true);
+		}),
+		vscode.commands.registerCommand('understand.referencesView.viewAsList', () => {
+			setBooleanInConfig('understand.referencesView.viewAsTree', false);
+		}),
+		vscode.commands.registerCommand('understand.referencesView.viewAsTree', () => {
+			setBooleanInConfig('understand.referencesView.viewAsTree', true);
 		}),
 
 		// Commands: Settings
 		vscode.commands.registerCommand('understand.settings.showSettings', settings.showSettings),
 		vscode.commands.registerCommand('understand.settings.showSettingsProject', settings.showSettingsProject),
+		vscode.commands.registerCommand('understand.settings.showSettingsReferencesView', settings.showSettingsReferencesView),
 
 		// Commands: Violations
 		vscode.commands.registerCommand('understand.violations.fix', violations.fix),
