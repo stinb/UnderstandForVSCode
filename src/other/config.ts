@@ -107,17 +107,7 @@ export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 			shouldNotify = true;
 	}
 
-	// Decide whether to simply send the option to the server
-	const settingsToRestart = [
-		'understand.server',
-	];
-	let shouldRestart = false;
-	for (const setting of settingsToRestart) {
-		if (event.affectsConfiguration(setting)) {
-			shouldRestart = true;
-			break;
-		}
-	}
+	const shouldRestart: boolean = event.affectsConfiguration('understand.server');
 
 	if (shouldNotify && !shouldRestart)
 		variables.languageClient.sendNotification('workspace/didChangeConfiguration', params);

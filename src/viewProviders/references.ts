@@ -67,9 +67,9 @@ export function handleUnderstandChangedReferences(params: {})
 type Key = TreeItem;
 
 
-class EntItem extends TreeItem
+export class EntItem extends TreeItem
 {
-	private uniqueName: string;
+	readonly uniqueName: string;
 
 
 	constructor(name: string, kind: string, uniqueName: string, hover: MarkdownString)

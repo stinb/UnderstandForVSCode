@@ -83,8 +83,10 @@ export async function activate(context: vscode.ExtensionContext)
 
 		// Commands: References View
 		vscode.commands.registerCommand('understand.referencesView.collapse', referencesView.collapse),
+		vscode.commands.registerCommand('understand.referencesView.dismissEntity', referencesView.dismissEntity),
 		vscode.commands.registerCommand('understand.referencesView.expand', referencesView.expand),
 		vscode.commands.registerCommand('understand.referencesView.goToReference', referencesView.goToReference),
+		vscode.commands.registerCommand('understand.referencesView.pinEntity', referencesView.pinEntity),
 
 		// Commands: Settings
 		vscode.commands.registerCommand('understand.settings.showSettings', settings.showSettings),
