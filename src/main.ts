@@ -34,14 +34,6 @@ export async function activate(context: vscode.ExtensionContext)
 	fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**');
 	variables.violationDescriptionProvider = new ViolationDescriptionProvider();
 
-	vscode.window.registerTreeDataProvider('understandReferences', variables.referencesTreeProvider);
-	const treeView = vscode.window.createTreeView('understandReferences', {
-		canSelectMany: true,
-		treeDataProvider: variables.referencesTreeProvider,
-		showCollapseAll: true,
-	});
-	context.subscriptions.push(treeView);
-
 	// Commands visible in the palette are created in package.json
 
 	context.subscriptions.push(
@@ -120,7 +112,7 @@ export async function activate(context: vscode.ExtensionContext)
 		// Create web views
 		vscode.window.registerWebviewViewProvider('understandAi', variables.aiViewProvider),
 		vscode.window.registerWebviewViewProvider('understandAnnotations', variables.annotationsViewProvider),
-		// vscode.window.registerTreeDataProvider('understandReferences', variables.referencesTreeProvider),
+		vscode.window.registerTreeDataProvider('understandReferences', variables.referencesTreeProvider),
 
 		// Watch for file changes, creations, and deletions
 		fileSystemWatcher.onDidChange(onDidChange),

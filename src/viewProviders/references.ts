@@ -7,11 +7,14 @@ import {
 	TreeItemCollapsibleState,
 	Uri
 } from 'vscode';
+import { variables } from '../other/variables';
 
 
 export class ReferencesTreeProvider implements TreeDataProvider<Key>
 {
 	private emitter = new EventEmitter<void>();
+	private children: EntItem[] = [];
+
 	onDidChangeTreeData = this.emitter.event;
 
 
@@ -29,24 +32,13 @@ export class ReferencesTreeProvider implements TreeDataProvider<Key>
 
 	getChildren(element?: Key): ProviderResult<TreeItem[]>
 	{
-		if (element instanceof EntItem) {
-			const regexp = Uri.file('C:/SciTools/SampleProjects/All/fastgrep/fastgrep/regexp.c');
-			const regmagic = Uri.file('C:/SciTools/SampleProjects/All/fastgrep/fastgrep/regmagic.h');
-			const regsub = Uri.file('C:/SciTools/SampleProjects/All/fastgrep/fastgrep/regsub.c');
-			return [
-				new RefItem('Use', 'C Use', regexp, 209, 7, 'regc(MAGIC);'),
-				new RefItem('Use', 'C Use', regexp, 226, 7, 'regc(MAGIC);'),
-				new RefItem('Use', 'C Use', regexp, 717, 32, 'if (UCHARAT(prog->program) != MAGIC) {'),
-				new RefItem('Define', 'C Define', regmagic, 4, 8, '#define MAGIC 0234'),
-				new RefItem('Use', 'C Use', regsub, 50, 32, 'if (UCHARAT(prog->program) != MAGIC) {'),
-			];
-		}
-
 		if (element === undefined)
-			return [
-				new EntItem('regexec', 'Function', '@lregexec@kregexec@f./fastgrep/regexp.c', new MarkdownString('```c\nint regexec(regexp *prog, char *string);\n```\n')),
-				new EntItem('MAGIC', 'Macro', '@lMAGIC@kc5MAGIC=0234@f./fastgrep/regmagic.h', new MarkdownString('```c\n#define MAGIC 0234\n```\n')),
-			];
+			return this.children;
+		if (element instanceof EntItem)
+			return element.getChildren();
+		if (element instanceof FileItem)
+			return element.getChildren();
+		return [];
 	}
 
 
@@ -54,57 +46,170 @@ export class ReferencesTreeProvider implements TreeDataProvider<Key>
 	{
 		return element;
 	}
+
+
+	update(params: Params)
+	{
+		// Remove all items and update the pinned items
+		if (params.pinned) {
+			this.children.length = 0;
+			for (const data of params.pinned)
+				this.children.push(new EntItem(data));
+		}
+		// Remove the unpinned item if it's there
+		else {
+			const length = this.children.length;
+			if (length && !(this.children[length - 1].pinned))
+				this.children.pop();
+		}
+
+		// Add the unpinned item if it's there
+		if (params.cursor)
+			this.children.push(new EntItem(params.cursor));
+
+		this.emitter.fire();
+	}
 }
 
 
-export function handleUnderstandChangedReferences(params: {})
+export function handleUnderstandChangedReferences(params: Params)
 {
-	// TODO
-	// variables.infoTreeProvider.update(params);
+	variables.referencesTreeProvider.update(params);
 }
-
-
-type Key = TreeItem;
 
 
 export class EntItem extends TreeItem
 {
+	readonly pinned: boolean;
 	readonly uniqueName: string;
 
+	private files: FileItem[] = [];
+	private references: RefItem[] = [];
 
-	constructor(name: string, kind: string, uniqueName: string, hover: MarkdownString)
+
+	constructor(data: EntData)
 	{
-		super(name, TreeItemCollapsibleState.Expanded);
+		super(data.name, TreeItemCollapsibleState.Expanded);
 
-		this.description = `\u2003${kind}`;
-		this.contextValue = name == 'MAGIC' ? 'understandUnpinnedEntity' : 'understandPinnedEntity';
-		this.tooltip = hover;
-		this.uniqueName = uniqueName;
+		this.description = `\u2003${data.shortKind}`;
+		this.contextValue = data.pinned ? 'understandPinnedEntity' : 'understandUnpinnedEntity';
+		this.pinned = data.pinned;
+		this.tooltip = `${data.longKind}\u2003${data.longName}`;
+		this.uniqueName = data.uniqueName;
+
+		if ('files' in data)
+			for (const child of data.files)
+				this.files.push(new FileItem(child));
+		else
+			for (const child of data.references)
+				this.references.push(new RefItem(child));
+	}
+
+
+	getChildren(): FileItem[] | RefItem[]
+	{
+		return this.files.length !== 0 ? this.files : this.references;
+	}
+}
+
+
+class FileItem extends TreeItem
+{
+	private files: FileItem[] = [];
+	private references: RefItem[] = [];
+
+
+	constructor(data: FileData)
+	{
+		super(data.name, TreeItemCollapsibleState.Expanded);
+
+		this.contextValue = 'understandFile';
+		this.tooltip = data.path;
+
+		if ('files' in data)
+			for (const child of data.files)
+				this.files.push(new FileItem(child));
+		else
+			for (const child of data.references)
+				this.references.push(new RefItem(child));
+	}
+
+
+	getChildren(): FileItem[] | RefItem[]
+	{
+		return this.files.length !== 0 ? this.files : this.references;
 	}
 }
 
 
 class RefItem extends TreeItem
 {
-	constructor(shortKind: string, longKind: string, uri: Uri, line: number, column: number, snippet: string)
+	constructor(data: RefData)
 	{
-		super(shortKind);
+		super(data.shortKind);
+
+		const uri = Uri.parse(data.uri);
 
 		this.command = {
-			title: `Go to ${shortKind}`,
+			title: 'Go to Reference',
 			command: 'understand.referencesView.goToReference',
-			arguments: [uri, line, column],
+			arguments: [uri, data.line, data.character],
 		};
-
 		this.contextValue = 'understandReference';
 
-		line += 1;
-		column += 1;
+		const prettyLine = data.line + 1;
+		const prettyCharacter = data.character + 1;
 
-		// @ts-ignore this matches all input strings
-		const filename = /[^/]*$/.exec(uri.toString())[0];
-		this.description = `\u2003${filename}\u2003${line}`;
+		if (data.relativeName)
+			this.description = `\u2003${data.relativeName}\u2003${prettyLine}`;
+		else
+			this.description = `\u2003${prettyLine}`;
 
-		this.tooltip = new MarkdownString(`${longKind}\u2003${line} ${column}\u2003${uri.fsPath}\n\n\`\`\`c\n${snippet}\n\`\`\``)
+		this.tooltip = new MarkdownString(`${data.longKind}\u2003${prettyLine} : ${prettyCharacter}\u2003${uri.fsPath}`);
 	}
 }
+
+
+type Key = EntItem | FileItem | RefItem;
+
+type EntData = {
+	name: string,
+	longName: string,
+	shortKind: string,
+	longKind: string,
+	uniqueName: string,
+	pinned: boolean,
+	files: FileData[],
+} | {
+	name: string,
+	longName: string,
+	shortKind: string,
+	longKind: string,
+	uniqueName: string,
+	pinned: boolean,
+	references: RefData[],
+};
+
+type FileData = {
+	name: string,
+	path: string,
+	files: FileData[],
+} | {
+	name: string,
+	path: string,
+	references: RefData[],
+};
+
+type RefData = {
+	shortKind: string,
+	longKind: string,
+	relativeName?: string,
+	uri: string,
+	line: number,
+	character: number,
+};
+
+type Params = {
+	cursor?: EntData,
+	pinned?: EntData[],
+};

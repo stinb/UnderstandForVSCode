@@ -427,19 +427,11 @@
 					"when": "understandFile"
 				},
 				{
-					"command": "understand.referencesView.collapse",
-					"when": "false"
-				},
-				{
 					"command": "understand.referencesView.dismissEntity",
 					"when": "false"
 				},
 				{
 					"command": "understand.referencesView.goToReference",
-					"when": "false"
-				},
-				{
-					"command": "understand.referencesView.pinEntity",
 					"when": "false"
 				},
 				{

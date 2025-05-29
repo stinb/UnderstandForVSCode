@@ -21,6 +21,7 @@ import {
 import { handleUnderstandChangedAi } from '../viewProviders/ai';
 import { handleUnderstandChangedAnnotations } from '../viewProviders/annotations';
 import { onDidChangeActiveTextEditor, onDidChangeTextEditorSelection } from './context';
+import { handleUnderstandChangedReferences } from '../viewProviders/references';
 
 
 /**
@@ -65,6 +66,7 @@ export async function startLsp()
 		variables.languageClient.onNotification('understand/changedAi', handleUnderstandChangedAi);
 		variables.languageClient.onNotification('understand/changedAnnotations', handleUnderstandChangedAnnotations);
 		variables.languageClient.onNotification('understand/changedDatabaseState', handleUnderstandChangedDatabaseState);
+		variables.languageClient.onNotification('understand/changedReferences', handleUnderstandChangedReferences);
 		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
 		variables.languageClient.onRequest('workspace/configuration', handleWorkspaceConfiguration);
 	}).catch(function() {
