@@ -33,8 +33,11 @@ function drawAi(sections)
 		return;
 	sectionsUi.innerHTML = '';
 
-	if (!sections)
+	if (!sections || !sections.length)
 		return;
+
+	// The cards for the section with the blank header, which always has 1 card when it exists
+	const blankHeaderCards = !sections[0].name ? sections[0].cards : [];
 
 	for (const section of sections) {
 		// Header
@@ -44,7 +47,10 @@ function drawAi(sections)
 			sectionHeaderUi.innerText = section.name;
 			sectionsUi.appendChild(sectionHeaderUi);
 
-			const emptyCardIds = getEmptyCardIds(section.cards);
+			const emptyCardIds = [];
+			getEmptyCardIds(emptyCardIds, blankHeaderCards);
+			getEmptyCardIds(emptyCardIds, section.cards);
+			console.log(emptyCardIds);
 			if (emptyCardIds.length > 1) {
 				const buttonUi = document.createElement('button');
 				buttonUi.className = 'generateMany';
@@ -119,16 +125,14 @@ function getAnnotationParentId(descendant)
 
 
 /**
+ * @param {string[]} result
  * @param {Card[]} cards
- * @returns {string[]}
  */
-function getEmptyCardIds(cards)
+function getEmptyCardIds(result, cards)
 {
-	const result = [];
 	for (const card of cards)
 		if (card.body.length === 0)
 			result.push(card.id);
-	return result;
 }
 
 
