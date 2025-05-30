@@ -19,6 +19,8 @@ export const variables: Variables = {
 	extensionUri: undefined,
 	// @ts-ignore TODO audit this
 	languageClient: undefined,
+	// The view to leave alone for now
+	preserveView: '',
 	// @ts-ignore initialized in `activate`
 	referencesTreeProvider: undefined,
 	// @ts-ignore initialized in `activate`
@@ -31,6 +33,7 @@ interface Variables {
 	annotationsViewProvider: AnnotationsViewProvider,
 	extensionUri: Uri,
 	languageClient: LanguageClient,
+	preserveView: string,
 	referencesTreeProvider: ReferencesTreeProvider,
 	violationDescriptionProvider: ViolationDescriptionProvider,
 }

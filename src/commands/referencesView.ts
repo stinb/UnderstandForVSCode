@@ -23,12 +23,19 @@ export function expand()
 }
 
 
-export function goToReference(uri: vscode.Uri, line: number, column: number)
+export async function goToReference(uri: vscode.Uri, line: number, column: number)
 {
-	vscode.window.showTextDocument(uri, {
-		preserveFocus: getBooleanFromConfig('understand.referencesView.preserveFocus', true),
+	const preserveFocus = getBooleanFromConfig('understand.referencesView.preserveFocus', true);
+
+	if (preserveFocus)
+		variables.preserveView = 'references';
+
+	await vscode.window.showTextDocument(uri, {
+		preserveFocus: preserveFocus,
 		selection: new vscode.Range(line, column, line, column),
 	});
+
+	variables.preserveView = '';
 }
 
 

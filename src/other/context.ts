@@ -17,6 +17,7 @@ const DELAY_MILLISECONDS = 100;
 
 let editor: vscode.TextEditor | undefined;
 let editorTimeout: NodeJS.Timeout | undefined;
+let preserveView = '';
 let selectionTimeout: NodeJS.Timeout | undefined;
 
 
@@ -57,6 +58,7 @@ export async function onDidChangeActiveTextEditor(newEditor: vscode.TextEditor |
 /** When the text cursor moves, notify the server */
 export async function onDidChangeTextEditorSelection(event: vscode.TextEditorSelectionChangeEvent)
 {
+	preserveView = variables.preserveView;
 	if (event.textEditor.document.uri.scheme !== 'file')
 		return;
 
@@ -98,7 +100,13 @@ function sendSelection()
 	if (!editor || !editor.selections.length || editor.document.uri.scheme !== 'file')
 		return;
 
-	variables.languageClient.sendNotification('understand/changedCurrentFileCursor', editor.selections[0].active);
+	const position = editor.selections[0].active;
+
+	variables.languageClient.sendNotification('understand/changedCurrentFileCursor', {
+		line: position.line,
+		character: position.character,
+		preserveView: preserveView,
+	});
 }
 
 
