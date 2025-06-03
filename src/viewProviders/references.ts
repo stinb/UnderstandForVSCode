@@ -1,7 +1,6 @@
 import {
 	EventEmitter,
 	MarkdownString,
-	ProviderResult,
 	TreeDataProvider,
 	TreeItem,
 	TreeItemCollapsibleState,
@@ -18,19 +17,7 @@ export class ReferencesTreeProvider implements TreeDataProvider<Key>
 	onDidChangeTreeData = this.emitter.event;
 
 
-	collapse()
-	{
-		// TODO
-	}
-
-
-	expand()
-	{
-		// TODO
-	}
-
-
-	getChildren(element?: Key): ProviderResult<TreeItem[]>
+	getChildren(element?: Key): Key[]
 	{
 		if (element === undefined)
 			return this.children;

@@ -74,9 +74,7 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.references.peekTypeDefinition', references.peekTypeDefinition),
 
 		// Commands: References View
-		vscode.commands.registerCommand('understand.referencesView.collapse', referencesView.collapse),
 		vscode.commands.registerCommand('understand.referencesView.dismissEntity', referencesView.dismissEntity),
-		vscode.commands.registerCommand('understand.referencesView.expand', referencesView.expand),
 		vscode.commands.registerCommand('understand.referencesView.goToReference', referencesView.goToReference),
 		vscode.commands.registerCommand('understand.referencesView.pinEntity', referencesView.pinEntity),
 

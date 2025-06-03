@@ -164,22 +164,10 @@
 				"category": "Understand: References"
 			},
 			{
-				"command": "understand.referencesView.collapse",
-				"title": "Collapse",
-				"category": "Understand: References View",
-				"icon": "$(collapse-all)"
-			},
-			{
 				"command": "understand.referencesView.dismissEntity",
 				"title": "Dismiss Entity",
 				"category": "Understand: References View",
 				"icon": "$(close)"
-			},
-			{
-				"command": "understand.referencesView.expand",
-				"title": "Expand",
-				"category": "Understand: References View",
-				"icon": "$(expand-all)"
 			},
 			{
 				"command": "understand.referencesView.goToReference",
@@ -500,16 +488,6 @@
 					"command": "understand.annotations.addEntityAnnotation",
 					"when": "view == understandAnnotations",
 					"group": "navigation@3"
-				},
-				{
-					"command": "understand.referencesView.collapse",
-					"when": "view == understandReferences && config.understand.referencesView.organization != 'Flat'",
-					"group": "navigation@1"
-				},
-				{
-					"command": "understand.referencesView.expand",
-					"when": "view == understandReferences && config.understand.referencesView.organization != 'Flat'",
-					"group": "navigation@2"
 				},
 				{
 					"command": "understand.settings.showSettingsReferencesView",

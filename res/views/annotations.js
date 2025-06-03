@@ -50,7 +50,6 @@ function drawAi(sections)
 			const emptyCardIds = [];
 			getEmptyCardIds(emptyCardIds, blankHeaderCards);
 			getEmptyCardIds(emptyCardIds, section.cards);
-			console.log(emptyCardIds);
 			if (emptyCardIds.length > 1) {
 				const buttonUi = document.createElement('button');
 				buttonUi.className = 'generateMany';

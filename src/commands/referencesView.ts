@@ -5,21 +5,9 @@ import { variables } from '../other/variables';
 import { EntItem } from '../viewProviders/references';
 
 
-export function collapse()
-{
-	variables.referencesTreeProvider.collapse();
-}
-
-
 export function dismissEntity(entItem: EntItem)
 {
 	variables.languageClient.sendNotification('understand/references/dismiss', {uniqueName: entItem.uniqueName});
-}
-
-
-export function expand()
-{
-	variables.referencesTreeProvider.expand();
 }
 
 
