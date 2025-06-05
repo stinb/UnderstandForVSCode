@@ -69,7 +69,11 @@ export async function startLsp()
 		variables.languageClient.onNotification('understand/changedReferences', handleUnderstandChangedReferences);
 		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
 		variables.languageClient.onRequest('workspace/configuration', handleWorkspaceConfiguration);
-	}).catch(function() {
+	}).catch(function(error) {
+		if (typeof error === 'string')
+			vscode.window.showErrorMessage(error);
+		else if (error instanceof Error)
+			vscode.window.showErrorMessage(error.message);
 		changeMainStatus(MainState.NoConnection);
 	});
 }
