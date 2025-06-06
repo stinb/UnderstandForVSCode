@@ -1,5 +1,10 @@
 # Change Log
 
+# [1.0.19] - 2025 Jun 6
+- Add view: AI Overview
+- Add view: Annotations
+- Add view: References
+
 # [1.0.18] - 2025 May 1
 - Add command `understand.ai.generateAiOverview`
 - Simplify setting: `understand.project.paths` to `understand.project.path`
