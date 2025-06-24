@@ -537,6 +537,12 @@
 		"views": {
 			"understand": [
 				{
+					"icon": "$(comment-discussion)",
+					"id": "understandAiChat",
+					"name": "AI Chat",
+					"type": "webview"
+				},
+				{
 					"icon": "$(sparkle)",
 					"id": "understandAi",
 					"name": "AI Overview",
