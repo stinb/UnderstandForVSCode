@@ -59,6 +59,11 @@ a:focus {
 	font-weight: bold;
 }
 
+.buttons {
+	display: flex;
+	gap: 4px;
+}
+
 button {
 	align-items: center;
 	background: none;

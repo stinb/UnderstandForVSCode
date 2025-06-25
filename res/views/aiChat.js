@@ -3,7 +3,7 @@
 
 
 /**
-@typedef {import('../../src/viewProviders/message').Message} Message
+@typedef {import('../../src/viewProviders/aiChatMessage').AiChatMessage} AiChatMessage
 */
 
 
@@ -19,7 +19,7 @@ function focusOnInput()
 function handleMessageEvent(event)
 {
 	const message = event.data;
-	if (!isMessage(message))
+	if (!isAiChatMessage(message))
 		return;
 
 	switch (message.method) {
@@ -30,8 +30,8 @@ function handleMessageEvent(event)
 }
 
 
-/** @type {(obj: any) => obj is Message} */
-function isMessage(obj)
+/** @type {(obj: any) => obj is AiChatMessage} */
+function isAiChatMessage(obj)
 {
 	return obj !== null && !Array.isArray(obj) && typeof(obj) === 'object'
 		&& typeof obj.method === 'string';
@@ -40,6 +40,7 @@ function isMessage(obj)
 
 function main()
 {
+	window.onfocus = focusOnInput;
 	window.onmessage = handleMessageEvent;
 }
 

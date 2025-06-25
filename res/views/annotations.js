@@ -84,9 +84,23 @@ function drawAi(sections)
 			anchorUi.tabIndex = 0;
 			cardHeaderUi.appendChild(anchorUi);
 
+			const buttonsUi = document.createElement('div');
+			buttonsUi.className = 'buttons';
+			cardHeaderUi.appendChild(buttonsUi);
+
+			if (card.body.length) {
+				const buttonUi = document.createElement('button');
+				buttonUi.className = 'chat';
+				buttonsUi.appendChild(buttonUi);
+
+				const spanUi = document.createElement('span');
+				spanUi.className = 'codicon codicon-comment-discussion';
+				buttonUi.appendChild(spanUi);
+			}
+
 			const buttonUi = document.createElement('button');
 			buttonUi.className = 'regenerate';
-			cardHeaderUi.appendChild(buttonUi);
+			buttonsUi.appendChild(buttonUi);
 
 			const spanUi = document.createElement('span');
 			spanUi.className = `codicon ${card.body ? 'codicon-refresh' : 'codicon-sparkle'}`;
@@ -200,6 +214,12 @@ function handleClick(event)
 		const id = getAnnotationParentId(event.target);
 		if (id)
 			vscode.postMessage({method: 'regenerate', uniqueName: id});
+	}
+	// Start chat: begin a chat for an entity
+	else if (classes.contains('chat')) {
+		const id = getAnnotationParentId(event.target);
+		if (id)
+			vscode.postMessage({method: 'startChat', uniqueName: id});
 	}
 }
 

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { variables } from '../other/variables';
 import { escapeHtml } from '../other/html';
-import { Message } from './message';
+import { AiChatMessage } from './aiChatMessage';
 
 
 export class AiChatViewProvider implements vscode.WebviewViewProvider
@@ -85,7 +85,7 @@ export class AiChatViewProvider implements vscode.WebviewViewProvider
 	}
 
 
-	private postMessage(view: vscode.Webview, message: Message)
+	private postMessage(view: vscode.Webview, message: AiChatMessage)
 	{
 		view.postMessage(message);
 	}
