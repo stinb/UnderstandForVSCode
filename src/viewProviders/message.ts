@@ -41,6 +41,10 @@ export type FinishedEditingMessage = {
 	body: string,
 };
 
+export type FocusMessage = {
+	method: 'focus',
+};
+
 export type GenerateManyMessage = {
 	method: 'generateMany',
 	uniqueNames: string[],
@@ -62,4 +66,4 @@ export type StartedEditingMessage = {
 	method: 'startedEditing',
 };
 
-export type Message = DeleteMessage | DrawAiMessage | EditMessage | ErrorMessage | FinishedEditingMessage | GenerateManyMessage | OpenMessage | RegenerateMessage | StartedEditingMessage;
+export type Message = DeleteMessage | DrawAiMessage | EditMessage | ErrorMessage | FinishedEditingMessage | FocusMessage | GenerateManyMessage | OpenMessage | RegenerateMessage | StartedEditingMessage;
