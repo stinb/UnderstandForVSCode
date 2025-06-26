@@ -54,6 +54,14 @@ body {
 	align-self: end;
 }
 
+.message > :first-child {
+	margin-top: 0;
+}
+
+.message > :last-child {
+	margin-bottom: 0;
+}
+
 input:focus, button:focus-visible {
 	outline: var(--outline) solid var(--vscode-focusBorder);
 }

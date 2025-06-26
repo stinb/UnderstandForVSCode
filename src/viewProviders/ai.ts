@@ -128,7 +128,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 				executeCommand('understand.server.ai.generateAiOverview', [message.uniqueName]);
 				break;
 			case 'startChat':
-				vscode.commands.executeCommand('understandAiChat.focus');
+				variables.aiChatViewProvider.setEntity(message.uniqueName);
 				break;
 		}
 	}
