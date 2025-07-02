@@ -6,12 +6,29 @@ import * as vscode from 'vscode';
 import { escapeHtml } from '../other/html';
 import { variables } from '../other/variables';
 import { executeCommand } from '../commands/helpers';
-import { Message, Section } from './message';
+import { AnnotationMessage, Section } from './annotationMessage';
 
 
-type AiParams =
-{
+type ClearParams = {
+  uniqueName: string,
+};
+
+type ErrorParams = {
+  uniqueName: string,
+  text: string,
+};
+
+type SectionParams = {
 	annotationSections: Section[],
+};
+
+type TextParams = {
+  uniqueName: string,
+  text: string,
+};
+
+type TextEndParams = {
+  uniqueName: string,
 };
 
 
@@ -23,6 +40,13 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 	private uriStyle = '';
 	private uriStyleIcons = '';
 	private view?: vscode.WebviewView;
+
+
+	postMessage(message: AnnotationMessage)
+	{
+		if (this.view)
+			this.postMessageImpl(this.view.webview, message);
+	}
 
 
 	resolveWebviewView(
@@ -95,7 +119,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 
 	private drawUpdate(view: vscode.Webview, annotationSections: Section[])
 	{
-		this.postMessage(view, {method: 'drawAi', sections: annotationSections});
+		this.postMessageImpl(view, {method: 'drawAi', sections: annotationSections});
 		annotationSections.length = 0;
 	}
 
@@ -107,7 +131,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 	}
 
 
-	private handleMessage(message: Message)
+	private handleMessage(message: AnnotationMessage)
 	{
 		switch (message.method) {
 			case 'generateMany':
@@ -134,15 +158,57 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 	}
 
 
-	private postMessage(view: vscode.Webview, message: Message)
+	private postMessageImpl(view: vscode.Webview, message: AnnotationMessage)
 	{
 		view.postMessage(message);
 	}
 }
 
 
+/** Tell the AI view to clear a card */
+export function handleUnderstandAiClear(params: ClearParams)
+{
+	variables.aiViewProvider.postMessage({
+		method: 'aiClear',
+		uniqueName: params.uniqueName,
+	});
+}
+
+
+/** Tell the AI view to clear a card and display the error */
+export function handleUnderstandAiError(params: ErrorParams)
+{
+	variables.aiViewProvider.postMessage({
+		method: 'aiError',
+		uniqueName: params.uniqueName,
+		text: params.text,
+	});
+}
+
+
+/** Tell the AI view to clear a card and display the error */
+export function handleUnderstandAiText(params: TextParams)
+{
+	variables.aiViewProvider.postMessage({
+		method: 'aiText',
+		uniqueName: params.uniqueName,
+		text: params.text,
+	});
+}
+
+
+/** Tell the AI view to clear a card and display the error */
+export function handleUnderstandAiTextEnd(params: TextEndParams)
+{
+	variables.aiViewProvider.postMessage({
+		method: 'aiTextEnd',
+		uniqueName: params.uniqueName,
+	});
+}
+
+
 /** Tell the AI view to update its HTML */
-export function handleUnderstandChangedAi(params: AiParams)
+export function handleUnderstandChangedAi(params: SectionParams)
 {
 	variables.aiViewProvider.update(params.annotationSections);
 }

@@ -18,7 +18,7 @@ import {
 	handleProgress,
 	handleUnderstandChangedDatabaseState,
 } from './statusBar';
-import { handleUnderstandChangedAi } from '../viewProviders/ai';
+import { handleUnderstandAiClear, handleUnderstandAiError, handleUnderstandAiText, handleUnderstandAiTextEnd, handleUnderstandChangedAi } from '../viewProviders/ai';
 import { handleUnderstandChangedAnnotations } from '../viewProviders/annotations';
 import { onDidChangeActiveTextEditor, onDidChangeTextEditorSelection } from './context';
 import { handleUnderstandChangedReferences } from '../viewProviders/references';
@@ -63,6 +63,10 @@ export async function startLsp()
 			onDidChangeTextEditorSelection({textEditor: editor, selections: [], kind: undefined});
 		}
 		variables.languageClient.onNotification('$/progress', handleProgress);
+		variables.languageClient.onNotification('understand/ai/clear', handleUnderstandAiClear);
+		variables.languageClient.onNotification('understand/ai/error', handleUnderstandAiError);
+		variables.languageClient.onNotification('understand/ai/text', handleUnderstandAiText);
+		variables.languageClient.onNotification('understand/ai/textEnd', handleUnderstandAiTextEnd);
 		variables.languageClient.onNotification('understand/changedAi', handleUnderstandChangedAi);
 		variables.languageClient.onNotification('understand/changedAnnotations', handleUnderstandChangedAnnotations);
 		variables.languageClient.onNotification('understand/changedDatabaseState', handleUnderstandChangedDatabaseState);

@@ -22,11 +22,15 @@ const domParser = new DOMParser();
 function drawMarkdown(parent, text)
 {
 	const body = domParser.parseFromString(md.render(text), 'text/html').body;
-	for (const child of body.querySelectorAll('link, script'))
+	for (const child of body.querySelectorAll('iframe, link, script'))
 		child.remove();
-	for (const element of body.childNodes)
-		if (!(element instanceof HTMLLinkElement) && !(element instanceof HTMLScriptElement))
-			parent.append(element);
+	for (const element of body.childNodes) {
+		if (element instanceof HTMLIFrameElement
+		|| element instanceof HTMLLinkElement
+		|| element instanceof HTMLScriptElement)
+			continue;
+		parent.append(element);
+	}
 }
 
 

@@ -3,9 +3,9 @@
 
 
 /**
-@typedef {import('../../src/viewProviders/message').Card} Card
-@typedef {import('../../src/viewProviders/message').Message} Message
-@typedef {import('../../src/viewProviders/message').Section} Section
+@typedef {import('../../src/viewProviders/annotationMessage').Card} Card
+@typedef {import('../../src/viewProviders/annotationMessage').AnnotationMessage} Message
+@typedef {import('../../src/viewProviders/annotationMessage').Section} Section
 */
 
 
@@ -23,6 +23,9 @@ const vscode = acquireVsCodeApi();
 const md = markdownit();
 
 const domParser = new DOMParser();
+
+
+let aiText = '';
 
 
 /** @param {Section[] | undefined} sections */
@@ -249,6 +252,29 @@ function handleMessageEvent(event)
 		return;
 
 	switch (message.method) {
+		case 'aiClear': {
+			aiText = '';
+			setCardBody(message.uniqueName, aiText);
+			break;
+		}
+		case 'aiError': {
+			setCardBody(message.uniqueName, message.text);
+			break;
+		}
+		case 'aiText': {
+			aiText += message.text;
+			setCardBody(message.uniqueName, aiText);
+			break;
+		}
+		case 'aiTextEnd': {
+			const annotation = document.getElementById(message.uniqueName);
+			if (!annotation)
+				break;
+			const icon = annotation.querySelector('.regenerate span');
+			if (icon)
+				icon.className = 'codicon codicon-refresh';
+			break;
+		}
 		case 'drawAi':
 			drawAi(message.sections);
 			break;
@@ -341,6 +367,33 @@ function isMessage(obj)
 {
 	return obj !== null && !Array.isArray(obj) && typeof(obj) === 'object'
 		&& typeof obj.method === 'string';
+}
+
+
+/**
+ * @param {string} uniqueName
+ * @param {string} text
+ */
+function setCardBody(uniqueName, text)
+{
+	let parent = document.getElementById(uniqueName);
+	if (!parent)
+		return;
+	parent = parent.querySelector('.body');
+	if (!parent)
+		return;
+	parent.innerHTML = '';
+
+	const body = domParser.parseFromString(md.render(text), 'text/html').body;
+	for (const child of body.querySelectorAll('iframe, link, script'))
+		child.remove();
+	for (const element of body.childNodes) {
+		if (element instanceof HTMLIFrameElement
+		|| element instanceof HTMLLinkElement
+		|| element instanceof HTMLScriptElement)
+			continue;
+		parent.append(element);
+	}
 }
 
 

@@ -14,6 +14,27 @@ export type Section = {
 	cards: Card[],
 };
 
+export type AiClearMessage = {
+  method: 'aiClear',
+  uniqueName: string,
+};
+
+export type AiErrorMessage = {
+  method: 'aiError',
+  uniqueName: string,
+  text: string,
+};
+
+export type AiTextMessage = {
+  method: 'aiText',
+  uniqueName: string,
+  text: string,
+};
+
+export type AiTextEndMessage = {
+  method: 'aiTextEnd',
+  uniqueName: string,
+};
 
 export type DeleteMessage = {
 	method: 'delete',
@@ -67,4 +88,4 @@ export type StartedEditingMessage = {
 	method: 'startedEditing',
 };
 
-export type Message = DeleteMessage | DrawAiMessage | EditMessage | ErrorMessage | FinishedEditingMessage | GenerateManyMessage | OpenMessage | RegenerateMessage | StartChatMessage | StartedEditingMessage;
+export type AnnotationMessage = AiClearMessage | AiErrorMessage | AiTextMessage | AiTextEndMessage | DeleteMessage | DrawAiMessage | EditMessage | ErrorMessage | FinishedEditingMessage | GenerateManyMessage | OpenMessage | RegenerateMessage | StartChatMessage | StartedEditingMessage;
