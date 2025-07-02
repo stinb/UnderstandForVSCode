@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import { escapeHtml } from '../other/html';
 import { variables } from '../other/variables';
 import { executeCommand } from '../commands/helpers';
-import { AnnotationMessage, Section } from './annotationMessage';
+import { AnnotationMessage, Card, Section } from './annotationMessage';
 
 
 type ClearParams = {
@@ -42,10 +42,51 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 	private view?: vscode.WebviewView;
 
 
-	postMessage(message: AnnotationMessage)
+	cardClear(uniqueName: string)
+	{
+		const card = this.findCard(uniqueName);
+		if (card)
+			card.body = '';
+		if (this.view)
+			this.postMessage(this.view.webview, {
+				method: 'aiClear',
+				uniqueName: uniqueName,
+			});
+	}
+
+	cardError(uniqueName: string, text: string)
+	{
+		const card = this.findCard(uniqueName);
+		if (card)
+			card.body = text;
+		if (this.view)
+			this.postMessage(this.view.webview, {
+				method: 'aiError',
+				uniqueName: uniqueName,
+				text: text,
+			});
+	}
+
+	cardText(uniqueName: string, text: string)
+	{
+		const card = this.findCard(uniqueName);
+		if (card)
+			card.body += text;
+		if (this.view)
+			this.postMessage(this.view.webview, {
+				method: 'aiText',
+				uniqueName: uniqueName,
+				text: text,
+			});
+	}
+
+	cardTextEnd(uniqueName: string)
 	{
 		if (this.view)
-			this.postMessageImpl(this.view.webview, message);
+			this.postMessage(this.view.webview, {
+				method: 'aiTextEnd',
+				uniqueName: uniqueName,
+			});
 	}
 
 
@@ -69,20 +110,15 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 		this.uriStyleIcons = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'codicon.css')).toString();
 		this.view = webviewView;
 		this.drawFirst(this.view.webview);
-		this.drawUpdate(this.view.webview, this.annotationSections);
 	}
 
 
 	/** Update HTML now or do it after it's created */
 	update(annotationSections: Section[])
 	{
-		if (this.view === undefined || !this.view.visible) {
-			this.annotationSections = annotationSections;
-		}
-		else {
-			this.annotationSections.length = 0;
-			this.drawUpdate(this.view.webview, annotationSections);
-		}
+		this.annotationSections = annotationSections;
+		if (this.view)
+			this.drawUpdate(this.view.webview);
 	}
 
 
@@ -114,20 +150,31 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 		htmlParts.push('</body>');
 		htmlParts.push('</html>');
 		view.html = htmlParts.join('');
+
+		this.drawUpdate(view);
 	}
 
 
-	private drawUpdate(view: vscode.Webview, annotationSections: Section[])
+	private drawUpdate(view: vscode.Webview)
 	{
-		this.postMessageImpl(view, {method: 'drawAi', sections: annotationSections});
-		annotationSections.length = 0;
+		this.postMessage(view, {method: 'drawAi', sections: this.annotationSections});
+	}
+
+
+	private findCard(uniqueName: string): Card | null
+	{
+		for (const section of this.annotationSections)
+			for (const card of section.cards)
+				if (card.id === uniqueName)
+					return card;
+		return null;
 	}
 
 
 	private handleChangeVisibility()
 	{
 		if (this.view && this.view.visible)
-			this.drawUpdate(this.view.webview, this.annotationSections);
+			this.drawFirst(this.view.webview);
 	}
 
 
@@ -158,7 +205,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 	}
 
 
-	private postMessageImpl(view: vscode.Webview, message: AnnotationMessage)
+	private postMessage(view: vscode.Webview, message: AnnotationMessage)
 	{
 		view.postMessage(message);
 	}
@@ -168,42 +215,28 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 /** Tell the AI view to clear a card */
 export function handleUnderstandAiClear(params: ClearParams)
 {
-	variables.aiViewProvider.postMessage({
-		method: 'aiClear',
-		uniqueName: params.uniqueName,
-	});
+	variables.aiViewProvider.cardClear(params.uniqueName);
 }
 
 
 /** Tell the AI view to clear a card and display the error */
 export function handleUnderstandAiError(params: ErrorParams)
 {
-	variables.aiViewProvider.postMessage({
-		method: 'aiError',
-		uniqueName: params.uniqueName,
-		text: params.text,
-	});
+	variables.aiViewProvider.cardError(params.uniqueName, params.text);
 }
 
 
-/** Tell the AI view to clear a card and display the error */
+/** Tell the AI view to append text to a card */
 export function handleUnderstandAiText(params: TextParams)
 {
-	variables.aiViewProvider.postMessage({
-		method: 'aiText',
-		uniqueName: params.uniqueName,
-		text: params.text,
-	});
+	variables.aiViewProvider.cardText(params.uniqueName, params.text);
 }
 
 
-/** Tell the AI view to clear a card and display the error */
+/** Tell the AI view to show that a card has finished */
 export function handleUnderstandAiTextEnd(params: TextEndParams)
 {
-	variables.aiViewProvider.postMessage({
-		method: 'aiTextEnd',
-		uniqueName: params.uniqueName,
-	});
+	variables.aiViewProvider.cardTextEnd(params.uniqueName);
 }
 
 
