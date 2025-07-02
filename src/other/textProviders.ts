@@ -59,7 +59,10 @@ export class ViolationDescriptionProvider implements vscode.TextDocumentContentP
 /** Get a violation description */
 export async function getViolationDescription(id: string, token?: vscode.CancellationToken): Promise<string>
 {
+	if (id === 'UND_ERROR' || id === 'UND_WARNING')
+		return '';
+
 	return variables.languageClient.sendRequest('understand/violationDescription', {id: id}, token)
-		.then(result => (typeof(result) === 'string') ? result : '')
+		.then(result => (typeof(result) === 'string') ? result : `Failed to preview ${id}`)
 		.catch(() => '');
 }
