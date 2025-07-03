@@ -4,7 +4,7 @@
 import { Uri } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
 import { ViolationDescriptionProvider } from './textProviders';
-import { AiChatViewProvider } from '../viewProviders/aiChat';
+import { AiChatProvider } from './aiChatProvider';
 import { AiViewProvider } from '../viewProviders/ai';
 import { AnnotationsViewProvider } from '../viewProviders/annotations';
 import { ReferencesTreeProvider } from '../viewProviders/references';
@@ -12,8 +12,7 @@ import { ReferencesTreeProvider } from '../viewProviders/references';
 
 /** Global variables used in different files */
 export const variables: Variables = {
-	// @ts-ignore initialized in `activate`
-	aiChatViewProvider: undefined,
+	aiChatProvider: new AiChatProvider,
 	// @ts-ignore initialized in `activate`
 	aiViewProvider: undefined,
 	// @ts-ignore initialized in `activate`
@@ -32,7 +31,7 @@ export const variables: Variables = {
 
 
 interface Variables {
-	aiChatViewProvider: AiChatViewProvider,
+	aiChatProvider: AiChatProvider,
 	aiViewProvider: AiViewProvider,
 	annotationsViewProvider: AnnotationsViewProvider,
 	extensionUri: Uri,

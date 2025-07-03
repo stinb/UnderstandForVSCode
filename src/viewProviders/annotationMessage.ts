@@ -81,6 +81,7 @@ export type RegenerateMessage = {
 
 export type StartChatMessage = {
 	method: 'startChat',
+	name: string,
 	uniqueName: string,
 };
 

@@ -69,6 +69,7 @@ function drawAi(sections)
 		for (const card of section.cards) {
 			const cardUi = document.createElement('div');
 			cardUi.className = 'ai annotation';
+			cardUi.dataset.name = card.positionTitle;
 			cardUi.dataset.vscodeContext=`{"webviewSection": "annotation", "id": ${JSON.stringify(card.id)}}`;
 			cardUi.id = card.id;
 			cardUi.tabIndex = 0;
@@ -125,18 +126,18 @@ function drawAi(sections)
 
 /**
  * @param {HTMLElement} descendant
- * @returns {string}
+ * @returns {HTMLElement | null}
  */
-function getAnnotationParentId(descendant)
+function getAnnotationParent(descendant)
 {
 	let parent = descendant.parentElement;
 	while (parent && !parent.classList.contains('annotation'))
 		parent = parent.parentElement;
 	if (!parent || !parent.id) {
 		vscode.postMessage({method: 'error', 'body': 'Failed to find annoation ID'});
-		return '';
+		return null;
 	}
-	return parent.id;
+	return parent;
 }
 
 
@@ -214,15 +215,15 @@ function handleClick(event)
 		if (span)
 			span.className = 'codicon codicon-loading codicon-modifier-spin';
 		// Get the parent annotation and send its ID
-		const id = getAnnotationParentId(event.target);
-		if (id)
-			vscode.postMessage({method: 'regenerate', uniqueName: id});
+		const parent = getAnnotationParent(event.target);
+		if (parent)
+			vscode.postMessage({method: 'regenerate', uniqueName: parent.id});
 	}
 	// Start chat: begin a chat for an entity
 	else if (classes.contains('chat')) {
-		const id = getAnnotationParentId(event.target);
-		if (id)
-			vscode.postMessage({method: 'startChat', uniqueName: id});
+		const parent = getAnnotationParent(event.target);
+		if (parent && parent.dataset.name)
+			vscode.postMessage({method: 'startChat', name: parent.dataset.name, uniqueName: parent.id});
 	}
 }
 

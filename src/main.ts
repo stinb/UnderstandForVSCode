@@ -19,7 +19,6 @@ import { URI_SCHEME_VIOLATION_DESCRIPTION, ViolationDescriptionProvider } from '
 import { AiViewProvider } from './viewProviders/ai';
 import { AnnotationsViewProvider } from './viewProviders/annotations';
 import { ReferencesTreeProvider } from './viewProviders/references';
-import { AiChatViewProvider } from './viewProviders/aiChat';
 
 
 let fileSystemWatcher: vscode.FileSystemWatcher | undefined;
@@ -28,7 +27,6 @@ let fileSystemWatcher: vscode.FileSystemWatcher | undefined;
 /** Activate the extension */
 export async function activate(context: vscode.ExtensionContext)
 {
-	variables.aiChatViewProvider = new AiChatViewProvider();
 	variables.aiViewProvider = new AiViewProvider();
 	variables.annotationsViewProvider = new AnnotationsViewProvider();
 	variables.extensionUri = context.extensionUri;
@@ -110,7 +108,6 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.window.registerUriHandler(new UnderstandUriHandler()),
 
 		// Create web views
-		vscode.window.registerWebviewViewProvider('understandAiChat', variables.aiChatViewProvider),
 		vscode.window.registerWebviewViewProvider('understandAi', variables.aiViewProvider),
 		vscode.window.registerWebviewViewProvider('understandAnnotations', variables.annotationsViewProvider),
 		vscode.window.registerTreeDataProvider('understandReferences', variables.referencesTreeProvider),
