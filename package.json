@@ -236,6 +236,15 @@
 		"configuration": {
 			"title": "Understand",
 			"properties": {
+				"understand.ai.chatSize": {
+					"type": "string",
+					"default": "Half",
+					"enum": [
+						"Full",
+						"Half"
+					],
+					"description": "Open a chat with full width or half width"
+				},
 				"understand.analysis.automaticallyAnalyze": {
 					"type": "boolean",
 					"default": true,

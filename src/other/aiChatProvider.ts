@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { variables } from './variables';
+import { getStringFromConfig } from './config';
 
 
 export class AiChatProvider
@@ -36,10 +37,12 @@ class Chat
 
 	constructor(name: string, uniqueName: string)
 	{
+		const half = getStringFromConfig('understand.ai.chatSize', 'Half') === 'Half';
+
 		this.panel = vscode.window.createWebviewPanel(
 			'understandChat',
 			`Chat - ${name}`,
-			vscode.ViewColumn.Beside,
+			half ? vscode.ViewColumn.Beside : vscode.ViewColumn.Active,
 		);
 
 		this.panel.onDidDispose(() => {
