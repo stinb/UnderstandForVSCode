@@ -47,7 +47,7 @@ body {
 }
 
 .message.user, .suggestion, input {
-	background: var(--vscode-editor-background);
+	background: var(--vscode-panel-background);
 }
 
 .message.user {

@@ -83,6 +83,7 @@ export type StartChatMessage = {
 	method: 'startChat',
 	name: string,
 	uniqueName: string,
+	firstMessage: string,
 };
 
 export type StartedEditingMessage = {

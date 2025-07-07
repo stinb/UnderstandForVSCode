@@ -9,12 +9,8 @@ export type AddSuggestionsMessage = {
 	suggestions: string[],
 };
 
-export type ClearMessage = {
-	method: 'clear',
+export type ClearAllMessage = {
+	method: 'clearAll',
 };
 
-export type FocusMessage = {
-	method: 'focus',
-};
-
-export type AiChatMessage = AddMessageMessage | AddSuggestionsMessage | ClearMessage | FocusMessage;
+export type AiChatMessage = AddMessageMessage | AddSuggestionsMessage | ClearAllMessage;

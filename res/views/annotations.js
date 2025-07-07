@@ -69,6 +69,7 @@ function drawAi(sections)
 		for (const card of section.cards) {
 			const cardUi = document.createElement('div');
 			cardUi.className = 'ai annotation';
+			cardUi.dataset.body = card.body;
 			cardUi.dataset.name = card.positionTitle;
 			cardUi.dataset.vscodeContext=`{"webviewSection": "annotation", "id": ${JSON.stringify(card.id)}}`;
 			cardUi.id = card.id;
@@ -222,8 +223,14 @@ function handleClick(event)
 	// Start chat: begin a chat for an entity
 	else if (classes.contains('chat')) {
 		const parent = getAnnotationParent(event.target);
-		if (parent && parent.dataset.name)
-			vscode.postMessage({method: 'startChat', name: parent.dataset.name, uniqueName: parent.id});
+		if (!parent)
+			return;
+		vscode.postMessage({
+			method: 'startChat',
+			name: parent.dataset.name || parent.id,
+			uniqueName: parent.id,
+			firstMessage: parent.dataset.body || '',
+		});
 	}
 }
 

@@ -72,7 +72,7 @@ function handleMessageEvent(event)
 			}
 			break;
 		}
-		case 'clear': {
+		case 'clearAll': {
 			let ui = document.getElementById('messages');
 			if (ui)
 				ui.innerHTML = '';
@@ -81,9 +81,6 @@ function handleMessageEvent(event)
 				ui.innerHTML = '';
 			break;
 		}
-		case 'focus':
-			focusOnInput();
-			break;
 	}
 }
 
@@ -100,6 +97,7 @@ function main()
 {
 	window.onfocus = focusOnInput;
 	window.onmessage = handleMessageEvent;
+	focusOnInput();
 }
 
 
