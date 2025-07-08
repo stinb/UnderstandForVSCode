@@ -14,6 +14,8 @@ const md = markdownit();
 
 const domParser = new DOMParser();
 
+let lastText = '';
+
 
 /**
  * @param {HTMLElement} parent
@@ -51,13 +53,17 @@ function handleMessageEvent(event)
 
 	switch (message.method) {
 		case 'addMessage': {
+			lastText = '';
 			const messagesUi = document.getElementById('messages');
 			if (!messagesUi)
 				break;
 			const messageUi = document.createElement('div');
 			messageUi.className = message.user ? 'message user' : 'message assistant';
-			drawMarkdown(messageUi, message.text);
 			messagesUi.appendChild(messageUi);
+			const bodyUi = document.createElement('div');
+			bodyUi.className = 'body';
+			messageUi.appendChild(bodyUi);
+			drawMarkdown(bodyUi, message.text);
 			break;
 		}
 		case 'addSuggestions': {
@@ -73,12 +79,32 @@ function handleMessageEvent(event)
 			break;
 		}
 		case 'clearAll': {
+			lastText = '';
 			let ui = document.getElementById('messages');
 			if (ui)
 				ui.innerHTML = '';
 			ui = document.getElementById('suggestions');
 			if (ui)
 				ui.innerHTML = '';
+			break;
+		}
+		case 'clearOne': {
+			lastText = '';
+			setLastCardText(lastText);
+			break;
+		}
+		case 'error': {
+			lastText = '';
+			setLastCardText(message.text);
+			break;
+		}
+		case 'text': {
+			lastText += message.text;
+			setLastCardText(lastText);
+			break;
+		}
+		case 'textEnd': {
+			// TODO
 			break;
 		}
 	}
@@ -90,6 +116,23 @@ function isAiChatMessage(obj)
 {
 	return obj !== null && !Array.isArray(obj) && typeof(obj) === 'object'
 		&& typeof obj.method === 'string';
+}
+
+
+/** @returns {HTMLDivElement | null} */
+function getLastCard()
+{
+	return document.querySelector('div.message');
+}
+
+
+/** @param {string} text */
+function setLastCardText(text)
+{
+	const card = getLastCard();
+	if (!card)
+		return;
+	// TODO
 }
 
 

@@ -18,10 +18,37 @@ import {
 	handleProgress,
 	handleUnderstandChangedDatabaseState,
 } from './statusBar';
-import { handleUnderstandAiClear, handleUnderstandAiError, handleUnderstandAiText, handleUnderstandAiTextEnd, handleUnderstandChangedAi } from '../viewProviders/ai';
 import { handleUnderstandChangedAnnotations } from '../viewProviders/annotations';
 import { onDidChangeActiveTextEditor, onDidChangeTextEditorSelection } from './context';
 import { handleUnderstandChangedReferences } from '../viewProviders/references';
+import { Section } from '../viewProviders/annotationMessage';
+
+
+type AiClearParams = {
+	chat: boolean,
+	uniqueName: string,
+};
+
+type AiErrorParams = {
+	chat: boolean,
+	uniqueName: string,
+	text: string,
+};
+
+type AiSectionParams = {
+	annotationSections: Section[],
+};
+
+type AiTextParams = {
+	chat: boolean,
+	uniqueName: string,
+	text: string,
+};
+
+type AiTextEndParams = {
+	chat: boolean,
+	uniqueName: string,
+};
 
 
 /**
@@ -69,10 +96,7 @@ export async function startLsp()
 		variables.languageClient.onNotification('understand/ai/textEnd', handleUnderstandAiTextEnd);
 		variables.languageClient.onNotification('understand/changedAi', handleUnderstandChangedAi);
 		variables.languageClient.onNotification('understand/changedAnnotations', handleUnderstandChangedAnnotations);
-		variables.languageClient.onNotification('understand/changedDatabaseState', handleUnderstandChangedDatabaseState);
-		variables.languageClient.onNotification('understand/changedReferences', handleUnderstandChangedReferences);
-		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
-		variables.languageClient.onRequest('workspace/configuration', handleWorkspaceConfiguration);
+	variables.languageClient.onRequest('workspace/configuration', handleWorkspaceConfiguration);
 	}).catch(function(error) {
 		if (typeof error === 'string')
 			vscode.window.showErrorMessage(error);
@@ -130,4 +154,51 @@ async function getLanguageServerOptions(): Promise<lc.ServerOptions>
 			env: process.env, // Important for avoiding a bad analysis
 		},
 	};
+}
+
+
+/** Tell the AI view to clear a card */
+function handleUnderstandAiClear(params: AiClearParams)
+{
+	if (params.chat)
+		variables.aiChatProvider.cardClear(params.uniqueName);
+	else
+		variables.aiViewProvider.cardClear(params.uniqueName);
+}
+
+
+/** Tell the AI view to clear a card and display the error */
+function handleUnderstandAiError(params: AiErrorParams)
+{
+	if (params.chat)
+		variables.aiChatProvider.cardError(params.uniqueName, params.text);
+	else
+		variables.aiViewProvider.cardError(params.uniqueName, params.text);
+}
+
+
+/** Tell the AI view to append text to a card */
+function handleUnderstandAiText(params: AiTextParams)
+{
+	if (params.chat)
+		variables.aiChatProvider.cardText(params.uniqueName, params.text);
+	else
+		variables.aiViewProvider.cardText(params.uniqueName, params.text);
+}
+
+
+/** Tell the AI view to show that a card has finished */
+function handleUnderstandAiTextEnd(params: AiTextEndParams)
+{
+	if (params.chat)
+		variables.aiChatProvider.cardTextEnd(params.uniqueName);
+	else
+		variables.aiViewProvider.cardTextEnd(params.uniqueName);
+}
+
+
+/** Tell the AI view to update its HTML */
+function handleUnderstandChangedAi(params: AiSectionParams)
+{
+	variables.aiViewProvider.update(params.annotationSections);
 }

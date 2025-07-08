@@ -13,4 +13,22 @@ export type ClearAllMessage = {
 	method: 'clearAll',
 };
 
-export type AiChatMessage = AddMessageMessage | AddSuggestionsMessage | ClearAllMessage;
+export type ClearOneMessage = {
+	method: 'clearOne',
+};
+
+export type ErrorMessage = {
+	method: 'error',
+	text: string,
+};
+
+export type TextMessage = {
+	method: 'text',
+	text: string,
+};
+
+export type TextEndMessage = {
+	method: 'textEnd',
+};
+
+export type AiChatMessage = AddMessageMessage | AddSuggestionsMessage | ClearAllMessage | ClearOneMessage | ErrorMessage | TextMessage | TextEndMessage;

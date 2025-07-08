@@ -9,29 +9,6 @@ import { executeCommand } from '../commands/helpers';
 import { AnnotationMessage, Card, Section } from './annotationMessage';
 
 
-type ClearParams = {
-  uniqueName: string,
-};
-
-type ErrorParams = {
-  uniqueName: string,
-  text: string,
-};
-
-type SectionParams = {
-	annotationSections: Section[],
-};
-
-type TextParams = {
-  uniqueName: string,
-  text: string,
-};
-
-type TextEndParams = {
-  uniqueName: string,
-};
-
-
 export class AiViewProvider implements vscode.WebviewViewProvider
 {
 	private annotationSections: Section[] = [];
@@ -199,7 +176,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 				executeCommand('understand.server.ai.generateAiOverview', [message.uniqueName]);
 				break;
 			case 'startChat':
-				variables.aiChatProvider.focus(message.name, message.uniqueName, message.firstMessage);
+				variables.aiChatProvider.chatFocus(message.name, message.uniqueName, message.firstMessage);
 				break;
 		}
 	}
@@ -209,39 +186,4 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 	{
 		view.postMessage(message);
 	}
-}
-
-
-/** Tell the AI view to clear a card */
-export function handleUnderstandAiClear(params: ClearParams)
-{
-	variables.aiViewProvider.cardClear(params.uniqueName);
-}
-
-
-/** Tell the AI view to clear a card and display the error */
-export function handleUnderstandAiError(params: ErrorParams)
-{
-	variables.aiViewProvider.cardError(params.uniqueName, params.text);
-}
-
-
-/** Tell the AI view to append text to a card */
-export function handleUnderstandAiText(params: TextParams)
-{
-	variables.aiViewProvider.cardText(params.uniqueName, params.text);
-}
-
-
-/** Tell the AI view to show that a card has finished */
-export function handleUnderstandAiTextEnd(params: TextEndParams)
-{
-	variables.aiViewProvider.cardTextEnd(params.uniqueName);
-}
-
-
-/** Tell the AI view to update its HTML */
-export function handleUnderstandChangedAi(params: SectionParams)
-{
-	variables.aiViewProvider.update(params.annotationSections);
 }

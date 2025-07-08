@@ -135,7 +135,7 @@ function getAnnotationParent(descendant)
 	while (parent && !parent.classList.contains('annotation'))
 		parent = parent.parentElement;
 	if (!parent || !parent.id) {
-		vscode.postMessage({method: 'error', 'body': 'Failed to find annoation ID'});
+		vscode.postMessage({method: 'error', 'body': 'Failed to find annotation ID'});
 		return null;
 	}
 	return parent;
@@ -278,9 +278,21 @@ function handleMessageEvent(event)
 			const annotation = document.getElementById(message.uniqueName);
 			if (!annotation)
 				break;
-			const icon = annotation.querySelector('.regenerate span');
-			if (icon)
-				icon.className = 'codicon codicon-refresh';
+			annotation.dataset.body = aiText;
+			const buttons = annotation.querySelector('.buttons');
+			if (!buttons)
+				break;
+			if (buttons.querySelector('.chat') === null) {
+				const chatButton = document.createElement('button');
+				chatButton.className = 'chat';
+				buttons.prepend(chatButton);
+				const chatIcon = document.createElement('span');
+				chatIcon.className = 'codicon codicon-comment-discussion';
+				chatButton.appendChild(chatIcon);
+			}
+			const regenerateIcon = annotation.querySelector('.regenerate span');
+			if (regenerateIcon)
+				regenerateIcon.className = 'codicon codicon-refresh';
 			break;
 		}
 		case 'drawAi':

@@ -11,8 +11,44 @@ export class AiChatProvider
 	private map: Map<string, Chat> = new Map;
 
 
+	/** Clear the last card */
+	cardClear(uniqueName: string)
+	{
+		const chat = this.map.get(uniqueName);
+		if (chat)
+			chat.clearOne();
+	}
+
+
+	/** Error for the last card */
+	cardError(uniqueName: string, text: string)
+	{
+		const chat = this.map.get(uniqueName);
+		if (chat)
+			chat.error(text);
+	}
+
+
+	/** Text for the last card */
+	cardText(uniqueName: string, text: string)
+	{
+		const chat = this.map.get(uniqueName);
+		if (chat)
+			chat.text(text);
+	}
+
+
+	/** Text end for the last card */
+	cardTextEnd(uniqueName: string)
+	{
+		const chat = this.map.get(uniqueName);
+		if (chat)
+			chat.textEnd();
+	}
+
+
 	/** Focus on a document panel, opening it if needed */
-	focus(name: string, uniqueName: string, firstMessage: string)
+	chatFocus(name: string, uniqueName: string, firstMessage: string)
 	{
 		const chat = this.map.get(uniqueName);
 		if (chat)
@@ -23,7 +59,7 @@ export class AiChatProvider
 
 
 	/** Remove a chat from memory because it was closed */
-	remove(uniqueName: string)
+	chatRemove(uniqueName: string)
 	{
 		this.map.delete(uniqueName);
 	}
@@ -43,11 +79,12 @@ class Chat
 
 	constructor(name: string, uniqueName: string, firstMessage: string)
 	{
-		variables.languageClient.sendRequest('understand/ai/chat/suggestions', {
+		variables.languageClient.sendRequest('understand/aiChat/create', {
 			uniqueName: uniqueName,
 		}).then((suggestions) => {
-			if (Array.isArray(suggestions))
-				this.suggestions = suggestions;
+			if (!Array.isArray(suggestions))
+				return;
+			this.suggestions = suggestions;
 			this.drawSuggestions();
 		});
 
@@ -81,7 +118,8 @@ class Chat
 		});
 
 		this.panel.onDidDispose(() => {
-			variables.aiChatProvider.remove(this.uniqueName);
+			variables.aiChatProvider.chatRemove(this.uniqueName);
+			variables.languageClient.sendRequest('understand/aiChat/delete', {uniqueName: this.uniqueName});
 		});
 
 		const webview = this.panel.webview;
@@ -126,10 +164,39 @@ class Chat
 	}
 
 
+
+	/** Clear the last card */
+	clearOne()
+	{
+		this.postMessage({ method: 'clearOne' });
+	}
+
+
+	/** Error for the last card */
+	error(text: string)
+	{
+		this.postMessage({ method: 'error', text });
+	}
+
+
 	/** Focus on the document tab for this chat */
 	focus()
 	{
 		this.panel.reveal();
+	}
+
+
+	/** Text for the last card */
+	text(text: string)
+	{
+		this.postMessage({ method: 'text', text });
+	}
+
+
+	/** Text end for the last card */
+	textEnd()
+	{
+		this.postMessage({ method: 'textEnd' });
 	}
 
 
