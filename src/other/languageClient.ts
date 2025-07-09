@@ -96,7 +96,10 @@ export async function startLsp()
 		variables.languageClient.onNotification('understand/ai/textEnd', handleUnderstandAiTextEnd);
 		variables.languageClient.onNotification('understand/changedAi', handleUnderstandChangedAi);
 		variables.languageClient.onNotification('understand/changedAnnotations', handleUnderstandChangedAnnotations);
-	variables.languageClient.onRequest('workspace/configuration', handleWorkspaceConfiguration);
+		variables.languageClient.onNotification('understand/changedDatabaseState', handleUnderstandChangedDatabaseState);
+		variables.languageClient.onNotification('understand/changedReferences', handleUnderstandChangedReferences);
+		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
+		variables.languageClient.onRequest('workspace/configuration', handleWorkspaceConfiguration);
 	}).catch(function(error) {
 		if (typeof error === 'string')
 			vscode.window.showErrorMessage(error);
