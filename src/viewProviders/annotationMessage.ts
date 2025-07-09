@@ -15,25 +15,25 @@ export type Section = {
 };
 
 export type AiClearMessage = {
-  method: 'aiClear',
-  uniqueName: string,
+	method: 'aiClear',
+	uniqueName: string,
 };
 
 export type AiErrorMessage = {
-  method: 'aiError',
-  uniqueName: string,
-  text: string,
+	method: 'aiError',
+	uniqueName: string,
+	text: string,
 };
 
 export type AiTextMessage = {
-  method: 'aiText',
-  uniqueName: string,
-  text: string,
+	method: 'aiText',
+	uniqueName: string,
+	text: string,
 };
 
 export type AiTextEndMessage = {
-  method: 'aiTextEnd',
-  uniqueName: string,
+	method: 'aiTextEnd',
+	uniqueName: string,
 };
 
 export type DeleteMessage = {

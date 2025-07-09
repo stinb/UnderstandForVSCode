@@ -22,8 +22,7 @@ const vscode = acquireVsCodeApi();
 // @ts-ignore
 const md = markdownit();
 
-const domParser = new DOMParser();
-
+const domParser = new DOMParser;
 
 let aiText = '';
 
@@ -93,23 +92,14 @@ function drawAi(sections)
 			buttonsUi.className = 'buttons';
 			cardHeaderUi.appendChild(buttonsUi);
 
-			if (card.body.length) {
-				const buttonUi = document.createElement('button');
-				buttonUi.className = 'chat';
-				buttonsUi.appendChild(buttonUi);
+			const chatButton = drawButton(buttonsUi, 'chat', 'codicon-comment-discussion');
+			const copyButton = drawButton(buttonsUi, 'copy', 'codicon-copy');
+			drawButton(buttonsUi, 'regenerate', card.body ? 'codicon-refresh' : 'codicon-sparkle');
 
-				const spanUi = document.createElement('span');
-				spanUi.className = 'codicon codicon-comment-discussion';
-				buttonUi.appendChild(spanUi);
+			if (card.body.length === 0) {
+				chatButton.classList.add('notDisplayed');
+				copyButton.classList.add('notDisplayed');
 			}
-
-			const buttonUi = document.createElement('button');
-			buttonUi.className = 'regenerate';
-			buttonsUi.appendChild(buttonUi);
-
-			const spanUi = document.createElement('span');
-			spanUi.className = `codicon ${card.body ? 'codicon-refresh' : 'codicon-sparkle'}`;
-			buttonUi.appendChild(spanUi);
 
 			const bodyUi = document.createElement('div');
 			bodyUi.className = 'body';
@@ -122,6 +112,26 @@ function drawAi(sections)
 			cardUi.appendChild(bodyUi);
 		}
 	}
+}
+
+
+/**
+ * @param {HTMLDivElement} buttons
+ * @param {string} kind
+ * @param {string} icon
+ * @returns {HTMLButtonElement}
+ */
+function drawButton(buttons, kind, icon)
+{
+	const button = document.createElement('button');
+	button.className = kind;
+	buttons.appendChild(button);
+
+	const span = document.createElement('span');
+	span.className = `codicon ${icon}`;
+	button.appendChild(span);
+
+	return button;
 }
 
 
@@ -217,8 +227,11 @@ function handleClick(event)
 			span.className = 'codicon codicon-loading codicon-modifier-spin';
 		// Get the parent annotation and send its ID
 		const parent = getAnnotationParent(event.target);
-		if (parent)
-			vscode.postMessage({method: 'regenerate', uniqueName: parent.id});
+		if (!parent)
+			return;
+		for (const button of parent.querySelectorAll('.chat, .copy'))
+			button.classList.add('notDisplayed');
+		vscode.postMessage({method: 'regenerate', uniqueName: parent.id});
 	}
 	// Start chat: begin a chat for an entity
 	else if (classes.contains('chat')) {
@@ -231,6 +244,13 @@ function handleClick(event)
 			uniqueName: parent.id,
 			firstMessage: parent.dataset.body || '',
 		});
+	}
+	// Copy: copy the plain text
+	else if (classes.contains('copy')) {
+		const parent = getAnnotationParent(event.target);
+		if (!parent)
+			return;
+		navigator.clipboard.writeText(parent.dataset.body || 'Failed to copy text');
 	}
 }
 
@@ -282,14 +302,8 @@ function handleMessageEvent(event)
 			const buttons = annotation.querySelector('.buttons');
 			if (!buttons)
 				break;
-			if (buttons.querySelector('.chat') === null) {
-				const chatButton = document.createElement('button');
-				chatButton.className = 'chat';
-				buttons.prepend(chatButton);
-				const chatIcon = document.createElement('span');
-				chatIcon.className = 'codicon codicon-comment-discussion';
-				chatButton.appendChild(chatIcon);
-			}
+			for (const button of buttons.querySelectorAll('.chat, .copy'))
+				button.classList.remove('notDisplayed');
 			const regenerateIcon = annotation.querySelector('.regenerate span');
 			if (regenerateIcon)
 				regenerateIcon.className = 'codicon codicon-refresh';
