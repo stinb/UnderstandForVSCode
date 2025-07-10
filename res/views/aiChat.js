@@ -7,6 +7,14 @@
 */
 
 
+/** @type {{
+	getState: () => any,
+	postMessage: (message: AiChatMessage) => void,
+	setState: (newState: any) => void,
+}} */
+// @ts-ignore
+const vscode = acquireVsCodeApi();
+
 // @ts-ignore
 /** @type import('@types/markdown-it').default */
 // @ts-ignore
@@ -16,13 +24,16 @@ const domParser = new DOMParser();
 
 let lastText = '';
 
+let promptEnabled = true;
+
 
 /**
- * @param {HTMLElement} parent
+ * @param {Element} parent
  * @param {string} text
  */
 function drawMarkdown(parent, text)
 {
+	parent.innerHTML = '';
 	const body = domParser.parseFromString(md.render(text), 'text/html').body;
 	for (const child of body.querySelectorAll('iframe, link, script'))
 		child.remove();
@@ -36,11 +47,76 @@ function drawMarkdown(parent, text)
 }
 
 
+/**
+ * @param {boolean} user
+ * @param {string} text
+ */
+function drawNewMessage(user, text)
+{
+	const messagesUi = document.getElementById('messages');
+	if (!messagesUi)
+		return;
+	const messageUi = document.createElement('div');
+	messageUi.className = user ? 'message user' : 'message assistant';
+	messagesUi.appendChild(messageUi);
+	const bodyUi = document.createElement('div');
+	bodyUi.className = 'body';
+	messageUi.appendChild(bodyUi);
+	drawMarkdown(bodyUi, text);
+}
+
+
+/**
+ * @param {boolean} enable
+ */
+function enablePrompting(enable)
+{
+	promptEnabled = enable;
+	for (const element of document.getElementsByClassName('suggestion'))
+		if (element instanceof HTMLButtonElement)
+			element.disabled = !enable;
+	const send = document.getElementById('send');
+	if (send)
+		send.title = enable ? 'Send' : 'Cancel';
+	const icon = document.getElementById('sendIcon');
+	if (icon)
+		icon.className = enable ? 'codicon codicon-send' : 'codicon codicon-error';
+}
+
+
 function focusOnInput()
 {
 	const element = document.getElementById('input');
 	if (element)
 		element.focus();
+}
+
+
+/**
+ * @param {MouseEvent} event
+ */
+function handleClick(event)
+{
+	if (!(event.target instanceof HTMLButtonElement))
+		return;
+
+	if (event.target.id === 'send') {
+		if (promptEnabled) {
+			const input = document.getElementById('input');
+			if (!(input instanceof HTMLInputElement))
+				return;
+			sendPrompt(input.value);
+			input.value = '';
+		}
+		else {
+			vscode.postMessage({method: 'cancel'});
+			enablePrompting(true);
+		}
+	}
+	else if (event.target.classList.contains('suggestion')) {
+		event.target.remove();
+		sendPrompt(event.target.innerText);
+	}
 }
 
 
@@ -54,16 +130,7 @@ function handleMessageEvent(event)
 	switch (message.method) {
 		case 'addMessage': {
 			lastText = '';
-			const messagesUi = document.getElementById('messages');
-			if (!messagesUi)
-				break;
-			const messageUi = document.createElement('div');
-			messageUi.className = message.user ? 'message user' : 'message assistant';
-			messagesUi.appendChild(messageUi);
-			const bodyUi = document.createElement('div');
-			bodyUi.className = 'body';
-			messageUi.appendChild(bodyUi);
-			drawMarkdown(bodyUi, message.text);
+			drawNewMessage(message.user, message.text);
 			break;
 		}
 		case 'addSuggestions': {
@@ -96,6 +163,7 @@ function handleMessageEvent(event)
 		case 'error': {
 			lastText = '';
 			setLastCardText(message.text);
+			enablePrompting(true);
 			break;
 		}
 		case 'text': {
@@ -104,7 +172,7 @@ function handleMessageEvent(event)
 			break;
 		}
 		case 'textEnd': {
-			// TODO
+			enablePrompting(true);
 			break;
 		}
 	}
@@ -122,7 +190,24 @@ function isAiChatMessage(obj)
 /** @returns {HTMLDivElement | null} */
 function getLastCard()
 {
-	return document.querySelector('div.message');
+	return document.querySelector('div.message:last-child');
+}
+
+
+/** @param {string} text */
+function sendPrompt(text)
+{
+	lastText = '';
+	drawNewMessage(true, text);
+	drawNewMessage(false, '');
+	enablePrompting(false);
+	vscode.postMessage({
+		method: 'send',
+		text,
+	});
+	const input = document.getElementById('input');
+	if (input)
+		input.focus();
 }
 
 
@@ -132,14 +217,19 @@ function setLastCardText(text)
 	const card = getLastCard();
 	if (!card)
 		return;
-	// TODO
+	const body = card.querySelector('div.body');
+	if (!body)
+		return;
+	drawMarkdown(body, text);
 }
 
 
 function main()
 {
+	window.onclick = handleClick;
 	window.onfocus = focusOnInput;
 	window.onmessage = handleMessageEvent;
+	enablePrompting(true);
 	focusOnInput();
 }
 

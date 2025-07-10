@@ -138,6 +138,8 @@ class Chat
 			portMapping: [],
 		};
 
+		webview.onDidReceiveMessage(this.handleMessage, this);
+
 		webview.html =
 `<!DOCTYPE html>
 <html>
@@ -152,9 +154,8 @@ class Chat
 	<div id="inputs">
 		<div id="suggestions"></div>
 		<input id="input" placeholder="Prompt..." data-vscode-context="{&quot;preventDefaultContextMenuItems&quot;:false}">
-		<button id="send" class="small"><span class="codicon codicon-send"></span></button>
+		<button id="send" class="small" title="Send"><span id="sendIcon" class="codicon codicon-send"></span></button>
 	</div>
-
 
 	<script src="${escapeHtml(uriScriptMarkdown)}"></script>
 	<script src="${escapeHtml(uriScript)}"></script>
@@ -162,7 +163,6 @@ class Chat
 </html>`;
 		this.messages.push(firstMessage);
 	}
-
 
 
 	/** Clear the last card */
@@ -183,6 +183,25 @@ class Chat
 	focus()
 	{
 		this.panel.reveal();
+	}
+
+
+	handleMessage(message: AiChatMessage)
+	{
+		console.log(message);
+		switch (message.method) {
+			case 'cancel':
+				variables.languageClient.sendRequest('understand/aiChat/cancel', {
+					uniqueName: this.uniqueName,
+				});
+				break;
+			case 'send':
+				variables.languageClient.sendRequest('understand/aiChat/send', {
+					uniqueName: this.uniqueName,
+					text: message.text,
+				});
+				break;
+		}
 	}
 
 
