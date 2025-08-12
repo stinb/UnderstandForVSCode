@@ -6,13 +6,7 @@ import * as vscode from 'vscode';
 import { escapeHtml } from '../other/html';
 import { variables } from '../other/variables';
 import { executeCommand } from '../commands/helpers';
-import { Message, Section } from './message';
-
-
-type AiParams =
-{
-	annotationSections: Section[],
-};
+import { AnnotationMessage, Card, Section } from './annotationMessage';
 
 
 export class AiViewProvider implements vscode.WebviewViewProvider
@@ -23,6 +17,54 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 	private uriStyle = '';
 	private uriStyleIcons = '';
 	private view?: vscode.WebviewView;
+
+
+	cardClear(uniqueName: string)
+	{
+		const card = this.findCard(uniqueName);
+		if (card)
+			card.body = '';
+		if (this.view)
+			this.postMessage(this.view.webview, {
+				method: 'aiClear',
+				uniqueName: uniqueName,
+			});
+	}
+
+	cardError(uniqueName: string, text: string)
+	{
+		const card = this.findCard(uniqueName);
+		if (card)
+			card.body = text;
+		if (this.view)
+			this.postMessage(this.view.webview, {
+				method: 'aiError',
+				uniqueName: uniqueName,
+				text: text,
+			});
+	}
+
+	cardText(uniqueName: string, text: string)
+	{
+		const card = this.findCard(uniqueName);
+		if (card)
+			card.body += text;
+		if (this.view)
+			this.postMessage(this.view.webview, {
+				method: 'aiText',
+				uniqueName: uniqueName,
+				text: text,
+			});
+	}
+
+	cardTextEnd(uniqueName: string)
+	{
+		if (this.view)
+			this.postMessage(this.view.webview, {
+				method: 'aiTextEnd',
+				uniqueName: uniqueName,
+			});
+	}
 
 
 	resolveWebviewView(
@@ -45,20 +87,15 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 		this.uriStyleIcons = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'codicon.css')).toString();
 		this.view = webviewView;
 		this.drawFirst(this.view.webview);
-		this.drawUpdate(this.view.webview, this.annotationSections);
 	}
 
 
 	/** Update HTML now or do it after it's created */
 	update(annotationSections: Section[])
 	{
-		if (this.view === undefined || !this.view.visible) {
-			this.annotationSections = annotationSections;
-		}
-		else {
-			this.annotationSections.length = 0;
-			this.drawUpdate(this.view.webview, annotationSections);
-		}
+		this.annotationSections = annotationSections;
+		if (this.view)
+			this.drawUpdate(this.view.webview);
 	}
 
 
@@ -90,24 +127,35 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 		htmlParts.push('</body>');
 		htmlParts.push('</html>');
 		view.html = htmlParts.join('');
+
+		this.drawUpdate(view);
 	}
 
 
-	private drawUpdate(view: vscode.Webview, annotationSections: Section[])
+	private drawUpdate(view: vscode.Webview)
 	{
-		this.postMessage(view, {method: 'drawAi', sections: annotationSections});
-		annotationSections.length = 0;
+		this.postMessage(view, {method: 'drawAi', sections: this.annotationSections});
+	}
+
+
+	private findCard(uniqueName: string): Card | null
+	{
+		for (const section of this.annotationSections)
+			for (const card of section.cards)
+				if (card.id === uniqueName)
+					return card;
+		return null;
 	}
 
 
 	private handleChangeVisibility()
 	{
 		if (this.view && this.view.visible)
-			this.drawUpdate(this.view.webview, this.annotationSections);
+			this.drawFirst(this.view.webview);
 	}
 
 
-	private handleMessage(message: Message)
+	private handleMessage(message: AnnotationMessage)
 	{
 		switch (message.method) {
 			case 'generateMany':
@@ -127,19 +175,15 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 			case 'regenerate':
 				executeCommand('understand.server.ai.generateAiOverview', [message.uniqueName]);
 				break;
+			case 'startChat':
+				variables.aiChatProvider.chatFocus(message.name, message.uniqueName);
+				break;
 		}
 	}
 
 
-	private postMessage(view: vscode.Webview, message: Message)
+	private postMessage(view: vscode.Webview, message: AnnotationMessage)
 	{
 		view.postMessage(message);
 	}
-}
-
-
-/** Tell the AI view to update its HTML */
-export function handleUnderstandChangedAi(params: AiParams)
-{
-	variables.aiViewProvider.update(params.annotationSections);
 }

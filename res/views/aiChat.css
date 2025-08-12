@@ -1,0 +1,141 @@
+:root {
+	--outline: 1px;
+	--spacing: 1rem;
+	--transition: 0.125s;
+}
+
+@font-face {
+	font-family: 'codicon';
+	src: url('https://file%2B.vscode-resource.vscode-cdn.net/c%3A/SciTools/UnderstandForVSCode/res/codicon.ttf') format('ttf');
+	font-display: block;
+}
+
+body {
+	padding: 0;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	background: var(--vscode-input-background);
+}
+
+::selection {
+	color: unset;
+	background: var(--vscode-selection-background);
+}
+
+#messages {
+	flex: 1;
+	overflow: auto;
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing);
+	padding: var(--spacing);
+	padding-bottom: var(--outline);
+	min-height: 10rem;
+}
+
+.message, input {
+	padding: var(--spacing);
+	line-height: 1.5em;
+}
+
+.message {
+	width: fit-content;
+}
+
+.message.user, .suggestion, input {
+	background: var(--vscode-editor-background);
+}
+
+.message.user {
+	align-self: end;
+}
+
+.body > :first-child {
+	margin-top: 0;
+}
+
+.body > :last-child {
+	margin-bottom: 0;
+}
+
+input:focus, button:focus-visible {
+	outline: var(--outline) solid var(--vscode-focusBorder);
+}
+
+:disabled {
+	opacity: 75%;
+}
+
+#inputs {
+	display: flex;
+	flex-direction: column;
+	padding: var(--spacing);
+	position: relative;
+}
+
+button, input {
+	font-family: unset;
+	font-size: unset;
+	transition: color var(--transition), opacity var(--transition);
+}
+
+button {
+	border: none;
+	color: var(--vscode-editor-foreground);
+	user-select: none;
+}
+
+button * {
+	pointer-events: none;
+	user-select: none;
+}
+
+button:not(:disabled) {
+	cursor: pointer;
+}
+
+#suggestions {
+	margin-right: calc(var(--spacing)* -1);
+}
+
+.suggestion {
+	border-radius: var(--spacing);
+	padding: calc(var(--spacing)* 0.5) var(--spacing);
+	margin-right: var(--spacing);
+	margin-bottom: var(--spacing);
+	text-align: left;
+}
+
+.suggestion:hover:not(:disabled), .suggestion:active:not(:disabled) {
+	color: var(--vscode-textLink-foreground);
+}
+
+input {
+	color: unset;
+	border: none;
+	padding-top: calc(var(--spacing) / 2);
+	padding-bottom: calc(var(--spacing) / 2);
+	padding-right: calc(var(--spacing) * 3.25);
+}
+
+button.small {
+	align-items: center;
+	background: none;
+	border-radius: 5px;
+	display: flex;
+	height: 1.25rem;
+	justify-content: center;
+	padding: 0;
+	width: 1.25rem;
+}
+
+button.small:hover:not(:disabled) {
+	background: var(--vscode-toolbar-hoverBackground);
+}
+
+#send {
+	position: absolute;
+	bottom: calc(var(--spacing) * 1.5);
+	right: calc(var(--spacing) * 2);
+}

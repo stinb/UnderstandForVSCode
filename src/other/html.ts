@@ -1,3 +1,4 @@
+// Prevent a string from making HTML elements or invalid characters
 export function escapeHtml(s: string)
 {
 	return String(s).replace(/[&<>"'`=\/]/g, fromEntityMap);

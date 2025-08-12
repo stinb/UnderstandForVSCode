@@ -59,6 +59,11 @@ a:focus {
 	font-weight: bold;
 }
 
+.buttons {
+	display: flex;
+	gap: 4px;
+}
+
 button {
 	align-items: center;
 	background: none;
@@ -102,6 +107,10 @@ button * {
 	color: var(--vscode-list-deemphasizedForeground);
 }
 
+.body {
+	overflow-x: auto;
+}
+
 code.body {
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 5;
@@ -141,4 +150,8 @@ code.body:focus, code.body:not([contenteditable]) {
 	opacity: 0;
 	pointer-events: none;
 	user-select: none;
+}
+
+.notDisplayed {
+	display: none;
 }

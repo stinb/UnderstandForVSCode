@@ -6,8 +6,10 @@ import * as vscode from 'vscode';
 import { variables } from '../other/variables';
 
 
-// Created in JSON in the `data-vscode-context` attribute in
-// - `AnnotationsViewProvider.draw`
+/**
+ * Created in JSON in the `data-vscode-context` attribute in
+ * - `AnnotationsViewProvider.draw`
+ */
 interface AnnotationContext
 {
 	id: string,

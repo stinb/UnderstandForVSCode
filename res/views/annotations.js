@@ -3,9 +3,9 @@
 
 
 /**
-@typedef {import('../../src/viewProviders/message').Card} Card
-@typedef {import('../../src/viewProviders/message').Message} Message
-@typedef {import('../../src/viewProviders/message').Section} Section
+@typedef {import('../../src/viewProviders/annotationMessage').Card} Card
+@typedef {import('../../src/viewProviders/annotationMessage').AnnotationMessage} Message
+@typedef {import('../../src/viewProviders/annotationMessage').Section} Section
 */
 
 
@@ -22,7 +22,9 @@ const vscode = acquireVsCodeApi();
 // @ts-ignore
 const md = markdownit();
 
-const domParser = new DOMParser();
+const domParser = new DOMParser;
+
+let aiText = '';
 
 
 /** @param {Section[] | undefined} sections */
@@ -66,6 +68,8 @@ function drawAi(sections)
 		for (const card of section.cards) {
 			const cardUi = document.createElement('div');
 			cardUi.className = 'ai annotation';
+			cardUi.dataset.body = card.body;
+			cardUi.dataset.name = card.positionTitle;
 			cardUi.dataset.vscodeContext=`{"webviewSection": "annotation", "id": ${JSON.stringify(card.id)}}`;
 			cardUi.id = card.id;
 			cardUi.tabIndex = 0;
@@ -84,13 +88,19 @@ function drawAi(sections)
 			anchorUi.tabIndex = 0;
 			cardHeaderUi.appendChild(anchorUi);
 
-			const buttonUi = document.createElement('button');
-			buttonUi.className = 'regenerate';
-			cardHeaderUi.appendChild(buttonUi);
+			const buttonsUi = document.createElement('div');
+			buttonsUi.className = 'buttons';
+			cardHeaderUi.appendChild(buttonsUi);
 
-			const spanUi = document.createElement('span');
-			spanUi.className = `codicon ${card.body ? 'codicon-refresh' : 'codicon-sparkle'}`;
-			buttonUi.appendChild(spanUi);
+			// TODO enable chat once it's ready
+			// const chatButton = drawButton(buttonsUi, 'chat', 'codicon-comment-discussion');
+			const copyButton = drawButton(buttonsUi, 'copy', 'codicon-copy');
+			drawButton(buttonsUi, 'regenerate', card.body ? 'codicon-refresh' : 'codicon-sparkle');
+
+			if (card.body.length === 0) {
+				// chatButton.classList.add('notDisplayed');
+				copyButton.classList.add('notDisplayed');
+			}
 
 			const bodyUi = document.createElement('div');
 			bodyUi.className = 'body';
@@ -107,19 +117,39 @@ function drawAi(sections)
 
 
 /**
- * @param {HTMLElement} descendant
- * @returns {string}
+ * @param {HTMLDivElement} buttons
+ * @param {string} kind
+ * @param {string} icon
+ * @returns {HTMLButtonElement}
  */
-function getAnnotationParentId(descendant)
+function drawButton(buttons, kind, icon)
+{
+	const button = document.createElement('button');
+	button.className = kind;
+	buttons.appendChild(button);
+
+	const span = document.createElement('span');
+	span.className = `codicon ${icon}`;
+	button.appendChild(span);
+
+	return button;
+}
+
+
+/**
+ * @param {HTMLElement} descendant
+ * @returns {HTMLElement | null}
+ */
+function getAnnotationParent(descendant)
 {
 	let parent = descendant.parentElement;
 	while (parent && !parent.classList.contains('annotation'))
 		parent = parent.parentElement;
 	if (!parent || !parent.id) {
-		vscode.postMessage({method: 'error', 'body': 'Failed to find annoation ID'});
-		return '';
+		vscode.postMessage({method: 'error', 'body': 'Failed to find annotation ID'});
+		return null;
 	}
-	return parent.id;
+	return parent;
 }
 
 
@@ -197,9 +227,30 @@ function handleClick(event)
 		if (span)
 			span.className = 'codicon codicon-loading codicon-modifier-spin';
 		// Get the parent annotation and send its ID
-		const id = getAnnotationParentId(event.target);
-		if (id)
-			vscode.postMessage({method: 'regenerate', uniqueName: id});
+		const parent = getAnnotationParent(event.target);
+		if (!parent)
+			return;
+		for (const button of parent.querySelectorAll('.chat, .copy'))
+			button.classList.add('notDisplayed');
+		vscode.postMessage({method: 'regenerate', uniqueName: parent.id});
+	}
+	// Start chat: begin a chat for an entity
+	else if (classes.contains('chat')) {
+		const parent = getAnnotationParent(event.target);
+		if (!parent)
+			return;
+		vscode.postMessage({
+			method: 'startChat',
+			name: parent.dataset.name || parent.id,
+			uniqueName: parent.id,
+		});
+	}
+	// Copy: copy the plain text
+	else if (classes.contains('copy')) {
+		const parent = getAnnotationParent(event.target);
+		if (!parent)
+			return;
+		navigator.clipboard.writeText(parent.dataset.body || 'Failed to copy text');
 	}
 }
 
@@ -229,6 +280,35 @@ function handleMessageEvent(event)
 		return;
 
 	switch (message.method) {
+		case 'aiClear': {
+			aiText = '';
+			setCardBody(message.uniqueName, aiText);
+			break;
+		}
+		case 'aiError': {
+			setCardBody(message.uniqueName, message.text);
+			break;
+		}
+		case 'aiText': {
+			aiText += message.text;
+			setCardBody(message.uniqueName, aiText);
+			break;
+		}
+		case 'aiTextEnd': {
+			const annotation = document.getElementById(message.uniqueName);
+			if (!annotation)
+				break;
+			annotation.dataset.body = aiText;
+			const buttons = annotation.querySelector('.buttons');
+			if (!buttons)
+				break;
+			for (const button of buttons.querySelectorAll('.chat, .copy'))
+				button.classList.remove('notDisplayed');
+			const regenerateIcon = annotation.querySelector('.regenerate span');
+			if (regenerateIcon)
+				regenerateIcon.className = 'codicon codicon-refresh';
+			break;
+		}
 		case 'drawAi':
 			drawAi(message.sections);
 			break;
@@ -321,6 +401,33 @@ function isMessage(obj)
 {
 	return obj !== null && !Array.isArray(obj) && typeof(obj) === 'object'
 		&& typeof obj.method === 'string';
+}
+
+
+/**
+ * @param {string} uniqueName
+ * @param {string} text
+ */
+function setCardBody(uniqueName, text)
+{
+	let parent = document.getElementById(uniqueName);
+	if (!parent)
+		return;
+	parent = parent.querySelector('.body');
+	if (!parent)
+		return;
+	parent.innerHTML = '';
+
+	const body = domParser.parseFromString(md.render(text), 'text/html').body;
+	for (const child of body.querySelectorAll('iframe, link, script'))
+		child.remove();
+	for (const element of body.childNodes) {
+		if (element instanceof HTMLIFrameElement
+		|| element instanceof HTMLLinkElement
+		|| element instanceof HTMLScriptElement)
+			continue;
+		parent.append(element);
+	}
 }
 
 
