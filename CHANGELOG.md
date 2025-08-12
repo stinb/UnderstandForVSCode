@@ -1,5 +1,8 @@
 # Change Log
 
+# [1.0.20] - 2025 Aug 12
+- Add token-streaming to AI Overview
+
 # [1.0.19] - 2025 Jun 6
 - Add view: AI Overview
 - Add view: Annotations
