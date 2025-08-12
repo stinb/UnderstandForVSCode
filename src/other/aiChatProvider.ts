@@ -48,13 +48,13 @@ export class AiChatProvider
 
 
 	/** Focus on a document panel, opening it if needed */
-	chatFocus(name: string, uniqueName: string, firstMessage: string)
+	chatFocus(name: string, uniqueName: string)
 	{
 		const chat = this.map.get(uniqueName);
 		if (chat)
 			chat.focus();
 		else
-			this.map.set(uniqueName, new Chat(name, uniqueName, firstMessage));
+			this.map.set(uniqueName, new Chat(name, uniqueName));
 	}
 
 
@@ -77,7 +77,7 @@ class Chat
 	readonly uniqueName: string;
 
 
-	constructor(name: string, uniqueName: string, firstMessage: string)
+	constructor(name: string, uniqueName: string)
 	{
 		variables.languageClient.sendRequest('understand/aiChat/create', {
 			uniqueName: uniqueName,
@@ -161,7 +161,6 @@ class Chat
 	<script src="${escapeHtml(uriScript)}"></script>
 </body>
 </html>`;
-		this.messages.push(firstMessage);
 	}
 
 
@@ -188,7 +187,6 @@ class Chat
 
 	handleMessage(message: AiChatMessage)
 	{
-		console.log(message);
 		switch (message.method) {
 			case 'cancel':
 				variables.languageClient.sendRequest('understand/aiChat/cancel', {

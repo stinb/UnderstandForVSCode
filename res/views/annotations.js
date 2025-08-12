@@ -92,12 +92,13 @@ function drawAi(sections)
 			buttonsUi.className = 'buttons';
 			cardHeaderUi.appendChild(buttonsUi);
 
-			const chatButton = drawButton(buttonsUi, 'chat', 'codicon-comment-discussion');
+			// TODO enable chat once it's ready
+			// const chatButton = drawButton(buttonsUi, 'chat', 'codicon-comment-discussion');
 			const copyButton = drawButton(buttonsUi, 'copy', 'codicon-copy');
 			drawButton(buttonsUi, 'regenerate', card.body ? 'codicon-refresh' : 'codicon-sparkle');
 
 			if (card.body.length === 0) {
-				chatButton.classList.add('notDisplayed');
+				// chatButton.classList.add('notDisplayed');
 				copyButton.classList.add('notDisplayed');
 			}
 
@@ -242,7 +243,6 @@ function handleClick(event)
 			method: 'startChat',
 			name: parent.dataset.name || parent.id,
 			uniqueName: parent.id,
-			firstMessage: parent.dataset.body || '',
 		});
 	}
 	// Copy: copy the plain text

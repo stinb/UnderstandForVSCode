@@ -61,8 +61,23 @@ function drawNewMessage(user, text)
 	messagesUi.appendChild(messageUi);
 	const bodyUi = document.createElement('div');
 	bodyUi.className = 'body';
+	if (text.length)
+		drawMarkdown(bodyUi, text);
+	else
+		drawProgress(bodyUi);
 	messageUi.appendChild(bodyUi);
-	drawMarkdown(bodyUi, text);
+}
+
+
+/**
+ * @param {Element} element
+ */
+function drawProgress(element)
+{
+	const iconUi = document.createElement('span');
+	iconUi.className = 'codicon codicon-ellipsis';
+	element.innerHTML = '';
+	element.appendChild(iconUi);
 }
 
 
@@ -220,7 +235,10 @@ function setLastCardText(text)
 	const body = card.querySelector('div.body');
 	if (!body)
 		return;
-	drawMarkdown(body, text);
+	if (text.length)
+		drawMarkdown(body, text);
+	else
+		drawProgress(body);
 }
 
 
