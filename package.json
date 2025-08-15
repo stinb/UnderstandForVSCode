@@ -2,7 +2,7 @@
 	"name": "understand",
 	"displayName": "Understand",
 	"description": "The Software Developer's Multi-Tool",
-	"version": "1.0.20",
+	"version": "1.0.21",
 	"publisher": "scitools",
 	"repository": {
 		"type": "git",
@@ -253,7 +253,7 @@
 				"understand.project.path": {
 					"type": "string",
 					"description": "Absolute path of the Understand project (PROJECT_NAME.und folder, most likely should be configured in Workspace/Folder Settings)",
-					"scope": "machine-overridable"
+					"ignoreSync": true
 				},
 				"understand.project.pathFindingMethod": {
 					"type": "string",
@@ -302,7 +302,7 @@
 					"type": "string",
 					"default": "",
 					"description": "Command or full path of `userver`, the Understand Language server",
-					"scope": "machine-overridable"
+					"ignoreSync": true
 				},
 				"understand.trace.server": {
 					"type": "string",

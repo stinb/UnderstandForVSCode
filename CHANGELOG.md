@@ -1,5 +1,8 @@
 # Change Log
 
+# [1.0.21] - 2025 Aug 15
+- Fix issue with hidden settings on WSL
+
 # [1.0.20] - 2025 Aug 12
 - Add token-streaming to AI Overview
 
