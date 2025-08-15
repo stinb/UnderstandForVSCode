@@ -10,7 +10,6 @@ import * as settings from './commands/settings';
 import * as violations from './commands/violations';
 import { onDidChangeConfiguration } from './other/config';
 import { onDidChangeActiveTextEditor, onDidChangeTextEditorSelection } from './other/context';
-import { onDidChange, onDidCreate, onDidDelete } from './other/fileSystem';
 import { UnderstandHoverProvider } from './other/hover';
 import { documentSelector, startLsp, stopLsp, } from './other/languageClient';
 import { UnderstandUriHandler } from './other/uriHandler';
@@ -19,9 +18,7 @@ import { URI_SCHEME_VIOLATION_DESCRIPTION, ViolationDescriptionProvider } from '
 import { AiViewProvider } from './viewProviders/ai';
 import { AnnotationsViewProvider } from './viewProviders/annotations';
 import { ReferencesTreeProvider } from './viewProviders/references';
-
-
-let fileSystemWatcher: vscode.FileSystemWatcher | undefined;
+import { watchFiles } from './other/fileSystem';
 
 
 /** Activate the extension */
@@ -31,8 +28,9 @@ export async function activate(context: vscode.ExtensionContext)
 	variables.annotationsViewProvider = new AnnotationsViewProvider();
 	variables.extensionUri = context.extensionUri;
 	variables.referencesTreeProvider = new ReferencesTreeProvider();
-	fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**');
 	variables.violationDescriptionProvider = new ViolationDescriptionProvider();
+
+	watchFiles();
 
 	// Commands visible in the palette are created in package.json
 
@@ -111,11 +109,6 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.window.registerWebviewViewProvider('understandAi', variables.aiViewProvider),
 		vscode.window.registerWebviewViewProvider('understandAnnotations', variables.annotationsViewProvider),
 		vscode.window.registerTreeDataProvider('understandReferences', variables.referencesTreeProvider),
-
-		// Watch for file changes, creations, and deletions
-		fileSystemWatcher.onDidChange(onDidChange),
-		fileSystemWatcher.onDidCreate(onDidCreate),
-		fileSystemWatcher.onDidDelete(onDidDelete),
 	);
 
 	startLsp();

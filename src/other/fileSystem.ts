@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { FileChangeType, FileEvent } from 'vscode-languageclient';
 
 import { variables } from './variables';
+import { getStringFromConfig } from './config';
 
 
 const DELAY_MILLISECONDS = 250;
@@ -15,8 +16,20 @@ let timeout: NodeJS.Timeout | undefined;
 const fileSystemChanges: FileEvent[] = [];
 
 
+/** Start watching for file modifications, creations, and deletions */
+export function watchFiles()
+{
+	if (variables.fileSystemWatcher)
+		variables.fileSystemWatcher.dispose();
+	variables.fileSystemWatcher = vscode.workspace.createFileSystemWatcher(getStringFromConfig('understand.files.watch'));
+	variables.fileSystemWatcher.onDidChange(onDidChange);
+	variables.fileSystemWatcher.onDidCreate(onDidCreate);
+	variables.fileSystemWatcher.onDidDelete(onDidDelete);
+}
+
+
 /** Handle saving an existing file by telling the language server */
-export async function onDidChange(uri: vscode.Uri)
+async function onDidChange(uri: vscode.Uri)
 {
 	refreshTimeout();
 	fileSystemChanges.push({
@@ -27,7 +40,7 @@ export async function onDidChange(uri: vscode.Uri)
 
 
 /** Handle creating a new file/folder by telling the language server */
-export async function onDidCreate(uri: vscode.Uri)
+async function onDidCreate(uri: vscode.Uri)
 {
 	refreshTimeout();
 	fileSystemChanges.push({
@@ -38,7 +51,7 @@ export async function onDidCreate(uri: vscode.Uri)
 
 
 /** Handle deleting a file/folder by telling the language server */
-export async function onDidDelete(uri: vscode.Uri)
+async function onDidDelete(uri: vscode.Uri)
 {
 	refreshTimeout();
 	fileSystemChanges.push({

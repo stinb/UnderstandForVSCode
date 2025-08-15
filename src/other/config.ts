@@ -9,6 +9,7 @@ import { Dirent } from 'fs';
 import { readdir } from 'fs/promises';
 import { variables } from './variables';
 import { restartLsp } from './languageClient';
+import { watchFiles } from './fileSystem';
 
 
 const watchedSettings: string[] = [];
@@ -93,6 +94,9 @@ export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 	// Skip settings that aren't in this extension
 	if (!event.affectsConfiguration('understand'))
 		return;
+
+	if (event.affectsConfiguration('understand.files.watch'))
+		watchFiles();
 
 	// Decide whether to simply send the option to the server
 	let shouldNotify = false;

@@ -1,7 +1,7 @@
 'use strict';
 
 
-import { Uri } from 'vscode';
+import { FileSystemWatcher, Uri } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
 import { ViolationDescriptionProvider } from './textProviders';
 import { AiChatProvider } from './aiChatProvider';
@@ -19,6 +19,8 @@ export const variables: Variables = {
 	annotationsViewProvider: undefined,
 	// @ts-ignore initialized in `activate`
 	extensionUri: undefined,
+	// @ts-ignore initialized in `activate`
+	fileSystemWatcher: undefined,
 	// @ts-ignore TODO audit this
 	languageClient: undefined,
 	// The view to leave alone for now
@@ -35,6 +37,7 @@ interface Variables {
 	aiViewProvider: AiViewProvider,
 	annotationsViewProvider: AnnotationsViewProvider,
 	extensionUri: Uri,
+	fileSystemWatcher: FileSystemWatcher,
 	languageClient: LanguageClient,
 	preserveView: string,
 	referencesTreeProvider: ReferencesTreeProvider,

@@ -250,6 +250,11 @@
 					"default": true,
 					"description": "Automatically analyze on project open, file save/create/delete"
 				},
+				"understand.files.watch": {
+					"type": "string",
+					"default": "**",
+					"markdownDescription": "[Glob pattern](https://aka.ms/vscode-glob-patterns) of files to watch, to notify the server when they are changed/created/deleted, for example `**/src/**/*.{c,h}`"
+				},
 				"understand.project.path": {
 					"type": "string",
 					"description": "Absolute path of the Understand project (PROJECT_NAME.und folder, most likely should be configured in Workspace/Folder Settings)",
