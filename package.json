@@ -563,6 +563,12 @@
 					"type": "webview"
 				},
 				{
+					"icon": "$(type-hierarchy)",
+					"id": "understandGraphs",
+					"name": "Graphs",
+					"type": "tree"
+				},
+				{
 					"icon": "$(symbol-reference)",
 					"id": "understandReferences",
 					"name": "References",

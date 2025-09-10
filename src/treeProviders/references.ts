@@ -111,7 +111,7 @@ class FileItem extends TreeItem
 		super(data.name, TreeItemCollapsibleState.Expanded);
 
 		this.contextValue = 'understandFile';
-		this.tooltip = data.path;
+		this.tooltip = new MarkdownString(data.path);
 
 		if ('files' in data)
 			for (const child of data.files)

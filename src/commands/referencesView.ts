@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 import { getBooleanFromConfig } from '../other/config';
 import { variables } from '../other/variables';
-import { EntItem } from '../viewProviders/references';
+import { EntItem } from '../treeProviders/references';
 
 
 export function dismissEntity(entItem: EntItem)

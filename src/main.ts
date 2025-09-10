@@ -4,6 +4,7 @@ import * as ai from './commands/ai';
 import * as analysis from './commands/analysis';
 import * as annotations from './commands/annotations';
 import * as exploreInUnderstand from './commands/exploreInUnderstand';
+import * as graphs from './commands/graphs';
 import * as references from './commands/references';
 import * as referencesView from './commands/referencesView';
 import * as settings from './commands/settings';
@@ -17,7 +18,9 @@ import { variables } from './other/variables';
 import { URI_SCHEME_VIOLATION_DESCRIPTION, ViolationDescriptionProvider } from './other/textProviders';
 import { AiViewProvider } from './viewProviders/ai';
 import { AnnotationsViewProvider } from './viewProviders/annotations';
-import { ReferencesTreeProvider } from './viewProviders/references';
+import { GraphProvider } from './other/graphProvider';
+import { GraphTreeProvider } from './treeProviders/graphs';
+import { ReferencesTreeProvider } from './treeProviders/references';
 import { watchFiles } from './other/fileSystem';
 
 
@@ -27,6 +30,8 @@ export async function activate(context: vscode.ExtensionContext)
 	variables.aiViewProvider = new AiViewProvider();
 	variables.annotationsViewProvider = new AnnotationsViewProvider();
 	variables.extensionUri = context.extensionUri;
+	variables.graphTreeProvider = new GraphTreeProvider();
+	variables.graphProvider = new GraphProvider();
 	variables.referencesTreeProvider = new ReferencesTreeProvider();
 	variables.violationDescriptionProvider = new ViolationDescriptionProvider();
 
@@ -56,6 +61,9 @@ export async function activate(context: vscode.ExtensionContext)
 		// Commands: Explore in Understand
 		vscode.commands.registerCommand('understand.exploreInUnderstand.currentFile', exploreInUnderstand.currentFile),
 		vscode.commands.registerCommand('understand.exploreInUnderstand.newProject', exploreInUnderstand.newProject),
+
+		// Commands: Graphs
+		vscode.commands.registerCommand('understand.graphs.view', graphs.view),
 
 		// Commands: References
 		vscode.commands.registerCommand('understand.references.findAllImplementations', references.findAllImplementations),
@@ -108,6 +116,7 @@ export async function activate(context: vscode.ExtensionContext)
 		// Create web views
 		vscode.window.registerWebviewViewProvider('understandAi', variables.aiViewProvider),
 		vscode.window.registerWebviewViewProvider('understandAnnotations', variables.annotationsViewProvider),
+		vscode.window.registerTreeDataProvider('understandGraphs', variables.graphTreeProvider),
 		vscode.window.registerTreeDataProvider('understandReferences', variables.referencesTreeProvider),
 	);
 
