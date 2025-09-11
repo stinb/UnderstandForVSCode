@@ -1,20 +1,78 @@
 import * as vscode from 'vscode';
 import { escapeHtml } from './html';
 import { variables } from './variables';
+import { GraphMessageToSandbox } from '../types/graph';
 
 
-// TODO follow AiChatProvider
 export class GraphProvider
 {
-	view(name: string)
+	private keyToGraph: Map<string, Graph> = new Map;
+
+	uniqueName = '';
+
+
+	setEntity(uniqueName: string)
 	{
-		const panel = vscode.window.createWebviewPanel(
+		this.uniqueName = uniqueName;
+	}
+
+
+	view(graphName: string)
+	{
+		const key = this.toKey(graphName, this.uniqueName);
+		const graph = this.keyToGraph.get(key);
+		if (graph)
+			graph.focus();
+		else
+			this.keyToGraph.set(key, new Graph(graphName, this.uniqueName));
+	}
+
+
+	update(graphName: string, uniqueName: string, svg: string)
+	{
+		const graph = this.keyToGraph.get(this.toKey(graphName, uniqueName));
+		if (!graph)
+			return;
+		graph.update(svg);
+	}
+
+
+	private toKey(graphName: string, uniqueName: string)
+	{
+		return `${graphName} ${uniqueName}`;
+	}
+}
+
+
+export function handleUnderstandGraphsDrew(params: Params)
+{
+	variables.graphProvider.update(params.graphName, params.uniqueName, params.svg);
+}
+
+
+type Params = {
+	graphName: string,
+	uniqueName: string,
+	svg: string,
+}
+
+
+class Graph
+{
+	private panel: vscode.WebviewPanel;
+
+
+	constructor(graphName: string, uniqueName: string)
+	{
+		variables.languageClient.sendNotification('understand/graphs/draw', {graphName, uniqueName});
+
+		this.panel = vscode.window.createWebviewPanel(
 			'understandGraph',
-			`Graph - ${name}`,
+			`Graph - ${graphName}`,
 			vscode.ViewColumn.Active,
 		);
 
-		const webview = panel.webview;
+		const webview = this.panel.webview;
 
 		const cspSource = escapeHtml(webview.cspSource);
 		const uriScript = webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'graph.js')).toString();
@@ -37,17 +95,31 @@ export class GraphProvider
 </head>
 
 <body>
-	<svg viewBox='0 0 800 600' xmlns='http://www.w3.org/2000/svg' id='graph'>
-		<circle cx='50' cy='50' r='50' fill='#4481b377' />
-		<circle cx='100' cy='400' r='50' fill='#4481b377' />
-		<circle cx='400' cy='300' r='150' fill='#4481b377' />
-		<circle cx='700' cy='100' r='100' fill='#4481b377' />
-		<circle cx='50' cy='550' r='50' fill='#4481b377' />
-		<circle cx='750' cy='550' r='50' fill='#4481b377' />
-	</svg>
+	<p id='loader'>Loading</p>
 
 	<script src="${escapeHtml(uriScript)}"></script>
 </body>
 </html>`;
+	}
+
+
+	focus()
+	{
+		this.panel.reveal();
+	}
+
+
+	update(svg: string)
+	{
+		this.postMessage({
+			method: 'update',
+			svg: svg,
+		});
+	}
+
+
+	private postMessage(message: GraphMessageToSandbox)
+	{
+		this.panel.webview.postMessage(message);
 	}
 }

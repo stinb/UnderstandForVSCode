@@ -33,13 +33,15 @@ export class GraphTreeProvider implements TreeDataProvider<GraphItem>
 		this.children.length = 0;
 		for (const name of graphs)
 			this.children.push(new GraphItem(name));
+
 		this.emitter.fire();
 	}
 }
 
 
-export function handleUnderstandChangedGraphs(params: Params)
+export function handleUnderstandGraphsListed(params: Params)
 {
+	variables.graphProvider.setEntity(params.uniqueName);
 	variables.graphTreeProvider.update(params.graphs);
 }
 
@@ -61,4 +63,5 @@ class GraphItem extends TreeItem
 
 type Params = {
 	graphs: string[],
+	uniqueName: string,
 };

@@ -20,9 +20,10 @@ import {
 } from './statusBar';
 import { handleUnderstandChangedAnnotations } from '../viewProviders/annotations';
 import { onDidChangeActiveTextEditor, onDidChangeTextEditorSelection } from './context';
-import { handleUnderstandChangedGraphs } from '../treeProviders/graphs';
+import { handleUnderstandGraphsListed } from '../treeProviders/graphs';
 import { handleUnderstandChangedReferences } from '../treeProviders/references';
 import { Section } from '../viewProviders/annotationMessage';
+import { handleUnderstandGraphsDrew } from './graphProvider';
 
 
 type AiClearParams = {
@@ -98,8 +99,9 @@ export async function startLsp()
 		variables.languageClient.onNotification('understand/changedAi', handleUnderstandChangedAi);
 		variables.languageClient.onNotification('understand/changedAnnotations', handleUnderstandChangedAnnotations);
 		variables.languageClient.onNotification('understand/changedDatabaseState', handleUnderstandChangedDatabaseState);
-		variables.languageClient.onNotification('understand/changedGraphs', handleUnderstandChangedGraphs);
 		variables.languageClient.onNotification('understand/changedReferences', handleUnderstandChangedReferences);
+		variables.languageClient.onNotification('understand/graphs/drew', handleUnderstandGraphsDrew);
+		variables.languageClient.onNotification('understand/graphs/listed', handleUnderstandGraphsListed);
 		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
 		variables.languageClient.onRequest('workspace/configuration', handleWorkspaceConfiguration);
 	}).catch(function(error) {

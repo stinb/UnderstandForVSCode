@@ -1,3 +1,12 @@
+// @ts-check
+'use strict';
+
+
+/**
+@typedef {import('../../src/types/graph').GraphMessageToSandbox} Message
+*/
+
+
 const MARGIN_PIXELS = 50;
 
 const MOVEMENT_PIXELS = 25;
@@ -6,6 +15,7 @@ const ZOOM_FACTOR = 0.875; // ~0 fast, ~1 slow
 const ZOOM_FACTOR_INVERSE = 1 / ZOOM_FACTOR;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 3;
+
 
 let keys = {
 	w: false,
@@ -44,7 +54,7 @@ function onKeyUp(e)
 
 
 /** @param {WheelEvent} e */
-function onMouseWheel(e)
+function onWheel(e)
 {
 	e.preventDefault();
 
@@ -60,7 +70,7 @@ function onMouseWheel(e)
 
 	zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom));
 
-	document.body.style.zoom = zoom;
+	document.body.style.zoom = zoom.toString();
 
 	const scaleChange = zoom / oldZoom;
 	const newScrollX = mouseX * scaleChange - e.clientX;
@@ -70,10 +80,32 @@ function onMouseWheel(e)
 }
 
 
+/** @param {MessageEvent} e */
+function onMessage(e)
+{
+	const message = /** @type {Message} */ (e.data);
+
+	const loader = document.getElementById('loader');
+	if (loader)
+		loader.remove();
+
+	let graph = document.getElementById('graph');
+	if (!graph) {
+		graph = document.createElement('svg');
+		document.body.prepend(graph);
+	}
+	graph.outerHTML = message.svg;
+	graph.id = 'graph';
+}
+
+
 function resizeGraph()
 {
-	graph.style.height = window.innerHeight - MARGIN_PIXELS;
-	graph.style.width = window.innerWidth - MARGIN_PIXELS;
+	const graph = document.getElementById('graph');
+	if (!graph)
+		return;
+	graph.style.height = (window.innerHeight - MARGIN_PIXELS).toString();
+	graph.style.width = (window.innerWidth - MARGIN_PIXELS).toString();
 }
 
 
@@ -98,9 +130,10 @@ function smoothScrollLoop()
 }
 
 
-document.addEventListener('mousewheel', onMouseWheel, {passive: false});
+document.addEventListener('wheel', onWheel, {passive: false});
 document.onkeydown = onKeyDown;
 document.onkeyup = onKeyUp;
+window.onmessage = onMessage;
 window.onresize = resizeGraph;
 
 resizeGraph();
