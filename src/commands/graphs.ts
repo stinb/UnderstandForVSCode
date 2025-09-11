@@ -1,7 +1,7 @@
 import { variables } from '../other/variables';
 
 
-export function view(args: string[])
+export function view(name: string)
 {
-	variables.graphProvider.view(args[0]);
+	variables.graphProvider.view(name);
 }

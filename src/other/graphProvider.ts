@@ -17,12 +17,13 @@ export class GraphProvider
 		const webview = panel.webview;
 
 		const cspSource = escapeHtml(webview.cspSource);
+		const uriScript = webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'graph.js')).toString();
 		const uriStyle = webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'graph.css')).toString();
 
 		webview.options = {
 			enableCommandUris: false,
 			enableForms: false,
-			enableScripts: false,
+			enableScripts: true,
 			localResourceRoots: [variables.extensionUri],
 			portMapping: [],
 		};
@@ -44,6 +45,8 @@ export class GraphProvider
 		<circle cx='50' cy='550' r='50' fill='#4481b377' />
 		<circle cx='750' cy='550' r='50' fill='#4481b377' />
 	</svg>
+
+	<script src="${escapeHtml(uriScript)}"></script>
 </body>
 </html>`;
 	}
