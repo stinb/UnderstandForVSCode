@@ -16,4 +16,5 @@ body {
 
 text {
 	fill: var(--vscode-foreground);
+	user-select: none;
 }
