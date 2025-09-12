@@ -8,11 +8,13 @@ export class GraphProvider
 {
 	private keyToGraph: Map<string, Graph> = new Map;
 
-	uniqueName = '';
+	private entityName = '';
+	private uniqueName = '';
 
 
-	setEntity(uniqueName: string)
+	setEntity(entityName: string, uniqueName: string)
 	{
+		this.entityName = entityName;
 		this.uniqueName = uniqueName;
 	}
 
@@ -24,7 +26,13 @@ export class GraphProvider
 		if (graph)
 			graph.focus();
 		else
-			this.keyToGraph.set(key, new Graph(graphName, this.uniqueName));
+			this.keyToGraph.set(key, new Graph(graphName, this.uniqueName, this.entityName));
+	}
+
+
+	remove(graphName: string, uniqueName: string)
+	{
+		this.keyToGraph.delete(this.toKey(graphName, uniqueName));
 	}
 
 
@@ -61,16 +69,27 @@ class Graph
 {
 	private panel: vscode.WebviewPanel;
 
+	private graphName: string;
+	private uniqueName: string;
 
-	constructor(graphName: string, uniqueName: string)
+
+	constructor(graphName: string, uniqueName: string, entityName: string)
 	{
+		this.graphName = graphName;
+		this.uniqueName = uniqueName;
+
 		variables.languageClient.sendNotification('understand/graphs/draw', {graphName, uniqueName});
 
 		this.panel = vscode.window.createWebviewPanel(
 			'understandGraph',
-			`Graph - ${graphName}`,
+			`${graphName} - ${entityName}`,
 			vscode.ViewColumn.Active,
+			{ retainContextWhenHidden: true },
 		);
+
+		this.panel.onDidDispose(() => {
+			variables.graphProvider.remove(this.graphName, this.uniqueName);
+		});
 
 		const webview = this.panel.webview;
 

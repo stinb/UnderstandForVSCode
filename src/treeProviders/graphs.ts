@@ -41,7 +41,7 @@ export class GraphTreeProvider implements TreeDataProvider<GraphItem>
 
 export function handleUnderstandGraphsListed(params: Params)
 {
-	variables.graphProvider.setEntity(params.uniqueName);
+	variables.graphProvider.setEntity(params.entityName, params.uniqueName);
 	variables.graphTreeProvider.update(params.graphs);
 }
 
@@ -62,6 +62,7 @@ class GraphItem extends TreeItem
 
 
 type Params = {
+	entityName: string,
 	graphs: string[],
 	uniqueName: string,
 };

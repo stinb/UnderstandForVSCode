@@ -95,17 +95,6 @@ function onMessage(e)
 		document.body.prepend(graph);
 	}
 	graph.outerHTML = message.svg;
-	graph.id = 'graph';
-}
-
-
-function resizeGraph()
-{
-	const graph = document.getElementById('graph');
-	if (!graph)
-		return;
-	graph.style.height = (window.innerHeight - MARGIN_PIXELS).toString();
-	graph.style.width = (window.innerWidth - MARGIN_PIXELS).toString();
 }
 
 
@@ -134,7 +123,5 @@ document.addEventListener('wheel', onWheel, {passive: false});
 document.onkeydown = onKeyDown;
 document.onkeyup = onKeyUp;
 window.onmessage = onMessage;
-window.onresize = resizeGraph;
 
-resizeGraph();
 requestAnimationFrame(smoothScrollLoop);
