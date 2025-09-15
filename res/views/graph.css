@@ -1,13 +1,38 @@
+:root {
+	--asideWidth: 20rem;
+	--graphMargin: 2rem;
+	--optionsMargin: 1rem;
+}
+
+@font-face {
+	font-family: 'codicon';
+	src: url('https://file%2B.vscode-resource.vscode-cdn.net/c%3A/SciTools/UnderstandForVSCode/res/codicon.ttf') format('ttf');
+	font-display: block;
+}
+
 body {
+	display: flex;
+	height: 100vh;
+	margin: 0;
+	overflow: hidden;
+	padding: 0;
+	width: 100vw;
+}
+
+main {
+	height: 100%;
+	outline: none;
+	overflow: auto;
+	width: 100%;
+}
+
+#graphContainer {
 	align-items: center;
 	display: flex;
-	height: fit-content;
 	justify-content: center;
-	margin: 0;
-	min-height: 100vh;
-	min-width: 100vw;
-	padding: 0;
-	width: fit-content;
+	height: calc(100vh - var(--graphMargin) * 2);
+	padding: var(--graphMargin);
+	width: calc(100vw - var(--asideWidth) - var(--graphMargin) * 2);
 }
 
 #loader {
@@ -17,4 +42,122 @@ body {
 text {
 	fill: var(--vscode-foreground);
 	user-select: none;
+}
+
+aside {
+	background: var(--vscode-sideBar-background);
+	height: 100%;
+	overflow: auto;
+	width: var(--asideWidth);
+}
+
+#asideContainer {
+	padding: var(--optionsMargin);
+}
+
+input, label, select {
+	width: 100%;
+}
+
+label {
+	display: block;
+	margin-top: 1.5em;
+}
+
+label p, label span {
+	margin: 0;
+	opacity: 0.9;
+	user-select: none;
+}
+
+label:has(input[type='checkbox']) {
+	display: flex;
+}
+
+label:has(input[type='checkbox']:checked):before {
+	content: '\eab2';
+	font: 16px / 1 codicon;
+	margin-left: 0.8px;
+	margin-top: 0.8px;
+	position: absolute;
+}
+
+label:has(input[type='file']) {
+	border-radius: 2px;
+	color: var(--vscode-button-foreground);
+	background: var(--vscode-button-background);
+	margin-top: 4px;
+	padding: 4px 14px;
+}
+
+label:has(input[type='file']):hover {
+	background: var(--vscode-button-hoverBackground);
+}
+
+input[type='checkbox'], label:has(input[type='checkbox']), label:has(input[type='file']), select {
+	cursor: pointer;
+}
+
+input, label {
+	color: var(--vscode-settings-numberInputForeground);
+}
+
+input {
+	background: var(--vscode-settings-textInputBackground);
+}
+
+input:focus, select:focus {
+	outline-width: 1px;
+	outline-style: solid;
+	outline-offset: -1px;
+	outline-color: var(--vscode-focusBorder);
+}
+
+input[type='checkbox'] {
+	appearance: none;
+	background: var(--vscode-settings-checkboxBackground);
+	border-color: var(--vscode-settings-checkboxBorder);
+	border-radius: 3px;
+	border: 1px solid transparent;
+	color: var(--vscode-settings-checkboxForeground);
+	height: 18px;
+	margin: 0;
+	margin-right: 9px;
+	padding: 0;
+	width: 18px;
+}
+
+input[type='file'] {
+	height: 0;
+	opacity: 0;
+	width: 0;
+}
+
+input[type='number'], input[type='text'], select {
+	border: none;
+	padding: 4px 6px;
+	box-sizing: border-box;
+	border-radius: 2px;
+	margin-top: 9px;
+}
+
+input[type='number'] {
+	background-color: var(--vscode-settings-numberInputBackground);
+	color: var(--vscode-settings-numberInputForeground);
+	border: 1px solid var(--vscode-settings-numberInputBorder, transparent);
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	display: none;
+}
+
+::file-selector-button {
+	display: none;
+}
+
+select {
+	background-color: var(--vscode-settings-dropdownBackground);
+	color: var(--vscode-settings-dropdownForeground);
+	border-color: var(--vscode-settings-dropdownBorder);
 }

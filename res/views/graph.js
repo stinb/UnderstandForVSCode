@@ -7,8 +7,6 @@
 */
 
 
-const MARGIN_PIXELS = 50;
-
 const MOVEMENT_PIXELS = 25;
 
 const ZOOM_FACTOR = 0.875; // ~0 fast, ~1 slow
@@ -29,6 +27,15 @@ let keys = {
 };
 
 let zoom = 1;
+
+
+function focusOnGraph()
+{
+	const element = document.getElementById('main');
+	if (!element)
+		return;
+	element.focus();
+}
 
 
 /** @param {KeyboardEvent} e */
@@ -56,10 +63,15 @@ function onKeyUp(e)
 /** @param {WheelEvent} e */
 function onWheel(e)
 {
+	const main = document.getElementById('main');
+	const container = document.getElementById('graphContainer');
+	if (!main || !container)
+		return;
+
 	e.preventDefault();
 
-	const mouseX = e.clientX + window.scrollX;
-	const mouseY = e.clientY + window.scrollY;
+	const mouseX = e.clientX + main.scrollLeft;
+	const mouseY = e.clientY + main.scrollTop;
 
 	const oldZoom = zoom;
 
@@ -70,13 +82,13 @@ function onWheel(e)
 
 	zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom));
 
-	document.body.style.zoom = zoom.toString();
+	container.style.zoom = zoom.toString();
 
 	const scaleChange = zoom / oldZoom;
 	const newScrollX = mouseX * scaleChange - e.clientX;
 	const newScrollY = mouseY * scaleChange - e.clientY;
 
-	window.scrollTo(newScrollX, newScrollY);
+	main.scrollTo(newScrollX, newScrollY);
 }
 
 
@@ -89,17 +101,20 @@ function onMessage(e)
 	if (loader)
 		loader.remove();
 
-	let graph = document.getElementById('graph');
-	if (!graph) {
-		graph = document.createElement('svg');
-		document.body.prepend(graph);
-	}
-	graph.outerHTML = message.svg;
+	const container = document.getElementById('graphContainer');
+	if (!container)
+		return;
+
+	container.innerHTML = message.svg;
 }
 
 
 function smoothScrollLoop()
 {
+	const element = document.getElementById('main');
+	if (!element)
+		return;
+
 	let dx = 0;
 	let dy = 0;
 
@@ -113,15 +128,29 @@ function smoothScrollLoop()
 		dx += MOVEMENT_PIXELS;
 
 	if (dx !== 0 || dy !== 0)
-		window.scrollBy(dx, dy);
+		element.scrollBy(dx, dy);
 
 	requestAnimationFrame(smoothScrollLoop);
 }
 
 
-document.addEventListener('wheel', onWheel, {passive: false});
-document.onkeydown = onKeyDown;
-document.onkeyup = onKeyUp;
-window.onmessage = onMessage;
+function main()
+{
+	const element = document.getElementById('main');
+	if (!element)
+		return;
 
-requestAnimationFrame(smoothScrollLoop);
+	element.addEventListener('wheel', onWheel, {passive: false});
+	element.onkeydown = onKeyDown;
+	element.onkeyup = onKeyUp;
+
+	window.onfocus = focusOnGraph;
+	window.onmessage = onMessage;
+
+	focusOnGraph();
+
+	requestAnimationFrame(smoothScrollLoop);
+}
+
+
+main();
