@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { escapeHtml } from './html';
 import { variables } from './variables';
 import { GraphMessageToSandbox } from '../types/graph';
+import { Option } from '../types/option';
 
 
 export class GraphProvider {
@@ -32,11 +33,11 @@ export class GraphProvider {
 	}
 
 
-	update(graphName: string, uniqueName: string, svg: string) {
+	update(graphName: string, uniqueName: string, svg: string, options: Option[]) {
 		const graph = this.keyToGraph.get(this.toKey(graphName, uniqueName));
 		if (!graph)
 			return;
-		graph.update(svg);
+		graph.update(svg, options);
 	}
 
 
@@ -47,7 +48,7 @@ export class GraphProvider {
 
 
 export function handleUnderstandGraphsDrew(params: Params) {
-	variables.graphProvider.update(params.graphName, params.uniqueName, params.svg);
+	variables.graphProvider.update(params.graphName, params.uniqueName, params.svg, params.options);
 }
 
 
@@ -55,6 +56,7 @@ type Params = {
 	graphName: string,
 	uniqueName: string,
 	svg: string,
+	options: Option[],
 }
 
 
@@ -71,12 +73,6 @@ class Graph {
 
 		variables.languageClient.sendNotification('understand/graphs/draw', { graphName, uniqueName });
 
-		// this.panel = vscode.window.createWebviewPanel(
-		// 	'understandGraph',
-		// 	`${graphName} - ${entityName}`,
-		// 	vscode.ViewColumn.Active,
-		// 	{ retainContextWhenHidden: true },
-		// );
 		this.panel = vscode.window.createWebviewPanel(
 			'understandGraph',
 			`${graphName} - ${entityName}`,
@@ -119,71 +115,7 @@ class Graph {
 	</main>
 
 	<aside>
-		<div id='asideContainer'>
-			<p>Options</p>
-
-			<label>
-				<input type='checkbox'/>
-				<span>Checkbox</span>
-			</label>
-
-			<label>
-				<input type='checkbox'/>
-				<span>HorizontalCheckbox</span>
-			</label>
-
-			<label>
-				<input type='checkbox'/>
-				<span>VerticalCheckbox</span>
-			</label>
-
-			<label>
-				<p>HorizontalRadio</p>
-				<select>
-					<option>Choice 1</option>
-					<option>Choice 2</option>
-					<option>Choice 3</option>
-				</select>
-			</label>
-
-			<label>
-				<p>VerticalRadio</p>
-				<select>
-					<option>Choice 1</option>
-					<option>Choice 2</option>
-					<option>Choice 3</option>
-				</select>
-			</label>
-
-			<label>
-				<p>Choice</p>
-				<select>
-					<option>Choice 1</option>
-					<option>Choice 2</option>
-					<option>Choice 3</option>
-				</select>
-			</label>
-
-			<label>
-				<p>Text</p>
-				<input type='text'/>
-			</label>
-
-			<label>
-				<p>FileText</p>
-				<input type='text'/>
-			</label>
-
-			<label>
-				<p>DirectoryText</p>
-				<input type='text' />
-			</label>
-
-			<label>
-				<p>Integer</p>
-				<input type='number'/>
-			</label>
-		</div>
+		<div id='options'></div>
 	</aside>
 
 	<script src='${escapeHtml(uriScript)}'></script>
@@ -197,9 +129,10 @@ class Graph {
 	}
 
 
-	update(svg: string) {
+	update(svg: string, options: Option[]) {
 		this.postMessage({
 			method: 'update',
+			options: options,
 			svg: svg,
 		});
 	}

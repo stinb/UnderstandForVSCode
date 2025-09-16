@@ -104,8 +104,96 @@ function onMessage(e)
 	const container = document.getElementById('graphContainer');
 	if (!container)
 		return;
-
 	container.innerHTML = message.svg;
+
+	const optionsUi = document.getElementById('options');
+	if (!optionsUi)
+		return;
+	optionsUi.innerHTML = '';
+
+	for (const option of message.options) {
+		switch (option.kind) {
+			case 'checkbox': {
+				const label = document.createElement('label');
+				optionsUi.appendChild(label);
+
+				const input = document.createElement('input');
+				input.type = 'checkbox';
+				input.id = option.id;
+				input.checked = option.value;
+				label.appendChild(input);
+
+				const labelText = document.createElement('span');
+				labelText.innerText = option.text;
+				label.appendChild(labelText);
+				break;
+			}
+
+			case 'directoryText':
+			case 'fileText':
+			case 'integer':
+			case 'text': {
+				const label = document.createElement('label');
+				optionsUi.appendChild(label);
+
+				const labelText = document.createElement('p');
+				labelText.innerText = option.text;
+				label.appendChild(labelText);
+
+				const input = document.createElement('input');
+				input.type = 'number';
+				input.id = option.id;
+				input.value = option.value.toString();
+				label.appendChild(input);
+				break;
+			}
+
+			case 'directoryText':
+			case 'fileText':
+			case 'text': {
+				const label = document.createElement('label');
+				optionsUi.appendChild(label);
+
+				const labelText = document.createElement('p');
+				labelText.innerText = option.text;
+				label.appendChild(labelText);
+
+				const input = document.createElement('input');
+				input.type = 'text';
+				input.id = option.id;
+				input.value = option.value;
+				label.appendChild(input);
+				break;
+			}
+
+			case 'choice':
+			case 'horizontalRadio':
+			case 'verticalRadio': {
+				const label = document.createElement('label');
+				optionsUi.appendChild(label);
+
+				const labelText = document.createElement('p');
+				labelText.innerText = option.text;
+				label.appendChild(labelText);
+
+				const select = document.createElement('select');
+				select.id = option.id;
+				select.value = option.value;
+				label.appendChild(select);
+
+				for (const choice of option.choices) {
+					const optionUi = document.createElement('option');
+					optionUi.innerText = choice;
+					select.appendChild(optionUi);
+				}
+				break;
+			}
+
+			case 'separator':
+				optionsUi.appendChild(document.createElement('hr'));
+				break;
+		}
+	}
 }
 
 
@@ -140,7 +228,7 @@ function main()
 	if (!element)
 		return;
 
-	element.addEventListener('wheel', onWheel, {passive: false});
+	element.addEventListener('wheel', onWheel, { passive: false });
 	element.onkeydown = onKeyDown;
 	element.onkeyup = onKeyUp;
 
