@@ -141,6 +141,8 @@ class Graph {
 				<p>HorizontalRadio</p>
 				<select>
 					<option>Choice 1</option>
+					<option>Choice 2</option>
+					<option>Choice 3</option>
 				</select>
 			</label>
 
@@ -148,6 +150,8 @@ class Graph {
 				<p>VerticalRadio</p>
 				<select>
 					<option>Choice 1</option>
+					<option>Choice 2</option>
+					<option>Choice 3</option>
 				</select>
 			</label>
 
@@ -155,6 +159,8 @@ class Graph {
 				<p>Choice</p>
 				<select>
 					<option>Choice 1</option>
+					<option>Choice 2</option>
+					<option>Choice 3</option>
 				</select>
 			</label>
 
@@ -165,12 +171,12 @@ class Graph {
 
 			<label>
 				<p>FileText</p>
-				<input type='file'/>
+				<input type='text'/>
 			</label>
 
 			<label>
 				<p>DirectoryText</p>
-				<input type='file' directory/>
+				<input type='text' />
 			</label>
 
 			<label>

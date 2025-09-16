@@ -10,6 +10,10 @@
 	font-display: block;
 }
 
+::selection {
+	background: var(--vscode-selection-background);
+}
+
 body {
 	display: flex;
 	height: 100vh;
@@ -82,31 +86,19 @@ label:has(input[type='checkbox']:checked):before {
 	position: absolute;
 }
 
-label:has(input[type='file']) {
-	border-radius: 2px;
-	color: var(--vscode-button-foreground);
-	background: var(--vscode-button-background);
-	margin-top: 4px;
-	padding: 4px 14px;
-}
-
-label:has(input[type='file']):hover {
-	background: var(--vscode-button-hoverBackground);
-}
-
-input[type='checkbox'], label:has(input[type='checkbox']), label:has(input[type='file']), select {
+input[type='checkbox'], label:has(input[type='checkbox']), select {
 	cursor: pointer;
 }
 
-input, label {
+input, label, ::picker(select) {
 	color: var(--vscode-settings-numberInputForeground);
 }
 
-input {
+input, ::picker(select) {
 	background: var(--vscode-settings-textInputBackground);
 }
 
-input:focus, select:focus {
+input:focus, select:focus, select:has(option:focus) {
 	outline-width: 1px;
 	outline-style: solid;
 	outline-offset: -1px;
@@ -118,7 +110,6 @@ input[type='checkbox'] {
 	background: var(--vscode-settings-checkboxBackground);
 	border-color: var(--vscode-settings-checkboxBorder);
 	border-radius: 3px;
-	border: 1px solid transparent;
 	color: var(--vscode-settings-checkboxForeground);
 	height: 18px;
 	margin: 0;
@@ -127,14 +118,8 @@ input[type='checkbox'] {
 	width: 18px;
 }
 
-input[type='file'] {
-	height: 0;
-	opacity: 0;
-	width: 0;
-}
-
 input[type='number'], input[type='text'], select {
-	border: none;
+	border: 1px solid;
 	padding: 4px 6px;
 	box-sizing: border-box;
 	border-radius: 2px;
@@ -144,7 +129,12 @@ input[type='number'], input[type='text'], select {
 input[type='number'] {
 	background-color: var(--vscode-settings-numberInputBackground);
 	color: var(--vscode-settings-numberInputForeground);
-	border: 1px solid var(--vscode-settings-numberInputBorder, transparent);
+	border-color: var(--vscode-settings-numberInputBorder);
+}
+
+input[type='text'] {
+	border-color: var(--vscode-settings-textInputBorder);
+	color: var(--vscode-settings-textInputForeground);
 }
 
 input::-webkit-outer-spin-button,
@@ -152,12 +142,45 @@ input::-webkit-inner-spin-button {
 	display: none;
 }
 
-::file-selector-button {
-	display: none;
-}
-
 select {
 	background-color: var(--vscode-settings-dropdownBackground);
 	color: var(--vscode-settings-dropdownForeground);
 	border-color: var(--vscode-settings-dropdownBorder);
+	position: relative;
+}
+
+select, ::picker(select) {
+	appearance: base-select;
+}
+
+::picker(select) {
+	border: none;
+}
+
+::picker-icon {
+	position: absolute;
+	content: '\eab4';
+	font-family: 'codicon';
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	line-height: 16px;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: 6px;
+	margin: auto;
+	pointer-events: none;
+}
+
+option {
+	outline: none;
+}
+
+option:focus, option:hover {
+	background: var(--vscode-quickInputList-focusBackground);
+}
+
+option::checkmark {
+	display: none;
 }

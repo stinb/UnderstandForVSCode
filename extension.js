@@ -83,6 +83,8 @@ ${xR(Ca)}`);let r=[{name:"Analyze all files",command:"understand.analysis.analyz
 				<p>HorizontalRadio</p>
 				<select>
 					<option>Choice 1</option>
+					<option>Choice 2</option>
+					<option>Choice 3</option>
 				</select>
 			</label>
 
@@ -90,6 +92,8 @@ ${xR(Ca)}`);let r=[{name:"Analyze all files",command:"understand.analysis.analyz
 				<p>VerticalRadio</p>
 				<select>
 					<option>Choice 1</option>
+					<option>Choice 2</option>
+					<option>Choice 3</option>
 				</select>
 			</label>
 
@@ -97,6 +101,8 @@ ${xR(Ca)}`);let r=[{name:"Analyze all files",command:"understand.analysis.analyz
 				<p>Choice</p>
 				<select>
 					<option>Choice 1</option>
+					<option>Choice 2</option>
+					<option>Choice 3</option>
 				</select>
 			</label>
 
@@ -107,12 +113,12 @@ ${xR(Ca)}`);let r=[{name:"Analyze all files",command:"understand.analysis.analyz
 
 			<label>
 				<p>FileText</p>
-				<input type='file'/>
+				<input type='text'/>
 			</label>
 
 			<label>
 				<p>DirectoryText</p>
-				<input type='file' directory/>
+				<input type='text' />
 			</label>
 
 			<label>
