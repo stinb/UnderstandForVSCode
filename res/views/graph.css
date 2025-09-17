@@ -89,6 +89,7 @@ input, label, select {
 
 label {
 	display: block;
+	position: relative;
 }
 
 label:not(:first-child), hr {

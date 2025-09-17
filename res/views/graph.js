@@ -3,9 +3,21 @@
 
 
 /**
-@typedef {import('../../src/types/graph').GraphMessageToSandbox} Message
+@typedef {import('../../src/types/graph').GraphMessageToSandbox} GraphMessageToSandbox
+@typedef {import('../../src/types/graph').GraphMessageFromSandbox} GraphMessageFromSandbox
 */
 
+
+/** @type {{
+	getState: () => any,
+	postMessage: (message: GraphMessageFromSandbox) => void,
+	setState: (newState: any) => void,
+}} */
+// @ts-ignore
+const vscode = acquireVsCodeApi();
+
+
+const DELAY_MILLISECONDS = 250;
 
 const MOVEMENT_PIXELS = 25;
 
@@ -14,6 +26,10 @@ const ZOOM_FACTOR_INVERSE = 1 / ZOOM_FACTOR;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 3;
 
+
+let delayedOptionId = '';
+/** @type {boolean | number | string | string[]} */
+let delayedOptionValue = false;
 
 let keys = {
 	w: false,
@@ -25,6 +41,9 @@ let keys = {
 	ArrowDown: false,
 	ArrowRight: false,
 };
+
+/** @type {number | undefined} */
+let timeout = undefined;
 
 let zoom = 1;
 
@@ -44,6 +63,50 @@ function modifyText(text)
 	if (text.endsWith(':'))
 		return text.slice(0, text.length - 1);
 	return text;
+}
+
+
+/** @param {Event} e */
+function onChangeBoolean(e)
+{
+	if (!e.target || !(e.target instanceof HTMLInputElement))
+		return;
+	sendChangeDelayed(e.target.id, e.target.checked);
+}
+
+
+/** @param {Event} e */
+function onChangeString(e)
+{
+	if (!e.target || !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLSelectElement))
+		return;
+	sendChangeDelayed(e.target.id, e.target.value);
+}
+
+
+/** @param {Event} e */
+function onChangeInteger(e)
+{
+	if (!e.target || !(e.target instanceof HTMLInputElement))
+		return;
+	sendChangeDelayed(e.target.id, parseInt(e.target.value));
+}
+
+
+/** @param {Event} e */
+function onChangeStringList(e)
+{
+	if (!e.target || !(e.target instanceof HTMLInputElement))
+		return;
+	if (!e.target.parentElement || !e.target.parentElement.parentElement)
+		return;
+	/** @type {string[]} */
+	const choices = [];
+	const optionGroup = e.target.parentElement.parentElement;
+	for (const input of optionGroup.getElementsByTagName('input'))
+		if (input.checked)
+			choices.push(input.name);
+	sendChangeDelayed(optionGroup.id, choices);
 }
 
 
@@ -104,7 +167,7 @@ function onWheel(e)
 /** @param {MessageEvent} e */
 function onMessage(e)
 {
-	const message = /** @type {Message} */ (e.data);
+	const message = /** @type {GraphMessageToSandbox} */ (e.data);
 
 	const loader = document.getElementById('loader');
 	if (loader)
@@ -123,8 +186,8 @@ function onMessage(e)
 	/** @type {HTMLElement} */
 	let group = optionsUi;
 
-	// Figure out which option groups to skip because there's only 1 group
-	// between the separators
+	// Figure out which option groups to draw without the box
+	// because there's only 1 option group between the separators
 	/** @type {Set<number>} */
 	const groupsIndexesToSkip = new Set;
 	const groupsIndexes = [];
@@ -160,6 +223,7 @@ function onMessage(e)
 				input.type = 'checkbox';
 				input.id = option.id;
 				input.checked = option.value;
+				input.onchange = onChangeBoolean;
 				label.appendChild(input);
 
 				const labelText = document.createElement('span');
@@ -180,7 +244,7 @@ function onMessage(e)
 
 				const select = document.createElement('select');
 				select.id = option.id;
-				select.value = option.value;
+				select.onchange = onChangeString;
 				label.appendChild(select);
 
 				for (const choice of option.choices) {
@@ -188,6 +252,8 @@ function onMessage(e)
 					optionUi.innerText = modifyText(choice);
 					select.appendChild(optionUi);
 				}
+
+				select.value = option.value;
 				break;
 			}
 
@@ -205,6 +271,7 @@ function onMessage(e)
 				input.type = 'text';
 				input.id = option.id;
 				input.value = option.value;
+				input.onchange = onChangeString;
 				label.appendChild(input);
 				break;
 			}
@@ -230,6 +297,7 @@ function onMessage(e)
 					input.type = 'checkbox';
 					input.name = choice;
 					input.checked = checked.has(choice);
+					input.onchange = onChangeStringList;
 					label.appendChild(input);
 
 					const labelText = document.createElement('span');
@@ -265,6 +333,7 @@ function onMessage(e)
 				label.appendChild(labelText);
 
 				const input = document.createElement('input');
+				input.onchange = onChangeInteger;
 				input.type = 'number';
 				input.id = option.id;
 				input.min = option.minimum.toString();
@@ -287,6 +356,36 @@ function onMessage(e)
 				break;
 		}
 	}
+}
+
+
+function sendChange()
+{
+	vscode.postMessage({
+		method: 'changedOption',
+		id: delayedOptionId,
+		value: delayedOptionValue,
+	});
+	delayedOptionId = '';
+	timeout = undefined;
+}
+
+
+/**
+ * @param {string} id
+ * @param {boolean | number | string | string[]} value
+ */
+function sendChangeDelayed(id, value)
+{
+	if (timeout !== undefined)
+		window.clearTimeout(timeout);
+	timeout = window.setTimeout(sendChange, DELAY_MILLISECONDS);
+
+	if (delayedOptionId && delayedOptionId !== id)
+		sendChange();
+
+	delayedOptionId = id;
+	delayedOptionValue = value;
 }
 
 
@@ -317,13 +416,13 @@ function smoothScrollLoop()
 
 function main()
 {
-	const element = document.getElementById('main');
-	if (!element)
+	const mainElement = document.getElementById('main');
+	if (!mainElement)
 		return;
 
-	element.addEventListener('wheel', onWheel, { passive: false });
-	element.onkeydown = onKeyDown;
-	element.onkeyup = onKeyUp;
+	mainElement.addEventListener('wheel', onWheel, { passive: false });
+	mainElement.onkeydown = onKeyDown;
+	mainElement.onkeyup = onKeyUp;
 
 	window.onfocus = focusOnGraph;
 	window.onmessage = onMessage;

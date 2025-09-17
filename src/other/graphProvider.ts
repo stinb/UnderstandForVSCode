@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { escapeHtml } from './html';
 import { variables } from './variables';
-import { GraphMessageToSandbox } from '../types/graph';
+import { GraphMessageFromSandbox, GraphMessageToSandbox } from '../types/graph';
 import { Option } from '../types/option';
 
 
@@ -59,6 +59,7 @@ export function handleUnderstandGraphsDrew(params: Params)
 
 
 type Params = {
+	errors: string[],
 	graphName: string,
 	uniqueName: string,
 	svg: string,
@@ -105,6 +106,8 @@ class Graph {
 		const uriStyle = webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'graph.css')).toString();
 		const uriStyleIcons = webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'codicon.css')).toString();
 
+		webview.onDidReceiveMessage(this.handleMessage, this);
+
 		webview.html =
 			`<!DOCTYPE html>
 <html>
@@ -134,6 +137,17 @@ class Graph {
 	focus()
 	{
 		this.panel.reveal();
+	}
+
+
+	handleMessage(message: GraphMessageFromSandbox)
+	{
+		variables.languageClient.sendNotification('understand/graphs/draw', {
+			graphName: this.graphName,
+			optionId: message.id,
+			optionValue: message.value,
+			uniqueName: this.uniqueName,
+		});
 	}
 
 
