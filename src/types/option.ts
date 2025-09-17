@@ -5,6 +5,14 @@ export type OptionCheckbox = {
 	value: boolean,
 }
 
+export type OptionCheckboxGroup = {
+	choices: string[],
+	id: string,
+	kind: 'horizontalCheckbox' | 'verticalCheckbox',
+	text: string,
+	value: string[],
+}
+
 export type OptionChoice = {
 	choices: string[],
 	id: string,
@@ -16,6 +24,8 @@ export type OptionChoice = {
 export type OptionInteger = {
 	id: string,
 	kind: 'integer',
+	minimum: number,
+	maximum: number,
 	text: string,
 	value: number,
 }
@@ -23,6 +33,14 @@ export type OptionInteger = {
 export type OptionLabel = {
 	kind: 'label',
 	text: string,
+}
+
+export type OptionLayoutBegin = {
+	kind: 'horizontalLayoutBegin',
+}
+
+export type OptionLayoutEnd = {
+	kind: 'horizontalLayoutEnd',
 }
 
 export type OptionSeparator = {
@@ -36,6 +54,4 @@ export type OptionText = {
 	value: string,
 }
 
-// TODO horizontalCheckbox and verticalCheckbox
-
-export type Option = OptionCheckbox | OptionChoice | OptionInteger | OptionLabel | OptionSeparator | OptionText;
+export type Option = OptionCheckbox | OptionCheckboxGroup | OptionChoice | OptionInteger | OptionLabel | OptionLayoutBegin | OptionLayoutEnd | OptionSeparator | OptionText;

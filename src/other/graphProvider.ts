@@ -12,13 +12,15 @@ export class GraphProvider {
 	private uniqueName = '';
 
 
-	setEntity(entityName: string, uniqueName: string) {
+	setEntity(entityName: string, uniqueName: string)
+	{
 		this.entityName = entityName;
 		this.uniqueName = uniqueName;
 	}
 
 
-	view(graphName: string) {
+	view(graphName: string)
+	{
 		const key = this.toKey(graphName, this.uniqueName);
 		const graph = this.keyToGraph.get(key);
 		if (graph)
@@ -28,12 +30,14 @@ export class GraphProvider {
 	}
 
 
-	remove(graphName: string, uniqueName: string) {
+	remove(graphName: string, uniqueName: string)
+	{
 		this.keyToGraph.delete(this.toKey(graphName, uniqueName));
 	}
 
 
-	update(graphName: string, uniqueName: string, svg: string, options: Option[]) {
+	update(graphName: string, uniqueName: string, svg: string, options: Option[])
+	{
 		const graph = this.keyToGraph.get(this.toKey(graphName, uniqueName));
 		if (!graph)
 			return;
@@ -41,13 +45,15 @@ export class GraphProvider {
 	}
 
 
-	private toKey(graphName: string, uniqueName: string) {
+	private toKey(graphName: string, uniqueName: string)
+	{
 		return `${graphName} ${uniqueName}`;
 	}
 }
 
 
-export function handleUnderstandGraphsDrew(params: Params) {
+export function handleUnderstandGraphsDrew(params: Params)
+{
 	variables.graphProvider.update(params.graphName, params.uniqueName, params.svg, params.options);
 }
 
@@ -67,7 +73,8 @@ class Graph {
 	private uniqueName: string;
 
 
-	constructor(graphName: string, uniqueName: string, entityName: string) {
+	constructor(graphName: string, uniqueName: string, entityName: string)
+	{
 		this.graphName = graphName;
 		this.uniqueName = uniqueName;
 
@@ -75,7 +82,7 @@ class Graph {
 
 		this.panel = vscode.window.createWebviewPanel(
 			'understandGraph',
-			`${graphName} - ${entityName}`,
+			`${graphName}: ${entityName}`,
 			vscode.ViewColumn.Active,
 			{
 				enableCommandUris: false,
@@ -124,12 +131,14 @@ class Graph {
 	}
 
 
-	focus() {
+	focus()
+	{
 		this.panel.reveal();
 	}
 
 
-	update(svg: string, options: Option[]) {
+	update(svg: string, options: Option[])
+	{
 		this.postMessage({
 			method: 'update',
 			options: options,
@@ -138,7 +147,8 @@ class Graph {
 	}
 
 
-	private postMessage(message: GraphMessageToSandbox) {
+	private postMessage(message: GraphMessageToSandbox)
+	{
 		this.panel.webview.postMessage(message);
 	}
 }

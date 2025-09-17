@@ -2,7 +2,8 @@
 	--asideWidth: 20rem;
 	--graphMargin: 2rem;
 	--optionsMargin: 1rem;
-	--space: 1.5rem;
+	--spaceBig: 1rem;
+	--spaceSmall: 0.25rem;
 }
 
 @font-face {
@@ -50,18 +51,40 @@ text {
 }
 
 aside {
-	background: var(--vscode-sideBar-background);
+	background: var(--vscode-editor-background);
 	height: 100%;
 	overflow: auto;
 	width: var(--asideWidth);
+	border-left: 1px solid var(--vscode-editorRuler-foreground);
 }
 
 #options {
 	padding: var(--optionsMargin);
 }
 
+h1, h2, h3, h4, h5, h6 {
+	margin-top: var(--spaceBig);
+	margin-bottom: var(--spaceBig);
+}
+
+p {
+	margin-top: var(--spaceBig);
+	margin-bottom: 0;
+}
+
+h1:first-child, h2:first-child, h3:first-child, h4:first-child, h5:first-child, h6:first-child, p:first-child {
+	margin-top: 0;
+}
+
 input, label, select {
 	width: 100%;
+}
+
+.optionGroup {
+	margin-top: var(--spaceBig);
+	border: 1px solid var(--vscode-editorRuler-foreground);
+    padding: var(--spaceBig);
+	border-radius: 2px;
 }
 
 label {
@@ -69,7 +92,7 @@ label {
 }
 
 label:not(:first-child), hr {
-	margin-top: var(--space);
+	margin-top: var(--spaceBig);
 }
 
 label p, label span {
@@ -102,7 +125,7 @@ input, ::picker(select) {
 	background: var(--vscode-settings-textInputBackground);
 }
 
-input:focus, select:focus, select:has(option:focus) {
+input:focus, select:focus, select:has(option:focus), ::picker(select) {
 	outline-width: 1px;
 	outline-style: solid;
 	outline-offset: -1px;
@@ -117,7 +140,7 @@ input[type='checkbox'] {
 	color: var(--vscode-settings-checkboxForeground);
 	height: 18px;
 	margin: 0;
-	margin-right: 9px;
+	margin-right: var(--spaceSmall);
 	padding: 0;
 	width: 18px;
 }
@@ -127,7 +150,7 @@ input[type='number'], input[type='text'], select {
 	padding: 4px 6px;
 	box-sizing: border-box;
 	border-radius: 2px;
-	margin-top: 9px;
+	margin-top: var(--spaceSmall);
 }
 
 input[type='number'] {
@@ -190,5 +213,7 @@ option::checkmark {
 }
 
 hr {
-	border-color: var(--vscode-editorWidget-border);
+	border: none;
+    border-top: 1px solid var(--vscode-settings-headerForeground);
+	margin: var(--spaceBig) 0;
 }

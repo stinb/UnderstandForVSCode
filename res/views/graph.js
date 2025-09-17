@@ -38,6 +38,15 @@ function focusOnGraph()
 }
 
 
+/** @param {string} text */
+function modifyText(text)
+{
+	if (text.endsWith(':'))
+		return text.slice(0, text.length - 1);
+	return text;
+}
+
+
 /** @param {KeyboardEvent} e */
 function onKeyDown(e)
 {
@@ -111,11 +120,41 @@ function onMessage(e)
 		return;
 	optionsUi.innerHTML = '';
 
-	for (const option of message.options) {
+	/** @type {HTMLElement} */
+	let group = optionsUi;
+
+	// Figure out which option groups to skip because there's only 1 group
+	// between the separators
+	/** @type {Set<number>} */
+	const groupsIndexesToSkip = new Set;
+	const groupsIndexes = [];
+	for (let i = 0; i < message.options.length; i++) {
+		switch (message.options[i].kind) {
+			case 'horizontalCheckbox':
+			case 'horizontalLayoutBegin':
+			case 'verticalCheckbox':
+				groupsIndexes.push(i);
+				break;
+			case 'separator':
+				if (groupsIndexes.length === 1)
+					for (const groupIndex of groupsIndexes)
+						groupsIndexesToSkip.add(groupIndex);
+				groupsIndexes.length = 0;
+				break;
+		}
+	}
+	if (groupsIndexes.length === 1)
+		for (const groupIndex of groupsIndexes)
+			groupsIndexesToSkip.add(groupIndex);
+	groupsIndexes.length = 0;
+
+	// Draw each option
+	for (let i = 0; i < message.options.length; i++) {
+		const option = message.options[i];
 		switch (option.kind) {
 			case 'checkbox': {
 				const label = document.createElement('label');
-				optionsUi.appendChild(label);
+				group.appendChild(label);
 
 				const input = document.createElement('input');
 				input.type = 'checkbox';
@@ -124,38 +163,42 @@ function onMessage(e)
 				label.appendChild(input);
 
 				const labelText = document.createElement('span');
-				labelText.innerText = option.text;
+				labelText.innerText = modifyText(option.text);
 				label.appendChild(labelText);
+				break;
+			}
+
+			case 'choice':
+			case 'horizontalRadio':
+			case 'verticalRadio': {
+				const label = document.createElement('label');
+				group.appendChild(label);
+
+				const labelText = document.createElement('p');
+				labelText.innerText = modifyText(option.text);
+				label.appendChild(labelText);
+
+				const select = document.createElement('select');
+				select.id = option.id;
+				select.value = option.value;
+				label.appendChild(select);
+
+				for (const choice of option.choices) {
+					const optionUi = document.createElement('option');
+					optionUi.innerText = modifyText(choice);
+					select.appendChild(optionUi);
+				}
 				break;
 			}
 
 			case 'directoryText':
 			case 'fileText':
-			case 'integer':
 			case 'text': {
 				const label = document.createElement('label');
-				optionsUi.appendChild(label);
+				group.appendChild(label);
 
 				const labelText = document.createElement('p');
-				labelText.innerText = option.text;
-				label.appendChild(labelText);
-
-				const input = document.createElement('input');
-				input.type = 'number';
-				input.id = option.id;
-				input.value = option.value.toString();
-				label.appendChild(input);
-				break;
-			}
-
-			case 'directoryText':
-			case 'fileText':
-			case 'text': {
-				const label = document.createElement('label');
-				optionsUi.appendChild(label);
-
-				const labelText = document.createElement('p');
-				labelText.innerText = option.text;
+				labelText.innerText = modifyText(option.text);
 				label.appendChild(labelText);
 
 				const input = document.createElement('input');
@@ -166,26 +209,76 @@ function onMessage(e)
 				break;
 			}
 
-			case 'choice':
-			case 'horizontalRadio':
-			case 'verticalRadio': {
-				const label = document.createElement('label');
-				optionsUi.appendChild(label);
+			case 'horizontalCheckbox':
+			case 'verticalCheckbox': {
+				const innerGroup = document.createElement('div');
+				innerGroup.className = 'optionGroup';
+				innerGroup.id = option.id;
+				group.appendChild(innerGroup);
 
-				const labelText = document.createElement('p');
-				labelText.innerText = option.text;
-				label.appendChild(labelText);
+				const labelText = document.createElement('h3');
+				labelText.innerText = modifyText(option.text);
+				innerGroup.appendChild(labelText);
 
-				const select = document.createElement('select');
-				select.id = option.id;
-				select.value = option.value;
-				label.appendChild(select);
+				const checked = new Set(option.value);
 
 				for (const choice of option.choices) {
-					const optionUi = document.createElement('option');
-					optionUi.innerText = choice;
-					select.appendChild(optionUi);
+					const label = document.createElement('label');
+					innerGroup.appendChild(label);
+
+					const input = document.createElement('input');
+					input.type = 'checkbox';
+					input.name = choice;
+					input.checked = checked.has(choice);
+					label.appendChild(input);
+
+					const labelText = document.createElement('span');
+					labelText.innerText = modifyText(choice);
+					label.appendChild(labelText);
 				}
+				break;
+			}
+
+			case 'horizontalLayoutBegin': {
+				if (groupsIndexesToSkip.has(i))
+					break;
+				group = document.createElement('div');
+				group.className = 'optionGroup';
+				optionsUi.appendChild(group);
+				break;
+			}
+
+			case 'horizontalLayoutEnd': {
+				group = optionsUi;
+				break;
+			}
+
+			case 'integer': {
+				const range = option.minimum === option.maximum ? `${option.minimum}` : `${option.minimum} ... ${option.maximum}`;
+
+				const label = document.createElement('label');
+				label.title = range;
+				group.appendChild(label);
+
+				const labelText = document.createElement('p');
+				labelText.innerText = modifyText(option.text);
+				label.appendChild(labelText);
+
+				const input = document.createElement('input');
+				input.type = 'number';
+				input.id = option.id;
+				input.min = option.minimum.toString();
+				input.max = option.maximum.toString();
+				input.placeholder = range;
+				input.value = option.value.toString();
+				label.appendChild(input);
+				break;
+			}
+
+			case 'label': {
+				const labelText = document.createElement('h3');
+				labelText.innerText = modifyText(option.text);
+				group.appendChild(labelText);
 				break;
 			}
 
