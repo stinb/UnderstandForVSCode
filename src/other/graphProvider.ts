@@ -2,10 +2,11 @@ import * as vscode from 'vscode';
 import { escapeHtml } from './html';
 import { variables } from './variables';
 import { GraphMessageFromSandbox, GraphMessageToSandbox } from '../types/graph';
-import { Option } from '../types/option';
+import { Option, OptionIntegerRange } from '../types/option';
 
 
-export class GraphProvider {
+export class GraphProvider
+{
 	private keyToGraph: Map<string, Graph> = new Map;
 
 	private entityName = '';
@@ -33,15 +34,19 @@ export class GraphProvider {
 	remove(graphName: string, uniqueName: string)
 	{
 		this.keyToGraph.delete(this.toKey(graphName, uniqueName));
+		variables.languageClient.sendRequest('understand/graphs/remove', {
+			graphName: graphName,
+			uniqueName: uniqueName,
+		});
 	}
 
 
-	update(graphName: string, uniqueName: string, svg: string, options: Option[])
+	update(graphName: string, uniqueName: string, svg: string, options?: Option[], optionRanges?: OptionIntegerRange[])
 	{
 		const graph = this.keyToGraph.get(this.toKey(graphName, uniqueName));
 		if (!graph)
 			return;
-		graph.update(svg, options);
+		graph.update(svg, options, optionRanges);
 	}
 
 
@@ -54,7 +59,7 @@ export class GraphProvider {
 
 export function handleUnderstandGraphsDrew(params: Params)
 {
-	variables.graphProvider.update(params.graphName, params.uniqueName, params.svg, params.options);
+	variables.graphProvider.update(params.graphName, params.uniqueName, params.svg, params.options, params.optionRanges);
 }
 
 
@@ -63,11 +68,13 @@ type Params = {
 	graphName: string,
 	uniqueName: string,
 	svg: string,
-	options: Option[],
+	options?: Option[],
+	optionRanges?: OptionIntegerRange[],
 }
 
 
-class Graph {
+class Graph
+{
 	private panel: vscode.WebviewPanel;
 
 	private graphName: string;
@@ -109,7 +116,7 @@ class Graph {
 		webview.onDidReceiveMessage(this.handleMessage, this);
 
 		webview.html =
-			`<!DOCTYPE html>
+`<!DOCTYPE html>
 <html>
 <head>
 	<meta http-equiv='Content-Security-Policy' content="default-src 'none'; font-src ${cspSource}; script-src ${cspSource}; style-src ${cspSource};">
@@ -151,11 +158,12 @@ class Graph {
 	}
 
 
-	update(svg: string, options: Option[])
+	update(svg: string, options?: Option[], optionRanges?: OptionIntegerRange[])
 	{
 		this.postMessage({
 			method: 'update',
 			options: options,
+			optionRanges: optionRanges,
 			svg: svg,
 		});
 	}

@@ -1,4 +1,5 @@
-import { Option } from './option';
+import { Option, OptionIntegerRange } from './option';
+
 
 export type ChangedOption = {
 	method: 'changedOption',
@@ -8,9 +9,11 @@ export type ChangedOption = {
 
 export type GraphMessageFromSandbox = ChangedOption;
 
+
 export type Update = {
 	method: 'update',
-	options: Option[],
+	options?: Option[],
+	optionRanges?: OptionIntegerRange[],
 	svg: string,
 };
 

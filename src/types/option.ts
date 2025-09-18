@@ -55,3 +55,10 @@ export type OptionText = {
 }
 
 export type Option = OptionCheckbox | OptionCheckboxGroup | OptionChoice | OptionInteger | OptionLabel | OptionLayoutBegin | OptionLayoutEnd | OptionSeparator | OptionText;
+
+
+export type OptionIntegerRange = {
+	id: string,
+	minimum: number,
+	maximum: number,
+};

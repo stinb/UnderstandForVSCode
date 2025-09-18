@@ -16,6 +16,10 @@
 	background: var(--vscode-selection-background);
 }
 
+body.vscode-dark {
+	color-scheme: dark;
+}
+
 body {
 	display: flex;
 	height: 100vh;
@@ -35,10 +39,12 @@ main {
 #graphContainer {
 	align-items: center;
 	display: flex;
+	height: fit-content;
 	justify-content: center;
-	height: calc(100vh - var(--graphMargin) * 2);
+	min-height: calc(100vh - var(--graphMargin) * 2);
+	min-width: calc(100vw - var(--asideWidth) - var(--graphMargin) * 2);
 	padding: var(--graphMargin);
-	width: calc(100vw - var(--asideWidth) - var(--graphMargin) * 2);
+	width: fit-content;
 }
 
 #loader {
@@ -163,11 +169,6 @@ input[type='number'] {
 input[type='text'] {
 	border-color: var(--vscode-settings-textInputBorder);
 	color: var(--vscode-settings-textInputForeground);
-}
-
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-	display: none;
 }
 
 select {
