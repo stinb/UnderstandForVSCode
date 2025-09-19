@@ -145,6 +145,7 @@ function drawOptions(options)
 				const input = document.createElement('input');
 				input.type = 'text';
 				input.dataset.id = option.id;
+				input.dataset.vscodeContext = '{"preventDefaultContextMenuItems":false}';
 				input.value = option.value;
 				input.onchange = onChangeString;
 				label.appendChild(input);
@@ -209,6 +210,7 @@ function drawOptions(options)
 				input.onchange = onChangeInteger;
 				input.type = 'number';
 				input.dataset.id = option.id;
+				input.dataset.vscodeContext = '{"preventDefaultContextMenuItems":false}';
 				input.value = option.value.toString();
 				label.appendChild(input);
 

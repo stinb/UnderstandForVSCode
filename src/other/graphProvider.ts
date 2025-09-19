@@ -41,12 +41,12 @@ export class GraphProvider
 	}
 
 
-	update(graphName: string, uniqueName: string, svg: string, options?: Option[], optionRanges?: OptionIntegerRange[])
+	update(params: Params)
 	{
-		const graph = this.keyToGraph.get(this.toKey(graphName, uniqueName));
+		const graph = this.keyToGraph.get(this.toKey(params.graphName, params.uniqueName));
 		if (!graph)
 			return;
-		graph.update(svg, options, optionRanges);
+		graph.update(params.svg, params.options, params.optionRanges);
 	}
 
 
@@ -59,7 +59,7 @@ export class GraphProvider
 
 export function handleUnderstandGraphsDrew(params: Params)
 {
-	variables.graphProvider.update(params.graphName, params.uniqueName, params.svg, params.options, params.optionRanges);
+	variables.graphProvider.update(params);
 }
 
 
@@ -102,6 +102,14 @@ class Graph
 			},
 		);
 
+		this.panel.onDidChangeViewState((e: vscode.WebviewPanelOnDidChangeViewStateEvent) => {
+			if (!this.panel.active)
+				return;
+			variables.languageClient.sendNotification('understand/graphs/focused', {
+				uniqueName: this.uniqueName,
+			});
+		});
+
 		this.panel.onDidDispose(() => {
 			variables.graphProvider.remove(this.graphName, this.uniqueName);
 		});
@@ -124,7 +132,7 @@ class Graph
 	<link rel='stylesheet' href='${escapeHtml(uriStyleIcons)}'>
 </head>
 
-<body>
+<body data-vscode-context='{"preventDefaultContextMenuItems":true}'>
 	<main id='main' tabindex='0'>
 		<div id='graphContainer'>
 			<p id='loader'>Loading</p>
