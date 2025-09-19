@@ -362,20 +362,49 @@ function onMessage(e)
 {
 	const message = /** @type {GraphMessageToSandbox} */ (e.data);
 
-	const loader = document.getElementById('loader');
-	if (loader)
-		loader.remove();
+	switch (message.method) {
+		case 'convert': {
+			switch (message.extension) {
+				case 'jpg':
+					// TODO
+					break;
+				case 'png':
+					// TODO
+					break;
+				case 'svg': {
+					// TODO
+					break;
+				}
+			}
+			break;
+		}
+		case 'toggleOptions': {
+			const style = document.documentElement.style;
+			if (style.getPropertyValue('--asideWidth') === '0rem')
+				style.setProperty('--asideWidth', '20rem');
+			else
+				style.setProperty('--asideWidth', '0rem');
+			return;
+		}
+		case 'update': {
+			const loader = document.getElementById('loader');
+			if (loader)
+				loader.remove();
 
-	const container = document.getElementById('graphContainer');
-	if (!container)
-		return;
-	container.innerHTML = message.svg;
+			const container = document.getElementById('graphContainer');
+			if (!container)
+				return;
+			container.innerHTML = message.svg;
 
-	if (message.optionRanges !== undefined)
-		return updateOptionRanges(message.optionRanges);
+			if (message.optionRanges !== undefined)
+				return updateOptionRanges(message.optionRanges);
 
-	if (message.options !== undefined)
-		return drawOptions(message.options);
+			if (message.options !== undefined)
+				return drawOptions(message.options);
+			return;
+		}
+	}
+
 }
 
 

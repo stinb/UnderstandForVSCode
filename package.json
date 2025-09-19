@@ -104,6 +104,18 @@
 				"category": "Understand: Annotations"
 			},
 			{
+				"command": "understand.graphs.options",
+				"title": "Options",
+				"category": "Understand: Graphs",
+				"icon": "$(settings)"
+			},
+			{
+				"command": "understand.graphs.save",
+				"title": "Save",
+				"category": "Understand: Graphs",
+				"icon": "$(save)"
+			},
+			{
 				"command": "understand.references.findAllImplementations",
 				"title": "Find All Implementations",
 				"category": "Understand: References"
@@ -473,6 +485,18 @@
 				{
 					"command": "understand.exploreInUnderstand.currentFile",
 					"when": "understandFile"
+				}
+			],
+			"editor/title": [
+				{
+					"command": "understand.graphs.options",
+					"when": "activeWebviewPanelId == understandGraph",
+					"group": "navigation"
+				},
+				{
+					"command": "understand.graphs.save",
+					"when": "activeWebviewPanelId == understandGraph",
+					"group": "navigation"
 				}
 			],
 			"editor/title/context": [

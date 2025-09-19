@@ -63,6 +63,8 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.exploreInUnderstand.newProject', exploreInUnderstand.newProject),
 
 		// Commands: Graphs
+		vscode.commands.registerCommand('understand.graphs.options', graphs.options),
+		vscode.commands.registerCommand('understand.graphs.save', graphs.save),
 		vscode.commands.registerCommand('understand.graphs.view', graphs.view),
 
 		// Commands: References

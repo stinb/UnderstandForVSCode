@@ -7,8 +7,24 @@ export type ChangedOption = {
 	value: boolean | number | string | string[],
 };
 
-export type GraphMessageFromSandbox = ChangedOption;
+export type Save = {
+	method: 'save',
+	content: string,
+	path: string,
+};
 
+export type GraphMessageFromSandbox = ChangedOption | Save;
+
+
+export type Convert = {
+	method: 'convert',
+	extension: 'jpg' | 'png' | 'svg',
+	path: string,
+};
+
+export type ToggleOptions = {
+	method: 'toggleOptions',
+};
 
 export type Update = {
 	method: 'update',
@@ -17,4 +33,4 @@ export type Update = {
 	svg: string,
 };
 
-export type GraphMessageToSandbox = Update;
+export type GraphMessageToSandbox = Convert | ToggleOptions | Update;

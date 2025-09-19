@@ -10,6 +10,7 @@ export class GraphProvider
 	private keyToGraph: Map<string, Graph> = new Map;
 
 	private entityName = '';
+	private focusedGraph?: Graph = undefined;
 	private uniqueName = '';
 
 
@@ -17,6 +18,12 @@ export class GraphProvider
 	{
 		this.entityName = entityName;
 		this.uniqueName = uniqueName;
+	}
+
+
+	setFocusedGraph(graph?: Graph)
+	{
+		this.focusedGraph = graph;
 	}
 
 
@@ -38,6 +45,21 @@ export class GraphProvider
 			graphName: graphName,
 			uniqueName: uniqueName,
 		});
+	}
+
+
+	save()
+	{
+		if (!this.focusedGraph)
+			return;
+		this.focusedGraph.save();
+	}
+
+	toggleOptions()
+	{
+		if (!this.focusedGraph)
+			return;
+		this.focusedGraph.toggleOptions();
 	}
 
 
@@ -103,8 +125,11 @@ class Graph
 		);
 
 		this.panel.onDidChangeViewState((e: vscode.WebviewPanelOnDidChangeViewStateEvent) => {
-			if (!this.panel.active)
+			if (!this.panel.active) {
+				variables.graphProvider.setFocusedGraph();
 				return;
+			}
+			variables.graphProvider.setFocusedGraph(this);
 			variables.languageClient.sendNotification('understand/graphs/focused', {
 				uniqueName: this.uniqueName,
 			});
@@ -157,12 +182,51 @@ class Graph
 
 	handleMessage(message: GraphMessageFromSandbox)
 	{
-		variables.languageClient.sendNotification('understand/graphs/draw', {
-			graphName: this.graphName,
-			optionId: message.id,
-			optionValue: message.value,
-			uniqueName: this.uniqueName,
+		switch (message.method) {
+			case 'changedOption':
+				variables.languageClient.sendNotification('understand/graphs/draw', {
+					graphName: this.graphName,
+					optionId: message.id,
+					optionValue: message.value,
+					uniqueName: this.uniqueName,
+				});
+				break;
+			case 'save':
+				// TODO
+				break;
+		}
+	}
+
+
+	async save()
+	{
+		const uri = await vscode.window.showSaveDialog({
+			filters: {
+				'SVG (default)': ['svg'],
+				'JPG': ['jpg'],
+				'PNG': ['png'],
+			},
+			title: 'Save as SVG (default), JPG, PNG',
 		});
+		if (!uri)
+			return;
+
+		const path = uri.fsPath;
+		const extensionMatch = /\.([^.]*)$/.exec(path);
+		if (!extensionMatch)
+			return;
+		const extension = extensionMatch[1].toLowerCase();
+
+		switch (extension) {
+			case 'jpg': case 'png': case 'svg':
+				return this.postMessage({method: 'convert', extension, path});
+		}
+	}
+
+
+	toggleOptions()
+	{
+		this.postMessage({ method: 'toggleOptions' });
 	}
 
 
@@ -181,4 +245,10 @@ class Graph
 	{
 		this.panel.webview.postMessage(message);
 	}
+}
+
+
+function errorFileExtension()
+{
+	vscode.window.showErrorMessage('Expected a file extension of .jpg .png or .svg');
 }
