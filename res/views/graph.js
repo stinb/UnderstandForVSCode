@@ -364,23 +364,39 @@ function onMessage(e)
 
 	switch (message.method) {
 		case 'convert': {
+			// Copy SVG
+			const svgs = document.getElementsByTagName('svg');
+			if (svgs.length !== 1)
+				return;
+			/** @ts-ignore @type {SVGSVGElement} */
+			const svg = svgs[0].cloneNode(true);
+
+			// Set the text color
+			const fill = document.documentElement.style.getPropertyValue('--vscode-foreground');
+			for (const text of svg.getElementsByTagName('text'))
+				text.setAttribute('fill', fill);
+
+			// Save it
 			switch (message.extension) {
 				case 'jpg':
-					// TODO
-					break;
+					saveRaster(message.path, svg, 'image/jpeg');
+					return;
 				case 'png':
-					// TODO
-					break;
+					saveRaster(message.path, svg, 'image/png');
+					return;
 				case 'svg': {
-					// TODO
-					break;
+					vscode.postMessage({
+						method: 'saveString',
+						path: message.path,
+						content: svg.outerHTML,
+					});
+					return;
 				}
 			}
-			break;
 		}
 		case 'toggleOptions': {
 			const style = document.documentElement.style;
-			if (style.getPropertyValue('--asideWidth') === '0rem')
+			if (document.documentElement.style.getPropertyValue('--asideWidth') === '0rem')
 				style.setProperty('--asideWidth', '20rem');
 			else
 				style.setProperty('--asideWidth', '0rem');
@@ -404,7 +420,63 @@ function onMessage(e)
 			return;
 		}
 	}
+}
 
+
+/**
+ * @param {string} path
+ * @param {SVGSVGElement} svg
+ * @param {'image/jpeg' | 'image/png'} type
+ */
+async function saveRaster(path, svg, type)
+{
+	// Create area to draw pixels of SVG
+	const canvas = document.createElement('canvas');
+	const ctx = canvas.getContext('2d');
+	if (!ctx)
+		return;
+	canvas.width = parseInt(svg.getAttribute('width') || '0');
+	canvas.height = parseInt(svg.getAttribute('height') || '0');
+
+	// Background color
+	if (type === 'image/jpeg') {
+		const background = document.documentElement.style.getPropertyValue('--vscode-editor-background');
+		ctx.fillStyle = background;
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+	}
+
+	// Draw the SVG in the canvas
+	const xml = new XMLSerializer().serializeToString(svg);
+	const svg64 = btoa(xml);
+	const img64 = 'data:image/svg+xml;base64,' + svg64;
+	const img = new Image();
+	img.src = img64;
+	await img.decode();
+	ctx.drawImage(img, 0, 0);
+
+	// Convert to the image format
+	/** @type {Blob | null} */
+	const blob = await new Promise(resolve => canvas.toBlob(resolve, type));
+	if (!blob)
+		return;
+
+	// Convert blob to base 64
+	/** @type {string} */
+	const content = await new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.onloadend = () => {
+			// @ts-ignore result is a string (https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL)
+			resolve(reader.result.split(',')[1]);
+		};
+		reader.onerror = (error) => reject(error);
+		reader.readAsDataURL(blob);
+	});
+
+	vscode.postMessage({
+		method: 'saveBase64',
+		path: path,
+		content: content,
+	});
 }
 
 

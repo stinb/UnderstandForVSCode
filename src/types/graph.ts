@@ -7,13 +7,19 @@ export type ChangedOption = {
 	value: boolean | number | string | string[],
 };
 
-export type Save = {
-	method: 'save',
+export type SaveBase64 = {
+	method: 'saveBase64',
 	content: string,
 	path: string,
 };
 
-export type GraphMessageFromSandbox = ChangedOption | Save;
+export type SaveString = {
+	method: 'saveString',
+	content: string,
+	path: string,
+};
+
+export type GraphMessageFromSandbox = ChangedOption | SaveBase64 | SaveString;
 
 
 export type Convert = {

@@ -1,4 +1,7 @@
+import * as fsPromises from 'node:fs/promises';
+
 import * as vscode from 'vscode';
+
 import { escapeHtml } from './html';
 import { variables } from './variables';
 import { GraphMessageFromSandbox, GraphMessageToSandbox } from '../types/graph';
@@ -152,7 +155,7 @@ class Graph
 `<!DOCTYPE html>
 <html>
 <head>
-	<meta http-equiv='Content-Security-Policy' content="default-src 'none'; font-src ${cspSource}; script-src ${cspSource}; style-src ${cspSource};">
+	<meta http-equiv='Content-Security-Policy' content="default-src 'none'; img-src data:; font-src ${cspSource}; script-src ${cspSource}; style-src ${cspSource};">
 	<link rel='stylesheet' href='${escapeHtml(uriStyle)}'>
 	<link rel='stylesheet' href='${escapeHtml(uriStyleIcons)}'>
 </head>
@@ -191,8 +194,11 @@ class Graph
 					uniqueName: this.uniqueName,
 				});
 				break;
-			case 'save':
-				// TODO
+			case 'saveBase64':
+				saveFile(message.path, Buffer.from(message.content, 'base64'));
+				break;
+			case 'saveString':
+				saveFile(message.path, message.content);
 				break;
 		}
 	}
@@ -248,7 +254,14 @@ class Graph
 }
 
 
-function errorFileExtension()
+async function saveFile(path: string, content: string | Buffer)
 {
-	vscode.window.showErrorMessage('Expected a file extension of .jpg .png or .svg');
+	try {
+		const file = await fsPromises.open(path, 'w');
+		// @ts-ignore write accepts string, Buffer, and other types
+		await file.write(content);
+		await file.close();
+	} catch (error) {
+		vscode.window.showErrorMessage(`Failed to save graph "${path}": ${error}`);
+	}
 }
