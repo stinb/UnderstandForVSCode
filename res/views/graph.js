@@ -402,7 +402,7 @@ function onMessage(e)
 				style.setProperty('--asideWidth', '0rem');
 			return;
 		}
-		case 'update': {
+		case 'updateGraph': {
 			const loader = document.getElementById('loader');
 			if (loader)
 				loader.remove();
@@ -411,12 +411,14 @@ function onMessage(e)
 			if (!container)
 				return;
 			container.innerHTML = message.svg;
-
-			if (message.optionRanges !== undefined)
-				return updateOptionRanges(message.optionRanges);
-
-			if (message.options !== undefined)
-				return drawOptions(message.options);
+			return;
+		}
+		case 'updateOptionRanges': {
+			updateOptionRanges(message.optionRanges);
+			return;
+		}
+		case 'updateOptions': {
+			drawOptions(message.options);
 			return;
 		}
 	}

@@ -66,12 +66,39 @@ export class GraphProvider
 	}
 
 
-	update(params: Params)
+	updateGraph(params: ParamsDrew)
 	{
 		const graph = this.keyToGraph.get(this.toKey(params.graphName, params.uniqueName));
 		if (!graph)
 			return;
-		graph.update(params.svg, params.options, params.optionRanges);
+		graph.postMessage({
+			method: 'updateGraph',
+			svg: params.svg,
+		});
+	}
+
+
+	updateOptionRanges(params: ParamsOptionRanges)
+	{
+		const graph = this.keyToGraph.get(this.toKey(params.graphName, params.uniqueName));
+		if (!graph)
+			return;
+		graph.postMessage({
+			method: 'updateOptionRanges',
+			optionRanges: params.optionRanges,
+		});
+	}
+
+
+	updateOptions(params: ParamsOptions)
+	{
+		const graph = this.keyToGraph.get(this.toKey(params.graphName, params.uniqueName));
+		if (!graph)
+			return;
+		graph.postMessage({
+			method: 'updateOptions',
+			options: params.options,
+		});
 	}
 
 
@@ -82,19 +109,40 @@ export class GraphProvider
 }
 
 
-export function handleUnderstandGraphsDrew(params: Params)
+export function handleUnderstandGraphsDrew(params: ParamsDrew)
 {
-	variables.graphProvider.update(params);
+	variables.graphProvider.updateGraph(params);
 }
 
 
-type Params = {
-	errors: string[],
+export function handleUnderstandGraphsOptionRanges(params: ParamsOptionRanges)
+{
+	variables.graphProvider.updateOptionRanges(params);
+}
+
+
+export function handleUnderstandGraphsOptions(params: ParamsOptions)
+{
+	variables.graphProvider.updateOptions(params);
+}
+
+
+type ParamsDrew = {
 	graphName: string,
 	uniqueName: string,
 	svg: string,
-	options?: Option[],
-	optionRanges?: OptionIntegerRange[],
+}
+
+type ParamsOptions = {
+	graphName: string,
+	uniqueName: string,
+	options: Option[],
+}
+
+type ParamsOptionRanges = {
+	graphName: string,
+	uniqueName: string,
+	optionRanges: OptionIntegerRange[],
 }
 
 
@@ -236,18 +284,7 @@ class Graph
 	}
 
 
-	update(svg: string, options?: Option[], optionRanges?: OptionIntegerRange[])
-	{
-		this.postMessage({
-			method: 'update',
-			options: options,
-			optionRanges: optionRanges,
-			svg: svg,
-		});
-	}
-
-
-	private postMessage(message: GraphMessageToSandbox)
+	postMessage(message: GraphMessageToSandbox)
 	{
 		this.panel.webview.postMessage(message);
 	}

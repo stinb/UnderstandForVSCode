@@ -32,11 +32,19 @@ export type ToggleOptions = {
 	method: 'toggleOptions',
 };
 
-export type Update = {
-	method: 'update',
-	options?: Option[],
-	optionRanges?: OptionIntegerRange[],
+export type UpdateGraph = {
+	method: 'updateGraph',
 	svg: string,
 };
 
-export type GraphMessageToSandbox = Convert | ToggleOptions | Update;
+export type UpdateOptionRanges = {
+	method: 'updateOptionRanges',
+	optionRanges: OptionIntegerRange[],
+};
+
+export type UpdateOptions = {
+	method: 'updateOptions',
+	options: Option[],
+};
+
+export type GraphMessageToSandbox = Convert | ToggleOptions | UpdateGraph | UpdateOptionRanges | UpdateOptions;

@@ -23,7 +23,11 @@ import { onDidChangeActiveTextEditor, onDidChangeTextEditorSelection } from './c
 import { handleUnderstandGraphsListed } from '../treeProviders/graphs';
 import { handleUnderstandChangedReferences } from '../treeProviders/references';
 import { Section } from '../viewProviders/annotationMessage';
-import { handleUnderstandGraphsDrew } from './graphProvider';
+import {
+	handleUnderstandGraphsDrew,
+	handleUnderstandGraphsOptionRanges,
+	handleUnderstandGraphsOptions
+} from './graphProvider';
 
 
 type AiClearParams = {
@@ -102,6 +106,8 @@ export async function startLsp()
 		variables.languageClient.onNotification('understand/changedReferences', handleUnderstandChangedReferences);
 		variables.languageClient.onNotification('understand/graphs/drew', handleUnderstandGraphsDrew);
 		variables.languageClient.onNotification('understand/graphs/listed', handleUnderstandGraphsListed);
+		variables.languageClient.onNotification('understand/graphs/optionRanges', handleUnderstandGraphsOptionRanges);
+		variables.languageClient.onNotification('understand/graphs/options', handleUnderstandGraphsOptions);
 		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
 		variables.languageClient.onRequest('workspace/configuration', handleWorkspaceConfiguration);
 	}).catch(function(error) {
