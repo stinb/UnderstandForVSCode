@@ -68,7 +68,7 @@ export class GraphProvider
 
 	updateGraph(params: ParamsDrew)
 	{
-		const graph = this.keyToGraph.get(this.toKey(params.graphName, params.uniqueName));
+		const graph = this.getGraph(params);
 		if (!graph)
 			return;
 		graph.postMessage({
@@ -80,7 +80,7 @@ export class GraphProvider
 
 	updateOptionRanges(params: ParamsOptionRanges)
 	{
-		const graph = this.keyToGraph.get(this.toKey(params.graphName, params.uniqueName));
+		const graph = this.getGraph(params);
 		if (!graph)
 			return;
 		graph.postMessage({
@@ -92,13 +92,22 @@ export class GraphProvider
 
 	updateOptions(params: ParamsOptions)
 	{
-		const graph = this.keyToGraph.get(this.toKey(params.graphName, params.uniqueName));
+		const graph = this.getGraph(params);
 		if (!graph)
 			return;
 		graph.postMessage({
 			method: 'updateOptions',
 			options: params.options,
 		});
+	}
+
+
+	private getGraph(params: ParamsDrew | ParamsOptionRanges | ParamsOptions): Graph | undefined
+	{
+		const result = this.keyToGraph.get(this.toKey(params.graphName, params.uniqueName));
+		if (!result)
+			vscode.window.showErrorMessage('Failed to find the graph');
+		return result;
 	}
 
 
