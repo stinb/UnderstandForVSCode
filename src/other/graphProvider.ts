@@ -176,6 +176,7 @@ class Graph
 			vscode.ViewColumn.Active,
 			{
 				enableCommandUris: false,
+				enableFindWidget: true,
 				enableForms: false,
 				enableScripts: true,
 				localResourceRoots: [variables.extensionUri],
