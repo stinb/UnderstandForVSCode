@@ -50,13 +50,28 @@ let timeout = undefined;
 let zoom = 1;
 
 
+/** @param {HTMLInputElement} input */
+function clamp(input)
+{
+	const value = parseFloat(input.value);
+	const min = parseInt(input.min);
+	const max = parseInt(input.max);
+	if (value < min)
+		input.value = min.toString();
+	else if (value > max)
+		input.value = max.toString();
+	else
+		input.value = Math.round(value).toString();
+}
+
+
 function drawLoader()
 {
 	const optionsUi = document.getElementById('options');
 	if (!optionsUi)
 		return;
 
-	if (document.getElementsByClassName('codicon-loading').length)
+	if (optionsUi.getElementsByClassName('codicon-loading').length)
 		return;
 
 	const icon = document.createElement('span');
@@ -293,8 +308,11 @@ function onChangeInteger(e)
 {
 	if (!e.target || !(e.target instanceof HTMLInputElement))
 		return;
-	if (!e.target.dataset.id)
+	if (!e.target.dataset.id || e.target.value === '')
 		return;
+
+	clamp(e.target);
+
 	sendChangeDelayed(e.target.dataset.id, parseInt(e.target.value));
 }
 
@@ -566,6 +584,7 @@ function updateNumberRange(label, input, min, max)
 	input.min = min.toString();
 	input.max = max.toString();
 	input.placeholder = rangeString;
+	clamp(input);
 }
 
 
