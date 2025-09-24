@@ -47,7 +47,7 @@ main {
 	width: fit-content;
 }
 
-#loader {
+.codicon-loading::before {
 	font-size: 2rem;
 }
 
@@ -218,4 +218,9 @@ hr {
 	border: none;
     border-top: 1px solid var(--vscode-settings-headerForeground);
 	margin: var(--spaceBig) 0;
+}
+
+#options .codicon-loading {
+	margin: var(--spaceBig) auto;
+	display: block;
 }

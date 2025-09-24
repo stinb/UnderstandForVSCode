@@ -220,7 +220,7 @@ class Graph
 <body data-vscode-context='{"preventDefaultContextMenuItems":true}'>
 	<main id='main' tabindex='0'>
 		<div id='graphContainer'>
-			<p id='loader'>Loading</p>
+			<span class='codicon codicon-loading codicon-modifier-spin'></span>
 		</div>
 	</main>
 

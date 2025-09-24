@@ -41,7 +41,7 @@
 	opacity: 0;
 }
 
-.codicon-loading {
+.codicon-loading.codicon-modifier-spin {
 	animation-duration: 1s;
 	animation-timing-function: cubic-bezier(0.53, 0.21, 0.29, 0.67);
 }

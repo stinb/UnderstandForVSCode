@@ -50,6 +50,21 @@ let timeout = undefined;
 let zoom = 1;
 
 
+function drawLoader()
+{
+	const optionsUi = document.getElementById('options');
+	if (!optionsUi)
+		return;
+
+	if (document.getElementsByClassName('codicon-loading').length)
+		return;
+
+	const icon = document.createElement('span');
+	icon.className = 'codicon codicon-loading codicon-modifier-spin';
+	optionsUi.appendChild(icon);
+}
+
+
 /** @param {Option[]} options */
 function drawOptions(options)
 {
@@ -403,8 +418,7 @@ function onMessage(e)
 			return;
 		}
 		case 'updateGraph': {
-			const loader = document.getElementById('loader');
-			if (loader)
+			for (const loader of document.getElementsByClassName('codicon-loading'))
 				loader.remove();
 
 			const container = document.getElementById('graphContainer');
@@ -500,6 +514,8 @@ function sendChange()
  */
 function sendChangeDelayed(id, value)
 {
+	drawLoader();
+
 	if (timeout !== undefined)
 		window.clearTimeout(timeout);
 	timeout = window.setTimeout(sendChange, DELAY_MILLISECONDS);
