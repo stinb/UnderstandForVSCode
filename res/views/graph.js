@@ -579,11 +579,22 @@ function smoothScrollLoop()
  */
 function updateNumberRange(label, input, min, max)
 {
-	const rangeString = (min === max) ? `${min}` : `${min} ... ${max}`;
-	label.title = rangeString;
+	if (min > max) {
+		const placeholder = 'Disabled';
+		label.title = placeholder;
+		input.disabled = true;
+		input.min = '0';
+		input.max = '0';
+		input.placeholder = placeholder;
+		input.value = '';
+		return;
+	}
+
+	const placeholder = (min === max) ? `${min}` : `${min} ... ${max}`;
+	label.title = placeholder;
 	input.min = min.toString();
 	input.max = max.toString();
-	input.placeholder = rangeString;
+	input.placeholder = placeholder;
 	clamp(input);
 }
 
