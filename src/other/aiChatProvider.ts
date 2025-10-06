@@ -154,7 +154,7 @@ class Chat
 	<div id="inputs">
 		<div id="suggestions"></div>
 		<input id="input" placeholder="Prompt..." data-vscode-context="{&quot;preventDefaultContextMenuItems&quot;:false}">
-		<button id="send" class="small" title="Send"><span id="sendIcon" class="codicon codicon-send"></span></button>
+		<button id="send" class="small" title="Send" disabled><span id="sendIcon" class="codicon codicon-send"></span></button>
 	</div>
 
 	<script src="${escapeHtml(uriScriptMarkdown)}"></script>

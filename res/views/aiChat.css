@@ -40,6 +40,7 @@ body {
 }
 
 .message {
+	max-width: -webkit-fill-available;
 	width: fit-content;
 }
 
@@ -138,4 +139,15 @@ button.small:hover:not(:disabled) {
 	position: absolute;
 	bottom: calc(var(--spacing) * 1.5);
 	right: calc(var(--spacing) * 2);
+}
+
+pre {
+	background-color: var(--vscode-textPreformat-background);
+	border-radius: 4px;
+	overflow: auto;
+    padding: 0.5rem;
+}
+
+pre code {
+	background-color: transparent;
 }

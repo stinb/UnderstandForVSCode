@@ -49,6 +49,7 @@ function drawAi(sections)
 			sectionHeaderUi.innerText = section.name;
 			sectionsUi.appendChild(sectionHeaderUi);
 
+			/** @type {string[]} */
 			const emptyCardIds = [];
 			getEmptyCardIds(emptyCardIds, blankHeaderCards);
 			getEmptyCardIds(emptyCardIds, section.cards);

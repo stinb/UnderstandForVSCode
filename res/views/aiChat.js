@@ -135,6 +135,44 @@ function handleClick(event)
 }
 
 
+function handleInput()
+{
+	const input = document.getElementById('input');
+	if (!(input instanceof HTMLInputElement))
+		return;
+
+	const send = document.getElementById('send');
+	if (!(send instanceof HTMLButtonElement))
+		return;
+
+	send.disabled = input.value.length === 0;
+}
+
+
+/** @param {KeyboardEvent} event */
+function handleKeyDown(event)
+{
+	const input = event.target;
+	if (!(input instanceof HTMLInputElement) || event.code !== 'Enter')
+		return;
+
+	// Shift enter: new line
+	if (event.shiftKey) {
+		// TODO switch the the same UI as annotations: <code>
+		const start = input.selectionStart || 0;
+		const end = input.selectionEnd || 0;
+		const textBefore = input.value.substring(0, start);
+		const textAfter = input.value.substring(end);
+		input.value = textBefore + '\n' + textAfter;
+		input.selectionStart = input.selectionEnd = start + 1;
+	}
+	// Enter: send
+	else {
+		sendPrompt(input.value);
+	}
+}
+
+
 /** @param {MessageEvent} event */
 function handleMessageEvent(event)
 {
@@ -212,6 +250,9 @@ function getLastCard()
 /** @param {string} text */
 function sendPrompt(text)
 {
+	if (text.length === 0)
+		return;
+
 	lastText = '';
 	drawNewMessage(true, text);
 	drawNewMessage(false, '');
@@ -246,6 +287,8 @@ function main()
 {
 	window.onclick = handleClick;
 	window.onfocus = focusOnInput;
+	window.oninput = handleInput;
+	window.onkeydown = handleKeyDown;
 	window.onmessage = handleMessageEvent;
 	enablePrompting(true);
 	focusOnInput();
