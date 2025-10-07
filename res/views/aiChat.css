@@ -34,7 +34,7 @@ body {
 	min-height: 10rem;
 }
 
-.message, input {
+.message, #input {
 	padding: var(--spacing);
 	line-height: 1.5em;
 }
@@ -44,7 +44,7 @@ body {
 	width: fit-content;
 }
 
-.message.user, .suggestion, input {
+.message.user, .suggestion, #input {
 	background: var(--vscode-editor-background);
 }
 
@@ -60,7 +60,7 @@ body {
 	margin-bottom: 0;
 }
 
-input:focus, button:focus-visible {
+#input:focus, button:focus-visible {
 	outline: var(--outline) solid var(--vscode-focusBorder);
 }
 
@@ -75,7 +75,7 @@ input:focus, button:focus-visible {
 	position: relative;
 }
 
-button, input {
+button, #input {
 	font-family: unset;
 	font-size: unset;
 	transition: color var(--transition), opacity var(--transition);
@@ -112,12 +112,30 @@ button:not(:disabled) {
 	color: var(--vscode-textLink-foreground);
 }
 
-input {
+#input {
 	color: unset;
 	border: none;
 	padding-top: calc(var(--spacing) / 2);
 	padding-bottom: calc(var(--spacing) / 2);
 	padding-right: calc(var(--spacing) * 3.25);
+}
+
+#input {
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: unset;
+	border-radius: 0;
+	display: -webkit-box;
+	overflow: auto;
+	white-space: pre-wrap;
+	word-break: keep-all;
+}
+
+[placeholder]:empty::before {
+	color: var(--vscode-input-placeholderForeground);
+	content: attr(placeholder);
+	pointer-events: none;
+	position: absolute;
+	user-select: none;
 }
 
 button.small {

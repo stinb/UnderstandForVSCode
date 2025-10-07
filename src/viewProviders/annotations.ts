@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import { escapeHtml } from '../other/html';
 import { variables } from '../other/variables';
 import { deleteAnnotation } from '../commands/annotations';
-import { AnnotationMessage, Card } from './annotationMessage';
+import { AnnotationMessage, Card } from '../types/annotation';
 
 
 interface AnnotationParams

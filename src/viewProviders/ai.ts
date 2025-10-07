@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import { escapeHtml } from '../other/html';
 import { variables } from '../other/variables';
 import { executeCommand } from '../commands/helpers';
-import { AnnotationMessage, Card, Section } from './annotationMessage';
+import { AnnotationMessage, Card, Section } from '../types/annotation';
 
 
 export class AiViewProvider implements vscode.WebviewViewProvider

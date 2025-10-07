@@ -22,7 +22,7 @@ import { handleUnderstandChangedAnnotations } from '../viewProviders/annotations
 import { onDidChangeActiveTextEditor, onDidChangeTextEditorSelection } from './context';
 import { handleUnderstandGraphsListed } from '../treeProviders/graphs';
 import { handleUnderstandChangedReferences } from '../treeProviders/references';
-import { Section } from '../viewProviders/annotationMessage';
+import { Section } from '../types/annotation';
 import { handleUnderstandGraphsDrew } from './graphProvider';
 
 

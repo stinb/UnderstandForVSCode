@@ -3,13 +3,14 @@
 
 
 /**
-@typedef {import('../../src/viewProviders/aiChatMessage').AiChatMessage} AiChatMessage
+@typedef {import('../../src/types/aiChat').AiChatMessageFromSandbox} AiChatMessageFromSandbox
+@typedef {import('../../src/types/aiChat').AiChatMessageToSandbox} AiChatMessageToSandbox
 */
 
 
 /** @type {{
 	getState: () => any,
-	postMessage: (message: AiChatMessage) => void,
+	postMessage: (message: AiChatMessageFromSandbox) => void,
 	setState: (newState: any) => void,
 }} */
 // @ts-ignore
@@ -118,10 +119,9 @@ function handleClick(event)
 	if (event.target.id === 'send') {
 		if (promptEnabled) {
 			const input = document.getElementById('input');
-			if (!(input instanceof HTMLInputElement))
+			if (!input)
 				return;
-			sendPrompt(input.value);
-			input.value = '';
+			sendPrompt(input.innerText);
 		}
 		else {
 			vscode.postMessage({method: 'cancel'});
@@ -135,41 +135,18 @@ function handleClick(event)
 }
 
 
-function handleInput()
-{
-	const input = document.getElementById('input');
-	if (!(input instanceof HTMLInputElement))
-		return;
-
-	const send = document.getElementById('send');
-	if (!(send instanceof HTMLButtonElement))
-		return;
-
-	send.disabled = input.value.length === 0;
-}
-
-
 /** @param {KeyboardEvent} event */
 function handleKeyDown(event)
 {
-	const input = event.target;
-	if (!(input instanceof HTMLInputElement) || event.code !== 'Enter')
+	// If enter is pressed, insert a new line, which is normal
+	if (event.shiftKey)
 		return;
 
-	// Shift enter: new line
-	if (event.shiftKey) {
-		// TODO switch the the same UI as annotations: <code>
-		const start = input.selectionStart || 0;
-		const end = input.selectionEnd || 0;
-		const textBefore = input.value.substring(0, start);
-		const textAfter = input.value.substring(end);
-		input.value = textBefore + '\n' + textAfter;
-		input.selectionStart = input.selectionEnd = start + 1;
-	}
-	// Enter: send
-	else {
-		sendPrompt(input.value);
-	}
+	const input = event.target;
+	if (!(input instanceof HTMLElement) || event.code !== 'Enter')
+		return;
+
+	sendPrompt(input.innerText);
 }
 
 
@@ -177,7 +154,7 @@ function handleKeyDown(event)
 function handleMessageEvent(event)
 {
 	const message = event.data;
-	if (!isAiChatMessage(message))
+	if (!isAiChatMessageToSandbox(message))
 		return;
 
 	switch (message.method) {
@@ -232,8 +209,8 @@ function handleMessageEvent(event)
 }
 
 
-/** @type {(obj: any) => obj is AiChatMessage} */
-function isAiChatMessage(obj)
+/** @type {(obj: any) => obj is AiChatMessageToSandbox} */
+function isAiChatMessageToSandbox(obj)
 {
 	return obj !== null && !Array.isArray(obj) && typeof(obj) === 'object'
 		&& typeof obj.method === 'string';
@@ -262,8 +239,11 @@ function sendPrompt(text)
 		text,
 	});
 	const input = document.getElementById('input');
-	if (input)
+	if (input) {
+		input.innerText = '';
 		input.focus();
+	}
+	updateSendButton();
 }
 
 
@@ -283,13 +263,34 @@ function setLastCardText(text)
 }
 
 
+function updateSendButton()
+{
+	const input = document.getElementById('input');
+	if (!input)
+		return;
+	if (input.innerHTML === '<br>')
+		input.innerHTML = '';
+
+	const send = document.getElementById('send');
+	if (!(send instanceof HTMLButtonElement))
+		return;
+
+	send.disabled = input.innerText.length === 0;
+}
+
+
 function main()
 {
 	window.onclick = handleClick;
 	window.onfocus = focusOnInput;
-	window.oninput = handleInput;
-	window.onkeydown = handleKeyDown;
 	window.onmessage = handleMessageEvent;
+
+	const input = document.getElementById('input');
+	if (input) {
+		input.oninput = updateSendButton;
+		input.onkeydown = handleKeyDown;
+	}
+
 	enablePrompting(true);
 	focusOnInput();
 }

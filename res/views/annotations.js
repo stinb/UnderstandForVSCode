@@ -3,15 +3,16 @@
 
 
 /**
-@typedef {import('../../src/viewProviders/annotationMessage').Card} Card
-@typedef {import('../../src/viewProviders/annotationMessage').AnnotationMessage} Message
-@typedef {import('../../src/viewProviders/annotationMessage').Section} Section
+@typedef {import('../../src/types/annotation').Card} Card
+@typedef {import('../../src/types/annotation').AnnotationMessageFromSandbox} AnnotationMessageFromSandbox
+@typedef {import('../../src/types/annotation').AnnotationMessageToSandbox} AnnotationMessageToSandbox
+@typedef {import('../../src/types/annotation').Section} Section
 */
 
 
 /** @type {{
 	getState: () => any,
-	postMessage: (message: Message) => void,
+	postMessage: (message: AnnotationMessageFromSandbox) => void,
 	setState: (newState: any) => void,
 }} */
 // @ts-ignore
@@ -93,13 +94,12 @@ function drawAi(sections)
 			buttonsUi.className = 'buttons';
 			cardHeaderUi.appendChild(buttonsUi);
 
-			// TODO enable chat once it's ready
-			// const chatButton = drawButton(buttonsUi, 'chat', 'codicon-comment-discussion');
+			const chatButton = drawButton(buttonsUi, 'chat', 'codicon-comment-discussion');
 			const copyButton = drawButton(buttonsUi, 'copy', 'codicon-copy');
 			drawButton(buttonsUi, 'regenerate', card.body ? 'codicon-refresh' : 'codicon-sparkle');
 
 			if (card.body.length === 0) {
-				// chatButton.classList.add('notDisplayed');
+				chatButton.classList.add('notDisplayed');
 				copyButton.classList.add('notDisplayed');
 			}
 
@@ -277,7 +277,7 @@ function handleFocus(event)
 function handleMessageEvent(event)
 {
 	const message = event.data;
-	if (!isMessage(message))
+	if (!isAnnotationMessageToSandbox(message))
 		return;
 
 	switch (message.method) {
@@ -397,8 +397,8 @@ function handleKeyDown(event)
 }
 
 
-/** @type {(obj: any) => obj is Message} */
-function isMessage(obj)
+/** @type {(obj: any) => obj is AnnotationMessageToSandbox} */
+function isAnnotationMessageToSandbox(obj)
 {
 	return obj !== null && !Array.isArray(obj) && typeof(obj) === 'object'
 		&& typeof obj.method === 'string';

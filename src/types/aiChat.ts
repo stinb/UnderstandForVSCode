@@ -40,4 +40,5 @@ export type TextEndMessage = {
 	method: 'textEnd',
 };
 
-export type AiChatMessage = AddMessageMessage | AddSuggestionsMessage | CancelMessage | ClearAllMessage | ClearOneMessage | ErrorMessage | SendMessage | TextMessage | TextEndMessage;
+export type AiChatMessageFromSandbox = CancelMessage | SendMessage;
+export type AiChatMessageToSandbox = AddMessageMessage | AddSuggestionsMessage | ClearAllMessage | ClearOneMessage | ErrorMessage | TextMessage | TextEndMessage;

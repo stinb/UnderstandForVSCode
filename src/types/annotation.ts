@@ -89,4 +89,5 @@ export type StartedEditingMessage = {
 	method: 'startedEditing',
 };
 
-export type AnnotationMessage = AiClearMessage | AiErrorMessage | AiTextMessage | AiTextEndMessage | DeleteMessage | DrawAiMessage | EditMessage | ErrorMessage | FinishedEditingMessage | GenerateManyMessage | OpenMessage | RegenerateMessage | StartChatMessage | StartedEditingMessage;
+export type AnnotationMessageFromSandbox = DeleteMessage | ErrorMessage | FinishedEditingMessage | GenerateManyMessage | OpenMessage | RegenerateMessage | StartChatMessage | StartedEditingMessage;
+export type AnnotationMessageToSandbox = AiClearMessage | AiErrorMessage | AiTextMessage | AiTextEndMessage | DrawAiMessage | EditMessage;

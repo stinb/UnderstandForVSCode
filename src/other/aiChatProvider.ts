@@ -2,7 +2,10 @@ import * as vscode from 'vscode';
 import { variables } from './variables';
 import { getStringFromConfig } from './config';
 import { escapeHtml } from './html';
-import { AiChatMessage } from '../viewProviders/aiChatMessage';
+import {
+	AiChatMessageFromSandbox,
+	AiChatMessageToSandbox
+} from '../types/aiChat';
 
 
 export class AiChatProvider
@@ -153,7 +156,7 @@ class Chat
 	<div id="messages"></div>
 	<div id="inputs">
 		<div id="suggestions"></div>
-		<input id="input" placeholder="Prompt..." data-vscode-context="{&quot;preventDefaultContextMenuItems&quot;:false}">
+		<code id="input" contenteditable placeholder="Ask anything about ${escapeHtml(name)}" data-vscode-context="{&quot;preventDefaultContextMenuItems&quot;:false}"></code>
 		<button id="send" class="small" title="Send" disabled><span id="sendIcon" class="codicon codicon-send"></span></button>
 	</div>
 
@@ -185,7 +188,7 @@ class Chat
 	}
 
 
-	handleMessage(message: AiChatMessage)
+	handleMessage(message: AiChatMessageFromSandbox)
 	{
 		switch (message.method) {
 			case 'cancel':
@@ -226,7 +229,7 @@ class Chat
 	}
 
 
-	private postMessage(message: AiChatMessage)
+	private postMessage(message: AiChatMessageToSandbox)
 	{
 		this.panel.webview.postMessage(message);
 	}
