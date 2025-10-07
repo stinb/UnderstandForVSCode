@@ -21,6 +21,9 @@ const vscode = acquireVsCodeApi();
 // @ts-ignore
 const md = markdownit();
 
+/** @type {string[]} */
+const messages = [];
+
 const domParser = new DOMParser();
 
 let lastText = '';
@@ -54,12 +57,16 @@ function drawMarkdown(parent, text)
  */
 function drawNewMessage(user, text)
 {
+	messages.push(text);
+
 	const messagesUi = document.getElementById('messages');
 	if (!messagesUi)
 		return;
+
 	const messageUi = document.createElement('div');
 	messageUi.className = user ? 'message user' : 'message assistant';
 	messagesUi.appendChild(messageUi);
+
 	const bodyUi = document.createElement('div');
 	bodyUi.className = 'body';
 	if (text.length)
@@ -67,6 +74,35 @@ function drawNewMessage(user, text)
 	else
 		drawProgress(bodyUi);
 	messageUi.appendChild(bodyUi);
+
+	const buttonsUi = document.createElement('div');
+	buttonsUi.className = 'buttons';
+	messageUi.appendChild(buttonsUi);
+
+	const i = (messages.length - 1).toString();
+
+	const copyButton = document.createElement('button');
+	copyButton.className = 'codicon codicon-copy small';
+	copyButton.title = 'Copy';
+	copyButton.onclick = handleClickCopy;
+	copyButton.dataset.index = i;
+	buttonsUi.appendChild(copyButton);
+
+	// // TODO
+	// if (user) {
+	// 	const editButton = document.createElement('button');
+	// 	editButton.className = 'codicon codicon-edit small';
+	// 	editButton.title = 'Edit';
+	// 	copyButton.dataset.index = i;
+	// 	buttonsUi.appendChild(editButton);
+	// }
+	// else {
+	// 	const regenerateButton = document.createElement('button');
+	// 	regenerateButton.className = 'codicon codicon-refresh small';
+	// 	regenerateButton.title = 'Regenerate';
+	// 	copyButton.dataset.index = i;
+	// 	buttonsUi.appendChild(regenerateButton);
+	// }
 }
 
 
@@ -111,34 +147,54 @@ function focusOnInput()
 /**
  * @param {MouseEvent} event
  */
-function handleClick(event)
+function handleClickCopy(event)
 {
-	if (!(event.target instanceof HTMLButtonElement))
+	if (!(event.target instanceof HTMLElement))
 		return;
 
-	if (event.target.id === 'send') {
-		if (promptEnabled) {
-			const input = document.getElementById('input');
-			if (!input)
-				return;
-			sendPrompt(input.innerText);
-		}
-		else {
-			vscode.postMessage({method: 'cancel'});
-			enablePrompting(true);
-		}
+	// @ts-ignore undefined works
+	const i = parseInt(event.target.dataset.index);
+	if (isNaN(i))
+		return;
+
+	const message = messages[i];
+	if (message)
+		navigator.clipboard.writeText(message);
+}
+
+
+function handleClickSend()
+{
+	if (promptEnabled) {
+		const input = document.getElementById('input');
+		if (!input)
+			return;
+		sendPrompt(input.innerText);
 	}
-	else if (event.target.classList.contains('suggestion')) {
-		event.target.remove();
-		sendPrompt(event.target.innerText);
+	else {
+		vscode.postMessage({method: 'cancel'});
+		enablePrompting(true);
 	}
+}
+
+
+/**
+ * @param {MouseEvent} event
+ */
+function handleClickSuggestion(event)
+{
+	if (!(event.target instanceof HTMLElement))
+		return;
+
+	event.target.remove();
+	sendPrompt(event.target.innerText);
 }
 
 
 /** @param {KeyboardEvent} event */
 function handleKeyDown(event)
 {
-	// If enter is pressed, insert a new line, which is normal
+	// Shift-enter: insert a new line
 	if (event.shiftKey)
 		return;
 
@@ -146,7 +202,9 @@ function handleKeyDown(event)
 	if (!(input instanceof HTMLElement) || event.code !== 'Enter')
 		return;
 
+	// Enter: send prompt
 	sendPrompt(input.innerText);
+	updateSendButton();
 }
 
 
@@ -171,6 +229,7 @@ function handleMessageEvent(event)
 				const suggestionUi = document.createElement('button');
 				suggestionUi.className = 'suggestion';
 				suggestionUi.innerText = message.suggestions[i];
+				suggestionUi.onclick = handleClickSuggestion;
 				suggestionsUi.appendChild(suggestionUi);
 			}
 			break;
@@ -250,6 +309,9 @@ function sendPrompt(text)
 /** @param {string} text */
 function setLastCardText(text)
 {
+	if (messages.length)
+		messages[messages.length - 1] = text;
+
 	const card = getLastCard();
 	if (!card)
 		return;
@@ -268,7 +330,7 @@ function updateSendButton()
 	const input = document.getElementById('input');
 	if (!input)
 		return;
-	if (input.innerHTML === '<br>')
+	if (input.innerHTML === '<br>' || input.innerHTML === '\n\n')
 		input.innerHTML = '';
 
 	const send = document.getElementById('send');
@@ -281,9 +343,12 @@ function updateSendButton()
 
 function main()
 {
-	window.onclick = handleClick;
 	window.onfocus = focusOnInput;
 	window.onmessage = handleMessageEvent;
+
+	const send = document.getElementById('send');
+	if (send)
+		send.onclick = handleClickSend;
 
 	const input = document.getElementById('input');
 	if (input) {

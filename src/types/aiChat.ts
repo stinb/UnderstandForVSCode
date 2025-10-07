@@ -1,3 +1,15 @@
+export type CancelMessage = {
+	method: 'cancel',
+};
+
+export type SendMessage = {
+	method: 'send',
+	text: string,
+};
+
+export type AiChatMessageFromSandbox = CancelMessage | SendMessage;
+
+
 export type AddMessageMessage = {
 	method: 'addMessage',
 	text: string,
@@ -7,10 +19,6 @@ export type AddMessageMessage = {
 export type AddSuggestionsMessage = {
 	method: 'addSuggestions',
 	suggestions: string[],
-};
-
-export type CancelMessage = {
-	method: 'cancel',
 };
 
 export type ClearAllMessage = {
@@ -26,11 +34,6 @@ export type ErrorMessage = {
 	text: string,
 };
 
-export type SendMessage = {
-	method: 'send',
-	text: string,
-};
-
 export type TextMessage = {
 	method: 'text',
 	text: string,
@@ -40,5 +43,4 @@ export type TextEndMessage = {
 	method: 'textEnd',
 };
 
-export type AiChatMessageFromSandbox = CancelMessage | SendMessage;
 export type AiChatMessageToSandbox = AddMessageMessage | AddSuggestionsMessage | ClearAllMessage | ClearOneMessage | ErrorMessage | TextMessage | TextEndMessage;

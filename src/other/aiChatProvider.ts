@@ -72,10 +72,7 @@ export class AiChatProvider
 /** Data and UI for a chat */
 class Chat
 {
-	private messages: string[] = [];
 	private panel: vscode.WebviewPanel;
-	private prevColumn: vscode.ViewColumn | undefined = undefined;
-	private prevVisible: boolean = true;
 	private suggestions: string[] = [];
 	readonly uniqueName: string;
 
@@ -97,28 +94,9 @@ class Chat
 			'understandChat',
 			`Chat - ${name}`,
 			half ? vscode.ViewColumn.Beside : vscode.ViewColumn.Active,
+			{ retainContextWhenHidden: true }
 		);
 		this.uniqueName = uniqueName;
-
-		this.panel.onDidChangeViewState(() => {
-			if (!this.panel.visible || this.prevVisible && this.prevColumn === this.panel.viewColumn) {
-				this.prevColumn = this.panel.viewColumn;
-				this.prevVisible = this.panel.visible;
-				return;
-			}
-			this.prevColumn = this.panel.viewColumn;
-			this.prevVisible = this.panel.visible;
-			this.postMessage({
-				method: 'clearAll',
-			});
-			for (let i = 0; i < this.messages.length; i++)
-				this.postMessage({
-					method: 'addMessage',
-					text: this.messages[i],
-					user: i % 2 === 1,
-				});
-			this.drawSuggestions();
-		});
 
 		this.panel.onDidDispose(() => {
 			variables.aiChatProvider.chatRemove(this.uniqueName);
