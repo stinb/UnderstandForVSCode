@@ -1,6 +1,3 @@
-'use strict';
-
-
 import { executeAtPosition, executeCommand } from './helpers';
 
 

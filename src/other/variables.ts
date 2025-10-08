@@ -1,6 +1,3 @@
-'use strict';
-
-
 import { FileSystemWatcher, Uri } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
 import { ViolationDescriptionProvider } from './textProviders';

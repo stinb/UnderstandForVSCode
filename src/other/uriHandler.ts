@@ -1,6 +1,3 @@
-'use strict';
-
-
 import * as vscode from 'vscode';
 
 import { URI_SCHEME_VIOLATION_DESCRIPTION } from './textProviders';
