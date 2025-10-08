@@ -1,7 +1,11 @@
+import * as fsPromises from 'node:fs/promises';
+
 import * as vscode from 'vscode';
+
 import { escapeHtml } from './html';
 import { variables } from './variables';
-import { GraphMessageToSandbox } from '../types/graph';
+import { GraphMessageFromSandbox, GraphMessageToSandbox } from '../types/graph';
+import { Option, OptionIntegerRange } from '../types/option';
 
 
 export class GraphProvider
@@ -9,6 +13,7 @@ export class GraphProvider
 	private keyToGraph: Map<string, Graph> = new Map;
 
 	private entityName = '';
+	private focusedGraph?: Graph = undefined;
 	private uniqueName = '';
 
 
@@ -16,6 +21,12 @@ export class GraphProvider
 	{
 		this.entityName = entityName;
 		this.uniqueName = uniqueName;
+	}
+
+
+	setFocusedGraph(graph?: Graph)
+	{
+		this.focusedGraph = graph;
 	}
 
 
@@ -33,15 +44,70 @@ export class GraphProvider
 	remove(graphName: string, uniqueName: string)
 	{
 		this.keyToGraph.delete(this.toKey(graphName, uniqueName));
+		variables.languageClient.sendRequest('understand/graphs/remove', {
+			graphName: graphName,
+			uniqueName: uniqueName,
+		});
 	}
 
 
-	update(graphName: string, uniqueName: string, svg: string)
+	save()
 	{
-		const graph = this.keyToGraph.get(this.toKey(graphName, uniqueName));
+		if (!this.focusedGraph)
+			return;
+		this.focusedGraph.save();
+	}
+
+	toggleOptions()
+	{
+		if (!this.focusedGraph)
+			return;
+		this.focusedGraph.toggleOptions();
+	}
+
+
+	updateGraph(params: ParamsDrew)
+	{
+		const graph = this.getGraph(params);
 		if (!graph)
 			return;
-		graph.update(svg);
+		graph.postMessage({
+			method: 'updateGraph',
+			svg: params.svg,
+		});
+	}
+
+
+	updateOptionRanges(params: ParamsOptionRanges)
+	{
+		const graph = this.getGraph(params);
+		if (!graph)
+			return;
+		graph.postMessage({
+			method: 'updateOptionRanges',
+			optionRanges: params.optionRanges,
+		});
+	}
+
+
+	updateOptions(params: ParamsOptions)
+	{
+		const graph = this.getGraph(params);
+		if (!graph)
+			return;
+		graph.postMessage({
+			method: 'updateOptions',
+			options: params.options,
+		});
+	}
+
+
+	private getGraph(params: ParamsDrew | ParamsOptionRanges | ParamsOptions): Graph | undefined
+	{
+		const result = this.keyToGraph.get(this.toKey(params.graphName, params.uniqueName));
+		if (!result)
+			vscode.window.showErrorMessage('Failed to find the graph');
+		return result;
 	}
 
 
@@ -52,16 +118,40 @@ export class GraphProvider
 }
 
 
-export function handleUnderstandGraphsDrew(params: Params)
+export function handleUnderstandGraphsDrew(params: ParamsDrew)
 {
-	variables.graphProvider.update(params.graphName, params.uniqueName, params.svg);
+	variables.graphProvider.updateGraph(params);
 }
 
 
-type Params = {
+export function handleUnderstandGraphsOptionRanges(params: ParamsOptionRanges)
+{
+	variables.graphProvider.updateOptionRanges(params);
+}
+
+
+export function handleUnderstandGraphsOptions(params: ParamsOptions)
+{
+	variables.graphProvider.updateOptions(params);
+}
+
+
+type ParamsDrew = {
 	graphName: string,
 	uniqueName: string,
 	svg: string,
+}
+
+type ParamsOptions = {
+	graphName: string,
+	uniqueName: string,
+	options: Option[],
+}
+
+type ParamsOptionRanges = {
+	graphName: string,
+	uniqueName: string,
+	optionRanges: OptionIntegerRange[],
 }
 
 
@@ -78,14 +168,33 @@ class Graph
 		this.graphName = graphName;
 		this.uniqueName = uniqueName;
 
-		variables.languageClient.sendNotification('understand/graphs/draw', {graphName, uniqueName});
+		variables.languageClient.sendNotification('understand/graphs/draw', { graphName, uniqueName });
 
 		this.panel = vscode.window.createWebviewPanel(
 			'understandGraph',
-			`${graphName} - ${entityName}`,
+			`${graphName}: ${entityName}`,
 			vscode.ViewColumn.Active,
-			{ retainContextWhenHidden: true },
+			{
+				enableCommandUris: false,
+				enableFindWidget: true,
+				enableForms: false,
+				enableScripts: true,
+				localResourceRoots: [variables.extensionUri],
+				portMapping: [],
+				retainContextWhenHidden: true,
+			},
 		);
+
+		this.panel.onDidChangeViewState((e: vscode.WebviewPanelOnDidChangeViewStateEvent) => {
+			if (!this.panel.active) {
+				variables.graphProvider.setFocusedGraph();
+				return;
+			}
+			variables.graphProvider.setFocusedGraph(this);
+			variables.languageClient.sendNotification('understand/graphs/focused', {
+				uniqueName: this.uniqueName,
+			});
+		});
 
 		this.panel.onDidDispose(() => {
 			variables.graphProvider.remove(this.graphName, this.uniqueName);
@@ -96,27 +205,31 @@ class Graph
 		const cspSource = escapeHtml(webview.cspSource);
 		const uriScript = webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'graph.js')).toString();
 		const uriStyle = webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'graph.css')).toString();
+		const uriStyleIcons = webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'codicon.css')).toString();
 
-		webview.options = {
-			enableCommandUris: false,
-			enableForms: false,
-			enableScripts: true,
-			localResourceRoots: [variables.extensionUri],
-			portMapping: [],
-		};
+		webview.onDidReceiveMessage(this.handleMessage, this);
 
 		webview.html =
 `<!DOCTYPE html>
 <html>
 <head>
-	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${cspSource}; script-src ${cspSource}; style-src ${cspSource};">
+	<meta http-equiv='Content-Security-Policy' content="default-src 'none'; img-src data:; font-src ${cspSource}; script-src ${cspSource}; style-src ${cspSource};">
 	<link rel='stylesheet' href='${escapeHtml(uriStyle)}'>
+	<link rel='stylesheet' href='${escapeHtml(uriStyleIcons)}'>
 </head>
 
-<body>
-	<p id='loader'>Loading</p>
+<body data-vscode-context='{"preventDefaultContextMenuItems":true}'>
+	<main id='main' tabindex='0'>
+		<div id='graphContainer'>
+			<span class='codicon codicon-loading codicon-modifier-spin'></span>
+		</div>
+	</main>
 
-	<script src="${escapeHtml(uriScript)}"></script>
+	<aside>
+		<div id='options'></div>
+	</aside>
+
+	<script src='${escapeHtml(uriScript)}'></script>
 </body>
 </html>`;
 	}
@@ -128,17 +241,74 @@ class Graph
 	}
 
 
-	update(svg: string)
+	handleMessage(message: GraphMessageFromSandbox)
 	{
-		this.postMessage({
-			method: 'update',
-			svg: svg,
-		});
+		switch (message.method) {
+			case 'changedOption':
+				variables.languageClient.sendNotification('understand/graphs/draw', {
+					graphName: this.graphName,
+					optionId: message.id,
+					optionValue: message.value,
+					uniqueName: this.uniqueName,
+				});
+				break;
+			case 'saveBase64':
+				saveFile(message.path, Buffer.from(message.content, 'base64'));
+				break;
+			case 'saveString':
+				saveFile(message.path, message.content);
+				break;
+		}
 	}
 
 
-	private postMessage(message: GraphMessageToSandbox)
+	async save()
+	{
+		const uri = await vscode.window.showSaveDialog({
+			filters: {
+				'SVG (default)': ['svg'],
+				'JPG': ['jpg'],
+				'PNG': ['png'],
+			},
+			title: 'Save as SVG (default), JPG, PNG',
+		});
+		if (!uri)
+			return;
+
+		const path = uri.fsPath;
+		const extensionMatch = /\.([^.]*)$/.exec(path);
+		if (!extensionMatch)
+			return;
+		const extension = extensionMatch[1].toLowerCase();
+
+		switch (extension) {
+			case 'jpg': case 'png': case 'svg':
+				return this.postMessage({method: 'convert', extension, path});
+		}
+	}
+
+
+	toggleOptions()
+	{
+		this.postMessage({ method: 'toggleOptions' });
+	}
+
+
+	postMessage(message: GraphMessageToSandbox)
 	{
 		this.panel.webview.postMessage(message);
+	}
+}
+
+
+async function saveFile(path: string, content: string | Buffer)
+{
+	try {
+		const file = await fsPromises.open(path, 'w');
+		// @ts-ignore write accepts string, Buffer, and other types
+		await file.write(content);
+		await file.close();
+	} catch (error) {
+		vscode.window.showErrorMessage(`Failed to save graph "${path}": ${error}`);
 	}
 }

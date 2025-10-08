@@ -6,7 +6,11 @@ import * as vscode from 'vscode';
 import { escapeHtml } from '../other/html';
 import { variables } from '../other/variables';
 import { deleteAnnotation } from '../commands/annotations';
-import { AnnotationMessage, Card } from '../types/annotation';
+import {
+	AnnotationMessageFromSandbox,
+	AnnotationMessageToSandbox,
+	Card
+} from '../types/annotation';
 
 
 interface AnnotationParams
@@ -37,7 +41,7 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 	}
 
 
-	handleMessage(message: AnnotationMessage)
+	handleMessage(message: AnnotationMessageFromSandbox)
 	{
 		switch (message.method) {
 			case 'delete':
@@ -132,7 +136,7 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 		view.html = htmlParts.join('');
 
 		if (focused) {
-			const message: AnnotationMessage = {method: 'edit', id: focused};
+			const message: AnnotationMessageToSandbox = {method: 'edit', id: focused};
 			view.postMessage(message);
 		}
 	}

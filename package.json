@@ -104,6 +104,18 @@
 				"category": "Understand: Annotations"
 			},
 			{
+				"command": "understand.graphs.options",
+				"title": "Options",
+				"category": "Understand: Graphs",
+				"icon": "$(settings)"
+			},
+			{
+				"command": "understand.graphs.save",
+				"title": "Save",
+				"category": "Understand: Graphs",
+				"icon": "$(save)"
+			},
+			{
 				"command": "understand.references.findAllImplementations",
 				"title": "Find All Implementations",
 				"category": "Understand: References"
@@ -475,6 +487,18 @@
 					"when": "understandFile"
 				}
 			],
+			"editor/title": [
+				{
+					"command": "understand.graphs.options",
+					"when": "activeWebviewPanelId == understandGraph",
+					"group": "navigation"
+				},
+				{
+					"command": "understand.graphs.save",
+					"when": "activeWebviewPanelId == understandGraph",
+					"group": "navigation"
+				}
+			],
 			"editor/title/context": [
 				{
 					"command": "understand.annotations.addAnnotation",
@@ -578,14 +602,14 @@
 		}
 	},
 	"dependencies": {
-		"vscode-languageclient": "^9.0.1"
+		"vscode-languageclient": "9.0.1"
 	},
 	"devDependencies": {
-		"@types/markdown-it": "^14.1.2",
-		"@types/node": "^20.11.10",
-		"@types/vscode": "^1.85.0",
-		"@vscode/vsce": "^3.6.0",
-		"esbuild": "^0.25.5",
-		"typescript": "^5.3.3"
+		"@types/markdown-it": "14.1.2",
+		"@types/node": "20.11.10",
+		"@types/vscode": "1.85.0",
+		"@vscode/vsce": "3.6.2",
+		"esbuild": "0.25.5",
+		"typescript": "5.3.3"
 	}
 }

@@ -1,20 +1,238 @@
+html {
+	--asideWidth: 20rem;
+	--graphMargin: 2rem;
+	--optionsMargin: 1rem;
+	--spaceBig: 1rem;
+	--spaceSmall: 0.25rem;
+}
+
+@font-face {
+	font-family: 'codicon';
+	src: url('https://file%2B.vscode-resource.vscode-cdn.net/c%3A/SciTools/UnderstandForVSCode/res/codicon.ttf') format('ttf');
+	font-display: block;
+}
+
+::selection {
+	background: var(--vscode-selection-background);
+}
+
+body.vscode-dark {
+	color-scheme: dark;
+}
+
 body {
+	display: flex;
+	height: 100vh;
+	margin: 0;
+	overflow: hidden;
+	padding: 0;
+	width: 100vw;
+}
+
+main {
+	height: 100%;
+	outline: none;
+	overflow: auto;
+	width: 100%;
+}
+
+#graphContainer {
 	align-items: center;
 	display: flex;
 	height: fit-content;
 	justify-content: center;
-	margin: 0;
-	min-height: 100vh;
-	min-width: 100vw;
-	padding: 0;
+	min-height: calc(100vh - var(--graphMargin) * 2);
+	min-width: calc(100vw - var(--asideWidth) - var(--graphMargin) * 2);
+	padding: var(--graphMargin);
 	width: fit-content;
 }
 
-#loader {
+.codicon-loading::before {
 	font-size: 2rem;
 }
 
 text {
 	fill: var(--vscode-foreground);
 	user-select: none;
+}
+
+aside {
+	background: var(--vscode-editor-background);
+	height: 100%;
+	overflow: auto;
+	width: var(--asideWidth);
+	border-left: 1px solid var(--vscode-editorRuler-foreground);
+}
+
+#options {
+	padding: var(--optionsMargin);
+}
+
+h1, h2, h3, h4, h5, h6 {
+	margin-top: var(--spaceBig);
+	margin-bottom: var(--spaceBig);
+}
+
+p {
+	margin-top: var(--spaceBig);
+	margin-bottom: 0;
+}
+
+h1:first-child, h2:first-child, h3:first-child, h4:first-child, h5:first-child, h6:first-child, p:first-child {
+	margin-top: 0;
+}
+
+input, label, select {
+	width: 100%;
+}
+
+label:has(input:invalid)::before {
+	background: var(--vscode-inputValidation-errorBorder);
+	border-radius: 50%;
+	content: '';
+	height: 0.375rem;
+	left: -0.5rem;
+	position: absolute;
+	transform: translate(-50%, -50%);
+	top: 2.125rem;
+	width: 0.375rem;
+}
+
+.optionGroup {
+	margin-top: var(--spaceBig);
+	border: 1px solid var(--vscode-editorRuler-foreground);
+    padding: var(--spaceBig);
+	border-radius: 2px;
+}
+
+label {
+	display: block;
+	position: relative;
+}
+
+label:not(:first-child), hr {
+	margin-top: var(--spaceBig);
+}
+
+label p, label span {
+	margin: 0;
+	opacity: 0.9;
+	user-select: none;
+}
+
+label:has(input[type='checkbox']) {
+	display: flex;
+}
+
+label:has(input[type='checkbox']:checked):before {
+	content: '\eab2';
+	font: 16px / 1 codicon;
+	margin-left: 0.8px;
+	margin-top: 0.8px;
+	position: absolute;
+}
+
+input[type='checkbox'], label:has(input[type='checkbox']), select {
+	cursor: pointer;
+}
+
+input, label, ::picker(select) {
+	color: var(--vscode-settings-numberInputForeground);
+}
+
+input, ::picker(select) {
+	background: var(--vscode-settings-textInputBackground);
+}
+
+input:focus, select:focus, select:has(option:focus), ::picker(select) {
+	outline-width: 1px;
+	outline-style: solid;
+	outline-offset: -1px;
+	outline-color: var(--vscode-focusBorder);
+}
+
+input[type='checkbox'] {
+	appearance: none;
+	background: var(--vscode-settings-checkboxBackground);
+	border-color: var(--vscode-settings-checkboxBorder);
+	border-radius: 3px;
+	color: var(--vscode-settings-checkboxForeground);
+	height: 18px;
+	margin: 0;
+	margin-right: var(--spaceSmall);
+	padding: 0;
+	width: 18px;
+}
+
+input[type='number'], input[type='text'], select {
+	border: 1px solid;
+	padding: 4px 6px;
+	box-sizing: border-box;
+	border-radius: 2px;
+	margin-top: var(--spaceSmall);
+}
+
+input[type='number'] {
+	background-color: var(--vscode-settings-numberInputBackground);
+	color: var(--vscode-settings-numberInputForeground);
+	border-color: var(--vscode-settings-numberInputBorder);
+}
+
+input[type='text'] {
+	border-color: var(--vscode-settings-textInputBorder);
+	color: var(--vscode-settings-textInputForeground);
+}
+
+select {
+	background-color: var(--vscode-settings-dropdownBackground);
+	color: var(--vscode-settings-dropdownForeground);
+	border-color: var(--vscode-settings-dropdownBorder);
+	position: relative;
+}
+
+select, ::picker(select) {
+	appearance: base-select;
+}
+
+::picker(select) {
+	border: none;
+}
+
+::picker-icon {
+	position: absolute;
+	content: '\eab4';
+	font-family: 'codicon';
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	line-height: 16px;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: 6px;
+	margin: auto;
+	pointer-events: none;
+}
+
+option {
+	outline: none;
+}
+
+option:focus, option:hover {
+	background: var(--vscode-quickInputList-focusBackground);
+}
+
+option::checkmark {
+	display: none;
+}
+
+hr {
+	border: none;
+    border-top: 1px solid var(--vscode-settings-headerForeground);
+	margin: var(--spaceBig) 0;
+}
+
+#options .codicon-loading {
+	margin: var(--spaceBig) auto;
+	display: block;
 }

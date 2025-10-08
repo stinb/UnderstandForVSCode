@@ -6,7 +6,12 @@ import * as vscode from 'vscode';
 import { escapeHtml } from '../other/html';
 import { variables } from '../other/variables';
 import { executeCommand } from '../commands/helpers';
-import { AnnotationMessage, Card, Section } from '../types/annotation';
+import {
+	AnnotationMessageFromSandbox,
+	AnnotationMessageToSandbox,
+	Card,
+	Section
+} from '../types/annotation';
 
 
 export class AiViewProvider implements vscode.WebviewViewProvider
@@ -155,7 +160,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 	}
 
 
-	private handleMessage(message: AnnotationMessage)
+	private handleMessage(message: AnnotationMessageFromSandbox)
 	{
 		switch (message.method) {
 			case 'generateMany':
@@ -182,7 +187,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 	}
 
 
-	private postMessage(view: vscode.Webview, message: AnnotationMessage)
+	private postMessage(view: vscode.Webview, message: AnnotationMessageToSandbox)
 	{
 		view.postMessage(message);
 	}
