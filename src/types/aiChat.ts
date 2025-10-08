@@ -29,6 +29,10 @@ export type ClearOneMessage = {
 	method: 'clearOne',
 };
 
+export type CopyAllMessage = {
+	method: 'copyAll',
+};
+
 export type ErrorMessage = {
 	method: 'error',
 	text: string,
@@ -43,4 +47,4 @@ export type TextEndMessage = {
 	method: 'textEnd',
 };
 
-export type AiChatMessageToSandbox = AddMessageMessage | AddSuggestionsMessage | ClearAllMessage | ClearOneMessage | ErrorMessage | TextMessage | TextEndMessage;
+export type AiChatMessageToSandbox = AddMessageMessage | AddSuggestionsMessage | ClearAllMessage | ClearOneMessage | CopyAllMessage | ErrorMessage | TextMessage | TextEndMessage;

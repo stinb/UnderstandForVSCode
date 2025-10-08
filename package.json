@@ -30,6 +30,12 @@
 	"contributes": {
 		"commands": [
 			{
+				"command": "understand.ai.copyChat",
+				"title": "Copy AI Chat",
+				"category": "Understand: AI",
+				"icon": "$(copy)"
+			},
+			{
 				"command": "understand.ai.generateAiOverview",
 				"title": "Generate AI Overview",
 				"category": "Understand: AI"
@@ -488,6 +494,11 @@
 				}
 			],
 			"editor/title": [
+				{
+					"command": "understand.ai.copyChat",
+					"when": "activeWebviewPanelId == understandChat",
+					"group": "navigation"
+				},
 				{
 					"command": "understand.graphs.options",
 					"when": "activeWebviewPanelId == understandGraph",

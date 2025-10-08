@@ -13,6 +13,9 @@ export class AiChatProvider
 	/** Unique names to chats */
 	private map: Map<string, Chat> = new Map;
 
+	/** Unique name of entity of focused chat */
+	private uniqueName = '';
+
 
 	/** Clear the last card */
 	cardClear(uniqueName: string)
@@ -50,8 +53,18 @@ export class AiChatProvider
 	}
 
 
+	/** If focused on a chat, copy all of it to the clipboard */
+	copyFocusedChat()
+	{
+		const chat = this.map.get(this.uniqueName);
+		if (!chat)
+			return;
+		chat.copy();
+	}
+
+
 	/** Focus on a document panel, opening it if needed */
-	chatFocus(name: string, uniqueName: string)
+	focus(name: string, uniqueName: string)
 	{
 		const chat = this.map.get(uniqueName);
 		if (chat)
@@ -62,9 +75,16 @@ export class AiChatProvider
 
 
 	/** Remove a chat from memory because it was closed */
-	chatRemove(uniqueName: string)
+	removeChat(uniqueName: string)
 	{
 		this.map.delete(uniqueName);
+	}
+
+
+	/** Remember the entity */
+	setFocusedChat(uniqueName: string)
+	{
+		this.uniqueName = uniqueName;
 	}
 }
 
@@ -98,8 +118,14 @@ class Chat
 		);
 		this.uniqueName = uniqueName;
 
+		this.panel.onDidChangeViewState(() => {
+			if (!this.panel.active)
+				return;
+			variables.aiChatProvider.setFocusedChat(this.uniqueName);
+		});
+
 		this.panel.onDidDispose(() => {
-			variables.aiChatProvider.chatRemove(this.uniqueName);
+			variables.aiChatProvider.removeChat(this.uniqueName);
 			variables.languageClient.sendRequest('understand/aiChat/delete', {uniqueName: this.uniqueName});
 		});
 
@@ -149,6 +175,12 @@ class Chat
 	clearOne()
 	{
 		this.postMessage({ method: 'clearOne' });
+	}
+
+
+	copy()
+	{
+		this.postMessage({ method: 'copyAll' });
 	}
 
 

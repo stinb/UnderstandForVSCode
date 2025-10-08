@@ -249,6 +249,16 @@ function handleMessageEvent(event)
 			setLastCardText(lastText);
 			break;
 		}
+		case 'copyAll': {
+			let result = '';
+			for (let i = 0; i < messages.length; i++) {
+				result += (i % 2 === 0) ? '\n## Assistant\n\n' : '\n## User\n\n';
+				result += messages[i];
+				result += '\n\n';
+			}
+			navigator.clipboard.writeText(result);
+			break;
+		}
 		case 'error': {
 			lastText = '';
 			setLastCardText(message.text);

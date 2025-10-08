@@ -1,9 +1,16 @@
+import { variables } from '../other/variables';
 import { executeAtPosition, executeCommand } from './helpers';
 
 
 /** From JSON created in `AiViewProvider` */
 interface AiAnnotation {
 	id: string,
+}
+
+
+export function copyChat()
+{
+	variables.aiChatProvider.copyFocusedChat();
 }
 
 

@@ -41,6 +41,7 @@ export async function activate(context: vscode.ExtensionContext)
 
 	context.subscriptions.push(
 		// Commands: AI
+		vscode.commands.registerCommand('understand.ai.copyChat', ai.copyChat),
 		vscode.commands.registerCommand('understand.ai.generateAiOverview', ai.generateAiOverview),
 		vscode.commands.registerCommand('understand.ai.regenerateAiOverview', ai.generateAiOverview),
 		vscode.commands.registerCommand('understand.ai.stopAiGeneration', ai.stopAiGeneration),
