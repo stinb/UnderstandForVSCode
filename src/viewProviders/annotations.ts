@@ -26,6 +26,7 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 	private uriStyle = '';
 	private uriStyleIcons = '';
 	private view?: vscode.Webview;
+	private viewView?: vscode.WebviewView;
 
 
 	edit(id: string)
@@ -47,12 +48,19 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 			case 'error':
 				vscode.window.showErrorMessage(message.body);
 				break;
-			case 'finishedEditing':
+			case 'finishedEditing': {
 				this.editing = false;
+				for (const annotations of this.annotations) {
+					if (annotations.id !== message.id)
+						continue;
+					annotations.body = message.body;
+					const date = new Date;
+					annotations.lastModified = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${(date.getDate()).toString().padStart(2, '0')}`;
+					break;
+				}
 				variables.languageClient.sendRequest('understand/updateAnnotation', {id: message.id, body: message.body});
-				if (this.annotations.length && this.view)
-					this.draw(this.view, this.annotations);
 				break;
+			}
 			case 'startedEditing':
 				this.editing = true;
 				break;
@@ -73,35 +81,32 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 			localResourceRoots: [variables.extensionUri],
 			portMapping: [],
 		};
+		webviewView.onDidChangeVisibility(this.handleChangeVisibility, this);
 		this.uriScriptMarkdown = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'markdown-it.min.js')).toString();
 		this.uriScript = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.js')).toString();
 		this.uriStyle = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.css')).toString();
 		this.uriStyleIcons = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'codicon.css')).toString();
 		this.view = webviewView.webview;
-		this.draw(this.view, this.annotations);
+		this.viewView = webviewView;
+		this.draw(this.view);
 	}
 
 
 	/** Update HTML now or do it after it's created */
 	update(annotations: Card[], focused: string)
 	{
-		if (this.view === undefined) {
-			this.annotations = annotations;
-		}
-		else {
-			this.annotations.length = 0;
-			this.draw(this.view, annotations, focused);
-		}
+		this.annotations = annotations;
+		if (this.view !== undefined)
+			this.draw(this.view, focused);
 	}
 
 
 	/** Now that the view exists, draw the annotations */
-	private draw(view: vscode.Webview, annotations: Card[], focused: string = '')
+	private draw(view: vscode.Webview, focused: string = '')
 	{
-		if (this.editing) {
-			this.annotations = annotations;
+		console.log('draw');
+		if (this.editing)
 			return;
-		}
 
 		const htmlParts = [];
 		htmlParts.push('<!DOCTYPE html>');
@@ -117,9 +122,8 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 		htmlParts.push('<body>');
 
 		htmlParts.push('<div>');
-		for (const annotation of annotations)
+		for (const annotation of this.annotations)
 			htmlParts.push(`<div class=annotation id="${escapeHtml(annotation.id)}" tabindex=0 data-vscode-context='{"webviewSection": "annotation", "id": ${JSON.stringify(escapeHtml(annotation.id))}}'><div class='cardHeader'><p><span><b>${escapeHtml(annotation.positionTitle)}</b></span></p><p><span>${escapeHtml(annotation.author)}</span><span>${escapeHtml(annotation.lastModified)}</span><button class='more codicon codicon-more'></button></p></div><code class='body' contenteditable data-vscode-context=\'{"preventDefaultContextMenuItems":false,"webviewSection":"annotationBody"}\'>${escapeHtml(annotation.body)}</code></div>`);
-		annotations.length = 0;
 		htmlParts.push('</div>');
 
 		// Prevent the last code element from stealing focus
@@ -136,6 +140,13 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 			const message: AnnotationMessageToSandbox = {method: 'edit', id: focused};
 			view.postMessage(message);
 		}
+	}
+
+
+	private handleChangeVisibility()
+	{
+		if (this.view && this.viewView && this.viewView.visible)
+			this.draw(this.view);
 	}
 }
 
