@@ -1,5 +1,10 @@
 # Change Log
 
+# [1.0.22] - 2025 Oct 09
+- Add graph feature
+- Add AI chat feature
+- Add setting for file watcher to reduce CPU usage and prevent unintentional analyses
+
 # [1.0.21] - 2025 Aug 15
 - Fix issue with hidden settings on WSL
 
