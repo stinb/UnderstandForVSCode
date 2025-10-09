@@ -1,5 +1,8 @@
+import * as vscode from 'vscode';
+
 import { variables } from '../other/variables';
 import { executeAtPosition, executeCommand } from './helpers';
+import { pathToSave } from '../other/popup';
 
 
 /** From JSON created in `AiViewProvider` */
@@ -22,6 +25,25 @@ export function generateAiOverview(context?: AiAnnotation)
 		executeCommand(command, [{uniqueName: context.id}]);
 	else
 		executeAtPosition(command);
+}
+
+
+/** Save the chat as a file */
+export async function saveChat()
+{
+	const result = await pathToSave([{extension: 'md', name: 'Markdown'}]);
+	if (!result)
+		return;
+
+	const extension = result.extension;
+
+	switch (extension) {
+		case 'md':
+			await variables.aiChatProvider.saveAsMarkdown(result.uri.fsPath);
+			break;
+		default:
+			return;
+	}
 }
 
 

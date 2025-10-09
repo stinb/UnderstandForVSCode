@@ -46,6 +46,12 @@
 				"category": "Understand: AI"
 			},
 			{
+				"command": "understand.ai.saveChat",
+				"title": "Save AI Chat",
+				"category": "Understand: AI",
+				"icon": "$(save)"
+			},
+			{
 				"command": "understand.ai.stopAiGeneration",
 				"title": "Stop AI Generation",
 				"category": "Understand: AI"
@@ -496,6 +502,11 @@
 			"editor/title": [
 				{
 					"command": "understand.ai.copyChat",
+					"when": "activeWebviewPanelId == understandChat",
+					"group": "navigation"
+				},
+				{
+					"command": "understand.ai.saveChat",
 					"when": "activeWebviewPanelId == understandChat",
 					"group": "navigation"
 				},

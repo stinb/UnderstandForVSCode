@@ -74,6 +74,15 @@ export class AiChatProvider
 	}
 
 
+	/** Get the current chat as a markdown string */
+	async saveAsMarkdown(path: string)
+	{
+		const chat = this.map.get(this.uniqueName);
+		if (chat)
+			chat.saveAsMarkdown(path);
+	}
+
+
 	/** Remove a chat from memory because it was closed */
 	removeChat(uniqueName: string)
 	{
@@ -178,6 +187,7 @@ class Chat
 	}
 
 
+	/** Copy the whole chat as markdown */
 	copy()
 	{
 		this.postMessage({ method: 'copyAll' });
@@ -206,6 +216,9 @@ class Chat
 					uniqueName: this.uniqueName,
 				});
 				break;
+			case 'saveFile':
+				vscode.workspace.fs.writeFile(vscode.Uri.file(message.path), new TextEncoder().encode(message.content));
+				break;
 			case 'send':
 				variables.languageClient.sendRequest('understand/aiChat/send', {
 					uniqueName: this.uniqueName,
@@ -213,6 +226,12 @@ class Chat
 				});
 				break;
 		}
+	}
+
+
+	saveAsMarkdown(path: string)
+	{
+		this.postMessage({method: 'saveAsMarkdown', path});
 	}
 
 

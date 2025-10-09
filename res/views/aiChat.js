@@ -250,19 +250,21 @@ function handleMessageEvent(event)
 			break;
 		}
 		case 'copyAll': {
-			let result = '';
-			for (let i = 0; i < messages.length; i++) {
-				result += (i % 2 === 0) ? '\n## Assistant\n\n' : '\n## User\n\n';
-				result += messages[i];
-				result += '\n\n';
-			}
-			navigator.clipboard.writeText(result);
+			navigator.clipboard.writeText(toMarkdown());
 			break;
 		}
 		case 'error': {
 			lastText = '';
 			setLastCardText(message.text);
 			enablePrompting(true);
+			break;
+		}
+		case 'saveAsMarkdown': {
+			vscode.postMessage({
+				method: 'saveFile',
+				content: toMarkdown(),
+				path: message.path,
+			});
 			break;
 		}
 		case 'text': {
@@ -332,6 +334,18 @@ function setLastCardText(text)
 		drawMarkdown(body, text);
 	else
 		drawProgress(body);
+}
+
+
+function toMarkdown()
+{
+	let result = '';
+	for (let i = 0; i < messages.length; i++) {
+		result += (i % 2 === 0) ? '\n## Assistant\n\n' : '\n## User\n\n';
+		result += messages[i];
+		result += '\n\n';
+	}
+	return result;
 }
 
 

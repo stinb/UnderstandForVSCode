@@ -6,6 +6,7 @@ import { escapeHtml } from './html';
 import { variables } from './variables';
 import { GraphMessageFromSandbox, GraphMessageToSandbox } from '../types/graph';
 import { Option, OptionIntegerRange } from '../types/option';
+import { pathToSave } from './popup';
 
 
 export class GraphProvider
@@ -264,27 +265,21 @@ class Graph
 
 	async save()
 	{
-		const uri = await vscode.window.showSaveDialog({
-			filters: {
-				'SVG (default)': ['svg'],
-				'JPG': ['jpg'],
-				'PNG': ['png'],
-			},
-			title: 'Save as SVG (default), JPG, PNG',
-		});
-		if (!uri)
+		const result = await pathToSave(['svg', 'jpg', 'png']);
+		if (!result)
 			return;
 
-		const path = uri.fsPath;
-		const extensionMatch = /\.([^.]*)$/.exec(path);
-		if (!extensionMatch)
-			return;
-		const extension = extensionMatch[1].toLowerCase();
+		const extension = result.extension;
+		const path = result.uri.fsPath;
 
 		switch (extension) {
 			case 'jpg': case 'png': case 'svg':
-				return this.postMessage({method: 'convert', extension, path});
+				break;
+			default:
+				return;
 		}
+
+		return this.postMessage({method: 'convert', extension, path});
 	}
 
 
