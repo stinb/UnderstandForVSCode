@@ -88,19 +88,20 @@ function drawNewMessage(user, text)
 	copyButton.dataset.index = i;
 	buttonsUi.appendChild(copyButton);
 
+	if (user) {
+		const editButton = document.createElement('button');
+		editButton.className = 'codicon codicon-edit small';
+		editButton.title = 'Edit';
+		editButton.dataset.index = i;
+		editButton.onclick = handleClickEdit;
+		buttonsUi.appendChild(editButton);
+	}
 	// // TODO
-	// if (user) {
-	// 	const editButton = document.createElement('button');
-	// 	editButton.className = 'codicon codicon-edit small';
-	// 	editButton.title = 'Edit';
-	// 	copyButton.dataset.index = i;
-	// 	buttonsUi.appendChild(editButton);
-	// }
 	// else {
 	// 	const regenerateButton = document.createElement('button');
 	// 	regenerateButton.className = 'codicon codicon-refresh small';
 	// 	regenerateButton.title = 'Regenerate';
-	// 	copyButton.dataset.index = i;
+	// 	regenerateButton.onclick = handleClickRegenerate;
 	// 	buttonsUi.appendChild(regenerateButton);
 	// }
 }
@@ -115,6 +116,28 @@ function drawProgress(element)
 	iconUi.className = 'codicon codicon-ellipsis';
 	element.innerHTML = '';
 	element.appendChild(iconUi);
+}
+
+
+/**
+ * @param {HTMLElement} input
+ * @param {number} i
+ */
+function edit(input, i)
+{
+	input.innerText = messages[i];
+
+	input.focus();
+
+	// Text cursor at the end
+	const range = document.createRange();
+	range.selectNodeContents(input);
+	range.collapse(false);
+	const selection = window.getSelection();
+	if (!selection)
+		return;
+	selection.removeAllRanges();
+	selection.addRange(range);
 }
 
 
@@ -160,6 +183,27 @@ function handleClickCopy(event)
 	const message = messages[i];
 	if (message)
 		navigator.clipboard.writeText(message);
+}
+
+
+/**
+ * @param {MouseEvent} event
+ */
+function handleClickEdit(event)
+{
+	if (!(event.target instanceof HTMLElement) || !event.target.dataset.index)
+		return;
+
+	const input = document.getElementById('input');
+	if (!input)
+		return;
+
+	const i = parseInt(event.target.dataset.index);
+
+	if (input.innerText.length)
+		return vscode.postMessage({method: 'edit', index: i});
+
+	edit(input, i);
 }
 
 
@@ -251,6 +295,12 @@ function handleMessageEvent(event)
 		}
 		case 'copyAll': {
 			navigator.clipboard.writeText(toMarkdown());
+			break;
+		}
+		case 'edit': {
+			const input = document.getElementById('input');
+			if (input)
+				edit(input, message.index);
 			break;
 		}
 		case 'error': {
@@ -361,7 +411,10 @@ function updateSendButton()
 	if (!(send instanceof HTMLButtonElement))
 		return;
 
-	send.disabled = input.innerText.length === 0;
+	if (promptEnabled)
+		send.disabled = input.innerText.length === 0;
+	else
+		send.disabled = false;
 }
 
 

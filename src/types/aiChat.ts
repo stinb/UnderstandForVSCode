@@ -2,6 +2,11 @@ export type CancelMessage = {
 	method: 'cancel',
 };
 
+export type EditMessage = {
+	method: 'edit',
+	index: number,
+};
+
 export type SaveFileMessage = {
 	method: 'saveFile',
 	content: string,
@@ -13,7 +18,7 @@ export type SendMessage = {
 	text: string,
 };
 
-export type AiChatMessageFromSandbox = CancelMessage | SaveFileMessage | SendMessage;
+export type AiChatMessageFromSandbox = CancelMessage | EditMessage | SaveFileMessage | SendMessage;
 
 
 export type AddMessageMessage = {
@@ -58,4 +63,4 @@ export type TextEndMessage = {
 	method: 'textEnd',
 };
 
-export type AiChatMessageToSandbox = AddMessageMessage | AddSuggestionsMessage | ClearAllMessage | ClearOneMessage | CopyAllMessage | ErrorMessage | SaveAsMarkdownMessage | TextMessage | TextEndMessage;
+export type AiChatMessageToSandbox = AddMessageMessage | AddSuggestionsMessage | ClearAllMessage | ClearOneMessage | CopyAllMessage | EditMessage | ErrorMessage | SaveAsMarkdownMessage | TextMessage | TextEndMessage;

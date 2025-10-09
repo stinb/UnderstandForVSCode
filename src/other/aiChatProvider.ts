@@ -216,6 +216,14 @@ class Chat
 					uniqueName: this.uniqueName,
 				});
 				break;
+			case 'edit':
+				vscode.window
+					.showInformationMessage('Do you want to overwrite your prompt', 'Yes', 'No')
+					.then(answer => {
+						if (answer === 'Yes')
+							this.postMessage(message);
+					});
+				break;
 			case 'saveFile':
 				vscode.workspace.fs.writeFile(vscode.Uri.file(message.path), new TextEncoder().encode(message.content));
 				break;

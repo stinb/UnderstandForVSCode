@@ -1,5 +1,3 @@
-import * as vscode from 'vscode';
-
 import { variables } from '../other/variables';
 import { executeAtPosition, executeCommand } from './helpers';
 import { pathToSave } from '../other/popup';
