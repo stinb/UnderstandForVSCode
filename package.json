@@ -646,6 +646,9 @@
 		"typescript": "5.3.3"
 	},
 	"scripts": {
-		"build": "npm install --ignore-scripts && node node_modules/typescript/bin/tsc && node node_modules/esbuild/bin/esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node --minify && node node_modules/@vscode/vsce/vsce package -o understand.vsix"
+		"build": "npm install --ignore-scripts && node node_modules/typescript/bin/tsc && node node_modules/esbuild/bin/esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node --minify && node node_modules/@vscode/vsce/vsce package -o understand.vsix",
+		"clean": "git clean -dfX",
+		"install": "npm run build && code --install-extension understand.vsix",
+		"watch": "npm install --ignore-scripts && node node_modules/esbuild/bin/esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node --minify --watch"
 	}
 }
