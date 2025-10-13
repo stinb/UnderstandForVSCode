@@ -7,6 +7,10 @@ type Edit = {
 	index: number,
 };
 
+type Regenerate = {
+	method: 'regenerate',
+};
+
 type SaveFile = {
 	method: 'saveFile',
 	content: string,
@@ -18,7 +22,7 @@ type Send = {
 	text: string,
 };
 
-export type AiChatMessageFromSandbox = Cancel | Edit | SaveFile | Send;
+export type AiChatMessageFromSandbox = Cancel | Edit | Regenerate | SaveFile | Send;
 
 
 type AddMessage = {

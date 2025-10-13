@@ -242,6 +242,11 @@ class Chat
 							this.postMessage(message);
 					});
 				break;
+			case 'regenerate':
+				variables.languageClient.sendRequest('understand/aiChat/regenerate', {
+					uniqueName: this.uniqueName,
+				});
+				break;
 			case 'saveFile':
 				vscode.workspace.fs.writeFile(vscode.Uri.file(message.path), new TextEncoder().encode(message.content));
 				break;

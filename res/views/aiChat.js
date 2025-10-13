@@ -94,14 +94,13 @@ function drawNewMessage(user, text)
 		editButton.onclick = handleClickEdit;
 		buttonsUi.appendChild(editButton);
 	}
-	// // TODO
-	// else {
-	// 	const regenerateButton = document.createElement('button');
-	// 	regenerateButton.className = 'codicon codicon-refresh small';
-	// 	regenerateButton.title = 'Regenerate';
-	// 	regenerateButton.onclick = handleClickRegenerate;
-	// 	buttonsUi.appendChild(regenerateButton);
-	// }
+	else {
+		const regenerateButton = document.createElement('button');
+		regenerateButton.className = 'codicon codicon-refresh small regenerate';
+		regenerateButton.title = 'Regenerate';
+		regenerateButton.onclick = handleClickRegenerate;
+		buttonsUi.appendChild(regenerateButton);
+	}
 }
 
 
@@ -145,12 +144,19 @@ function edit(input, i)
 function enablePrompting(enable)
 {
 	promptEnabled = enable;
+
+	for (const element of document.getElementsByClassName('regenerate'))
+		if (element instanceof HTMLButtonElement)
+			element.disabled = !enable;
+
 	for (const element of document.getElementsByClassName('suggestion'))
 		if (element instanceof HTMLButtonElement)
 			element.disabled = !enable;
+
 	const send = document.getElementById('send');
 	if (send)
 		send.title = enable ? 'Send' : 'Cancel';
+
 	const icon = document.getElementById('sendIcon');
 	if (icon)
 		icon.className = enable ? 'codicon codicon-send' : 'codicon codicon-error';
@@ -202,6 +208,21 @@ function handleClickEdit(event)
 		return vscode.postMessage({method: 'edit', index: i});
 
 	edit(input, i);
+}
+
+
+function handleClickRegenerate()
+{
+	if (messages.length < 2)
+		return;
+
+	const messagesUi = document.getElementById('messages');
+	if (!messagesUi)
+		return;
+
+	enablePrompting(false);
+	setLastCardText('');
+	vscode.postMessage({method: 'regenerate'});
 }
 
 
@@ -259,6 +280,7 @@ function handleMessageEvent(event)
 
 	switch (message.method) {
 		case 'addMessage': {
+			removeRegenerateButtons();
 			drawNewMessage(message.user, message.text);
 			break;
 		}
@@ -340,12 +362,20 @@ function getLastCard()
 }
 
 
+function removeRegenerateButtons()
+{
+	for (const button of document.getElementsByClassName('regenerate'))
+		button.remove();
+}
+
+
 /** @param {string} text */
 function sendPrompt(text)
 {
 	if (text.length === 0)
 		return;
 
+	removeRegenerateButtons();
 	drawNewMessage(true, text);
 	drawNewMessage(false, '');
 	enablePrompting(false);
