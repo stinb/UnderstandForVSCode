@@ -1,10 +1,6 @@
 # Variables
 WATCH := $(wildcard src/*.ts) $(wildcard src/commands/*.ts) $(wildcard src/other/*.ts) $(wildcard src/viewProviders/*.ts) package.json $(wildcard res/*) $(wildcard res/views/*) $(wildcard *.md) Makefile
 OUTPUT := understand.vsix
-ESBUILD := node_modules/esbuild/bin/esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node --minify
-ifeq ($(OS),Windows_NT)
-	ESBUILD := node $(ESBUILD)
-endif
 
 # Targets
 $(OUTPUT): $(WATCH)
@@ -13,7 +9,7 @@ $(OUTPUT): $(WATCH)
 	@echo --------------------------------------------------------------------------------
 	node node_modules/typescript/bin/tsc
 	@echo --------------------------------------------------------------------------------
-	$(ESBUILD)
+	node node_modules/esbuild/bin/esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node --minify
 	@echo --------------------------------------------------------------------------------
 	node node_modules/@vscode/vsce/vsce package -o $(OUTPUT)
 
