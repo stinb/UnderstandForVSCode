@@ -26,8 +26,6 @@ const messages = [];
 
 const domParser = new DOMParser();
 
-let lastText = '';
-
 let promptEnabled = true;
 
 
@@ -261,7 +259,6 @@ function handleMessageEvent(event)
 
 	switch (message.method) {
 		case 'addMessage': {
-			lastText = '';
 			drawNewMessage(message.user, message.text);
 			break;
 		}
@@ -278,19 +275,15 @@ function handleMessageEvent(event)
 			}
 			break;
 		}
-		case 'clearAll': {
-			lastText = '';
+		case 'clearOne': {
+			setLastCardText('');
+			break;
+		}
+		case 'deleteAll': {
+			messages.length = 0;
 			let ui = document.getElementById('messages');
 			if (ui)
 				ui.innerHTML = '';
-			ui = document.getElementById('suggestions');
-			if (ui)
-				ui.innerHTML = '';
-			break;
-		}
-		case 'clearOne': {
-			lastText = '';
-			setLastCardText(lastText);
 			break;
 		}
 		case 'copyAll': {
@@ -304,7 +297,6 @@ function handleMessageEvent(event)
 			break;
 		}
 		case 'error': {
-			lastText = '';
 			setLastCardText(message.text);
 			enablePrompting(true);
 			break;
@@ -318,8 +310,11 @@ function handleMessageEvent(event)
 			break;
 		}
 		case 'text': {
-			lastText += message.text;
-			setLastCardText(lastText);
+			if (messages.length === 0)
+				break;
+			const i = messages.length - 1;
+			messages[i] += message.text;
+			setLastCardText(messages[i]);
 			break;
 		}
 		case 'textEnd': {
@@ -351,7 +346,6 @@ function sendPrompt(text)
 	if (text.length === 0)
 		return;
 
-	lastText = '';
 	drawNewMessage(true, text);
 	drawNewMessage(false, '');
 	enablePrompting(false);

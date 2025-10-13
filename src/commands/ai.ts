@@ -15,6 +15,12 @@ export function copyChat()
 }
 
 
+export function deleteAllMessages()
+{
+	variables.aiChatProvider.deleteAllMessagesOfFocusedChat();
+}
+
+
 /** Generate an AI overview of the entity */
 export function generateAiOverview(context?: AiAnnotation)
 {

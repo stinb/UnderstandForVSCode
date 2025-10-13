@@ -36,6 +36,12 @@
 				"icon": "$(copy)"
 			},
 			{
+				"command": "understand.ai.deleteAllMessages",
+				"title": "Delete All Messages",
+				"category": "Understand: AI",
+				"icon": "$(trash)"
+			},
+			{
 				"command": "understand.ai.generateAiOverview",
 				"title": "Generate AI Overview",
 				"category": "Understand: AI"
@@ -502,6 +508,11 @@
 			"editor/title": [
 				{
 					"command": "understand.ai.copyChat",
+					"when": "activeWebviewPanelId == understandChat",
+					"group": "navigation"
+				},
+				{
+					"command": "understand.ai.deleteAllMessages",
 					"when": "activeWebviewPanelId == understandChat",
 					"group": "navigation"
 				},

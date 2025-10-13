@@ -1,66 +1,66 @@
-export type CancelMessage = {
+type Cancel = {
 	method: 'cancel',
 };
 
-export type EditMessage = {
+type Edit = {
 	method: 'edit',
 	index: number,
 };
 
-export type SaveFileMessage = {
+type SaveFile = {
 	method: 'saveFile',
 	content: string,
 	path: string,
 };
 
-export type SendMessage = {
+type Send = {
 	method: 'send',
 	text: string,
 };
 
-export type AiChatMessageFromSandbox = CancelMessage | EditMessage | SaveFileMessage | SendMessage;
+export type AiChatMessageFromSandbox = Cancel | Edit | SaveFile | Send;
 
 
-export type AddMessageMessage = {
+type AddMessage = {
 	method: 'addMessage',
 	text: string,
 	user: boolean,
 };
 
-export type AddSuggestionsMessage = {
+type AddSuggestions = {
 	method: 'addSuggestions',
 	suggestions: string[],
 };
 
-export type ClearAllMessage = {
-	method: 'clearAll',
-};
-
-export type ClearOneMessage = {
-	method: 'clearOne',
-};
-
-export type CopyAllMessage = {
+type CopyAll = {
 	method: 'copyAll',
 };
 
-export type ErrorMessage = {
+type ClearOne = {
+	method: 'clearOne',
+};
+
+type DeleteAll = {
+	method: 'deleteAll',
+};
+
+type Error = {
 	method: 'error',
 	text: string,
 };
 
-export type SaveAsMarkdownMessage = {
+type SaveAsMarkdown = {
 	method: 'saveAsMarkdown',
 	path: string,
 };
 
-export type TextMessage = {
+type Text = {
 	method: 'text',
 	text: string,
 };
 
-export type TextEndMessage = {
+type TextEnd = {
 	method: 'textEnd',
 };
 
-export type AiChatMessageToSandbox = AddMessageMessage | AddSuggestionsMessage | ClearAllMessage | ClearOneMessage | CopyAllMessage | EditMessage | ErrorMessage | SaveAsMarkdownMessage | TextMessage | TextEndMessage;
+export type AiChatMessageToSandbox = AddMessage | AddSuggestions | CopyAll | DeleteAll | ClearOne | Edit | Error | SaveAsMarkdown | Text | TextEnd;

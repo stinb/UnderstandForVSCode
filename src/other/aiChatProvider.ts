@@ -63,6 +63,16 @@ export class AiChatProvider
 	}
 
 
+	/** If focused on a chat, remove all of its messages */
+	deleteAllMessagesOfFocusedChat()
+	{
+		const chat = this.map.get(this.uniqueName);
+		if (!chat)
+			return;
+		chat.deleteAllMessages();
+	}
+
+
 	/** Focus on a document panel, opening it if needed */
 	focus(name: string, uniqueName: string)
 	{
@@ -180,7 +190,15 @@ class Chat
 	}
 
 
-	/** Clear the last card */
+	deleteAllMessages()
+	{
+		const uniqueName = this.uniqueName;
+		variables.languageClient.sendRequest('understand/aiChat/deleteAllMessages', { uniqueName });
+		this.postMessage({ method: 'deleteAll' });
+	}
+
+
+	/** Delete the last card */
 	clearOne()
 	{
 		this.postMessage({ method: 'clearOne' });
