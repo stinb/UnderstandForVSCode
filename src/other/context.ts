@@ -12,8 +12,6 @@ export const contexts = {
 const DELAY_MILLISECONDS = 100;
 
 
-let editor: vscode.TextEditor | undefined;
-let editorTimeout: NodeJS.Timeout | undefined;
 let preserveView = '';
 let selectionTimeout: NodeJS.Timeout | undefined;
 
@@ -39,25 +37,10 @@ export async function setContext(name: string, enabled: boolean)
 }
 
 
-export async function onDidChangeActiveTextEditor(newEditor: vscode.TextEditor | undefined)
-{
-	if (newEditor && newEditor.document.uri.scheme !== 'file')
-		return;
-
-	editor = newEditor;
-	if (!editorTimeout)
-		editorTimeout = setTimeout(sendEditor, DELAY_MILLISECONDS);
-	else
-		editorTimeout.refresh();
-}
-
-
 /** When the text cursor moves, notify the server */
-export async function onDidChangeTextEditorSelection(event: vscode.TextEditorSelectionChangeEvent)
+export function onDidChangeTextEditorSelection()
 {
 	preserveView = variables.preserveView;
-	if (event.textEditor.document.uri.scheme !== 'file')
-		return;
 
 	if (!selectionTimeout)
 		selectionTimeout = setTimeout(sendSelection, DELAY_MILLISECONDS);
@@ -66,44 +49,30 @@ export async function onDidChangeTextEditorSelection(event: vscode.TextEditorSel
 }
 
 
-/** When the editor changes enable/disable the 'understandFile' context */
-async function sendEditor()
-{
-	const isFile = editor && editor.document.uri.scheme === 'file';
-
-	if (!editor || isFile) {
-		// Tell the server the new current editor
-		const params = {uri: ''};
-		if (editor)
-			params.uri = editor.document.uri.toString();
-		variables.languageClient.sendNotification('understand/changedCurrentFile', params);
-	}
-
-	// Unresolved if no editor or the editor isn't a file
-	if (!editor || !isFile)
-		return setContext(contexts.file, false);
-
-	// Resolved if the language server says so
-	const resolved: boolean = await variables.languageClient.sendRequest('understand/isResolved', {
-		uri: editor.document.uri.toString(),
-	});
-	setContext(contexts.file, resolved);
-}
-
-
 /** When the editor changes, tell the server */
-function sendSelection()
+async function sendSelection()
 {
-	if (!editor || !editor.selections.length || editor.document.uri.scheme !== 'file')
+	const editor = vscode.window.activeTextEditor;
+
+	if (!editor || !editor.selections.length || editor.document.uri.scheme !== 'file') {
+		setContext(contexts.file, false);
+		variables.languageClient.sendNotification('understand/changedCurrentFileCursor');
 		return;
+	}
 
 	const position = editor.selections[0].active;
 
 	variables.languageClient.sendNotification('understand/changedCurrentFileCursor', {
+		uri: editor.document.uri.toString(),
 		line: position.line,
 		character: position.character,
 		preserveView: preserveView,
 	});
+
+	const resolved: boolean = await variables.languageClient.sendRequest('understand/isResolved', {
+		uri: editor.document.uri.toString(),
+	});
+	setContext(contexts.file, resolved);
 }
 
 

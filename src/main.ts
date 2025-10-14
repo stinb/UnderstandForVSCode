@@ -10,7 +10,7 @@ import * as referencesView from './commands/referencesView';
 import * as settings from './commands/settings';
 import * as violations from './commands/violations';
 import { onDidChangeConfiguration } from './other/config';
-import { onDidChangeActiveTextEditor, onDidChangeTextEditorSelection } from './other/context';
+import { onDidChangeTextEditorSelection } from './other/context';
 import { UnderstandHoverProvider } from './other/hover';
 import { documentSelector, startLsp, stopLsp, } from './other/languageClient';
 import { UnderstandUriHandler } from './other/uriHandler';
@@ -112,7 +112,7 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.workspace.registerTextDocumentContentProvider(URI_SCHEME_VIOLATION_DESCRIPTION, variables.violationDescriptionProvider),
 
 		// Watch for editor focus changing, which should change the 'understandFile' context
-		vscode.window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor),
+		vscode.window.onDidChangeActiveTextEditor(onDidChangeTextEditorSelection),
 		vscode.window.onDidChangeTextEditorSelection(onDidChangeTextEditorSelection),
 
 		// Handle the violation-descriptions: URI

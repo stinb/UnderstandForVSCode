@@ -104,7 +104,6 @@ export class AnnotationsViewProvider implements vscode.WebviewViewProvider
 	/** Now that the view exists, draw the annotations */
 	private draw(view: vscode.Webview, focused: string = '')
 	{
-		console.log('draw');
 		if (this.editing)
 			return;
 
