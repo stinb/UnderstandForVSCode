@@ -56,17 +56,17 @@ async function sendSelection()
 
 	if (!editor || !editor.selections.length || editor.document.uri.scheme !== 'file') {
 		setContext(contexts.file, false);
-		variables.languageClient.sendNotification('understand/changedCurrentFileCursor');
+		variables.languageClient.sendNotification('understand/sync');
 		return;
 	}
 
 	const position = editor.selections[0].active;
 
-	variables.languageClient.sendNotification('understand/changedCurrentFileCursor', {
+	variables.languageClient.sendNotification('understand/sync', {
 		uri: editor.document.uri.toString(),
 		line: position.line,
 		character: position.character,
-		preserveView: preserveView,
+		preserve: preserveView,
 	});
 
 	const resolved: boolean = await variables.languageClient.sendRequest('understand/isResolved', {

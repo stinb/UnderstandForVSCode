@@ -192,7 +192,7 @@ class Graph
 				return;
 			}
 			variables.graphProvider.setFocusedGraph(this);
-			variables.languageClient.sendNotification('understand/graphs/focused', {
+			variables.languageClient.sendNotification('understand/sync', {
 				uniqueName: this.uniqueName,
 			});
 		});
