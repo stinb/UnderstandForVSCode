@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import { variables } from '../other/variables';
+import { focusedUniqueName } from '../other/sync';
 
 
 /**
@@ -75,8 +76,17 @@ export async function addAnnotation(args: any, extra: any)
 export async function addEntityAnnotation()
 {
 	const editor = vscode.window.activeTextEditor;
-	if (!editor)
-		return showNoEditorError();
+	if (!editor) {
+		const uniqueName = focusedUniqueName();
+		if (!uniqueName)
+			return showNoEditorError();
+		await focusOnAnnotations();
+		variables.languageClient.sendRequest('understand/addAnnotation', {
+			kind: 'entityFromUniqueName',
+			uniqueName,
+		});
+		return;
+	}
 
 	await focusOnAnnotations();
 

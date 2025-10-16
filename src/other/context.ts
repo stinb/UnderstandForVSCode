@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import { variables } from '../other/variables';
+import { focusedUniqueName } from './sync';
 
 
 export const contexts = {
@@ -14,6 +15,27 @@ const DELAY_MILLISECONDS = 100;
 
 let preserveView = '';
 let selectionTimeout: NodeJS.Timeout | undefined;
+
+
+/** When the text cursor moves, notify the server */
+export function actuallyChangedTextEditorSelection()
+{
+	preserveView = variables.preserveView;
+
+	if (!selectionTimeout)
+		selectionTimeout = setTimeout(sendSelection, DELAY_MILLISECONDS);
+	else
+		selectionTimeout.refresh();
+}
+
+
+export function onDidChangeTextEditorSelection(event: vscode.TextEditorSelectionChangeEvent)
+{
+	// Filter out the "Output" view which spams this event
+	if (event.textEditor.document.uri.scheme === 'output')
+		return;
+	actuallyChangedTextEditorSelection();
+}
 
 
 /** Enable/disable a context, which can enable/disable commands in package.json */
@@ -37,18 +59,6 @@ export async function setContext(name: string, enabled: boolean)
 }
 
 
-/** When the text cursor moves, notify the server */
-export function onDidChangeTextEditorSelection()
-{
-	preserveView = variables.preserveView;
-
-	if (!selectionTimeout)
-		selectionTimeout = setTimeout(sendSelection, DELAY_MILLISECONDS);
-	else
-		selectionTimeout.refresh();
-}
-
-
 /** When the editor changes, tell the server */
 async function sendSelection()
 {
@@ -56,7 +66,8 @@ async function sendSelection()
 
 	if (!editor || !editor.selections.length || editor.document.uri.scheme !== 'file') {
 		setContext(contexts.file, false);
-		variables.languageClient.sendNotification('understand/sync');
+		const uniqueName = focusedUniqueName();
+		variables.languageClient.sendNotification('understand/sync', { uniqueName });
 		return;
 	}
 

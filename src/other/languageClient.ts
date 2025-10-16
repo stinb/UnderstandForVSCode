@@ -16,7 +16,7 @@ import {
 	handleUnderstandChangedDatabaseState,
 } from './statusBar';
 import { handleUnderstandChangedAnnotations } from '../viewProviders/annotations';
-import { onDidChangeTextEditorSelection } from './context';
+import { actuallyChangedTextEditorSelection } from './context';
 import { handleUnderstandGraphsListed } from '../treeProviders/graphs';
 import { handleUnderstandChangedReferences } from '../treeProviders/references';
 import { Section } from '../types/annotation';
@@ -89,7 +89,7 @@ export async function startLsp()
 		changeMainStatus(MainState.Ready);
 		const editor = vscode.window.activeTextEditor;
 		if (editor)
-			onDidChangeTextEditorSelection();
+			actuallyChangedTextEditorSelection();
 		variables.languageClient.onNotification('$/progress', handleProgress);
 		variables.languageClient.onNotification('understand/ai/clear', handleUnderstandAiClear);
 		variables.languageClient.onNotification('understand/ai/error', handleUnderstandAiError);

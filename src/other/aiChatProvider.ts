@@ -84,6 +84,12 @@ export class AiChatProvider
 	}
 
 
+	focusedUniqueName(): string
+	{
+		return this.uniqueName;
+	}
+
+
 	/** Get the current chat as a markdown string */
 	async saveAsMarkdown(path: string)
 	{

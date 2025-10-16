@@ -15,13 +15,19 @@ export class GraphProvider
 
 	private entityName = '';
 	private focusedGraph?: Graph = undefined;
-	private uniqueName = '';
+	private listedUniqueName = '';
+
+
+	focusedUniqueName(): string
+	{
+		return this.focusedGraph ? this.focusedGraph.getUniqueName() : '';
+	}
 
 
 	setEntity(entityName: string, uniqueName: string)
 	{
 		this.entityName = entityName;
-		this.uniqueName = uniqueName;
+		this.listedUniqueName = uniqueName;
 	}
 
 
@@ -33,12 +39,12 @@ export class GraphProvider
 
 	view(graphName: string)
 	{
-		const key = this.toKey(graphName, this.uniqueName);
+		const key = this.toKey(graphName, this.listedUniqueName);
 		const graph = this.keyToGraph.get(key);
 		if (graph)
 			graph.focus();
 		else
-			this.keyToGraph.set(key, new Graph(graphName, this.uniqueName, this.entityName));
+			this.keyToGraph.set(key, new Graph(graphName, this.listedUniqueName, this.entityName));
 	}
 
 
@@ -192,9 +198,6 @@ class Graph
 				return;
 			}
 			variables.graphProvider.setFocusedGraph(this);
-			variables.languageClient.sendNotification('understand/sync', {
-				uniqueName: this.uniqueName,
-			});
 		});
 
 		this.panel.onDidDispose(() => {
@@ -233,6 +236,12 @@ class Graph
 	<script src='${escapeHtml(uriScript)}'></script>
 </body>
 </html>`;
+	}
+
+
+	getUniqueName(): string
+	{
+		return this.uniqueName;
 	}
 
 
