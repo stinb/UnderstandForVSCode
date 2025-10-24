@@ -1,5 +1,10 @@
 # Change Log
 
+# [1.1.0] - 2025 Oct 24
+- Improve sync for the sidebar views
+- AI Chat: Add regenerate button for last response
+- AI Chat: add button to delete all messages
+
 # [1.0.22] - 2025 Oct 09
 - Add graph feature
 - Add AI chat feature
