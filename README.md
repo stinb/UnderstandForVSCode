@@ -49,7 +49,7 @@ See [scitools.com/eula](https://scitools.com/eula) and also in Understand see He
 ---
 ## Features
 
-__See or Go To References__
+### See or Go To References
 
 ![Screenshot of hover information with types in the editor](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/screenshotReferences.png)
 
@@ -65,7 +65,7 @@ __See or Go To References__
 	* Find all references in the [side bar](https://code.visualstudio.com/docs/getstarted/userinterface) with the ability to dismiss them
 
 ---
-__See Hover Information__
+### See Hover Information
 
 ![Screenshot of hover information with types in the editor](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/screenshotHover.png)
 
@@ -73,7 +73,7 @@ __See Hover Information__
 * Values of objects, macros, etc.
 
 ---
-__See Errors and Warnings__
+### See Errors and Warnings
 
 ![Screenshot of an analysis error violation in the editor](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/screenshotErrorInEditor.png)
 
@@ -85,7 +85,7 @@ __See Errors and Warnings__
 * Violations available in the editor, file explorer [side bar](https://code.visualstudio.com/docs/getstarted/userinterface), and problems [panel](https://code.visualstudio.com/docs/getstarted/userinterface)
 
 ---
-__Quickly Analyze Your Code__
+### Quickly Analyze Your Code
 
 ![Screenshot of analysis progress on the status bar](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/screenshotAnalysis.png)
 
@@ -93,7 +93,7 @@ __Quickly Analyze Your Code__
 * Manually analyze files with a [command](https://code.visualstudio.com/api/extension-guides/command)
 
 ---
-__Explore in _Understand___
+### Explore in _Understand_
 
 ![Screenshot of our main product Understand](https://raw.githubusercontent.com/stinb/UserverVscode/main/res/screenshotUnderstand.png)
 
@@ -108,7 +108,7 @@ __Explore in _Understand___
 
 ---
 
-__Understand Different Languages__
+### Understand Different Languages
 * Ada
 * Assembly
 * C/C++

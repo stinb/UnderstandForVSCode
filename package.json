@@ -2,7 +2,7 @@
 	"name": "understand",
 	"displayName": "Understand",
 	"description": "The Software Developer's Multi-Tool",
-	"version": "1.1.0",
+	"version": "1.1.1-rc",
 	"publisher": "scitools",
 	"repository": {
 		"type": "git",
