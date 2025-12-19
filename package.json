@@ -134,6 +134,24 @@
 				"icon": "$(save)"
 			},
 			{
+				"command": "understand.metrics.documentation",
+				"title": "Documentation",
+				"category": "Understand: Metrics",
+				"icon": "$(info)"
+			},
+			{
+				"command": "understand.metrics.copyApiName",
+				"title": "Copy API Name",
+				"category": "Understand: Metrics View",
+				"icon": "$(json)"
+			},
+			{
+				"command": "understand.metrics.copyFriendlyNameAndValue",
+				"title": "Copy Friendly Name and Value",
+				"category": "Understand: Metrics View",
+				"icon": "$(copy)"
+			},
+			{
 				"command": "understand.references.findAllImplementations",
 				"title": "Find All Implementations",
 				"category": "Understand: References"
@@ -221,6 +239,13 @@
 				"category": "Understand"
 			},
 			{
+				"command": "understand.settings.showSettingsMetricsView",
+				"title": "Settings: Metrics View",
+				"shortTitle": "Settings",
+				"category": "Understand",
+				"icon": "$(gear)"
+			},
+			{
 				"command": "understand.settings.showSettingsReferencesView",
 				"title": "Settings: References View",
 				"shortTitle": "Settings",
@@ -284,6 +309,13 @@
 					"type": "string",
 					"default": "**",
 					"markdownDescription": "[Glob pattern](https://aka.ms/vscode-glob-patterns) of files to watch, to notify the server when they are changed/created/deleted, for example `**/src/**/*.{c,h}`"
+				},
+				"understand.metricsView.disabledMetrics": {
+					"type": "array",
+					"markdownDescription": "API names of [metrics](https://support.scitools.com/support/solutions/articles/70000582223-what-metrics-does-understand-have-) to hide (example: AvgCountLine)",
+					"items": {
+						"type": "string"
+					}
 				},
 				"understand.project.path": {
 					"type": "string",
@@ -561,12 +593,32 @@
 					"group": "navigation@3"
 				},
 				{
+					"command": "understand.metrics.documentation",
+					"when": "view == understandMetrics",
+					"group": "navigation"
+				},
+				{
+					"command": "understand.settings.showSettingsMetricsView",
+					"when": "view == understandMetrics",
+					"group": "navigation"
+				},
+				{
 					"command": "understand.settings.showSettingsReferencesView",
 					"when": "view == understandReferences",
 					"group": "navigation@3"
 				}
 			],
 			"view/item/context" : [
+				{
+					"command": "understand.metrics.copyApiName",
+					"when": "view == understandMetrics && viewItem == understandMetric",
+					"group": "inline"
+				},
+				{
+					"command": "understand.metrics.copyFriendlyNameAndValue",
+					"when": "view == understandMetrics && viewItem == understandMetric",
+					"group": "inline"
+				},
 				{
 					"command": "understand.referencesView.pinEntity",
 					"when": "view == understandReferences && viewItem == understandUnpinnedEntity",
@@ -617,12 +669,19 @@
 					"icon": "$(comment)",
 					"id": "understandAnnotations",
 					"name": "Annotations",
-					"type": "webview"
+					"type": "webview",
+					"visibility": "collapsed"
 				},
 				{
 					"icon": "$(type-hierarchy)",
 					"id": "understandGraphs",
 					"name": "Graphs",
+					"type": "tree"
+				},
+				{
+					"icon": "$(pulse)",
+					"id": "understandMetrics",
+					"name": "Metrics",
 					"type": "tree"
 				},
 				{
@@ -641,7 +700,7 @@
 		"@types/markdown-it": "14.1.2",
 		"@types/node": "20.11.10",
 		"@types/vscode": "1.85.0",
-		"@vscode/vsce": "3.6.2",
+		"@vscode/vsce": "3.7.1",
 		"esbuild": "0.25.5",
 		"typescript": "5.3.3"
 	},

@@ -53,7 +53,7 @@ class GraphItem extends TreeItem
 		super(name);
 
 		this.command = {
-			title: 'Go to Reference',
+			title: 'Go to Graph',
 			command: 'understand.graphs.view',
 			arguments: [name],
 		};

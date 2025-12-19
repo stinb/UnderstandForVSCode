@@ -5,6 +5,7 @@ import * as analysis from './commands/analysis';
 import * as annotations from './commands/annotations';
 import * as exploreInUnderstand from './commands/exploreInUnderstand';
 import * as graphs from './commands/graphs';
+import * as metrics from './commands/metrics';
 import * as references from './commands/references';
 import * as referencesView from './commands/referencesView';
 import * as settings from './commands/settings';
@@ -19,6 +20,7 @@ import { AiViewProvider } from './viewProviders/ai';
 import { AnnotationsViewProvider } from './viewProviders/annotations';
 import { GraphProvider } from './other/graphProvider';
 import { GraphTreeProvider } from './treeProviders/graphs';
+import { MetricTreeProvider } from './treeProviders/metrics';
 import { ReferencesTreeProvider } from './treeProviders/references';
 import { watchFiles } from './other/fileSystem';
 import { actuallyChangedTextEditorSelection, onDidChangeTextEditorSelection } from './other/context';
@@ -32,6 +34,7 @@ export async function activate(context: vscode.ExtensionContext)
 	variables.extensionUri = context.extensionUri;
 	variables.graphTreeProvider = new GraphTreeProvider();
 	variables.graphProvider = new GraphProvider();
+	variables.metricTreeProvider = new MetricTreeProvider();
 	variables.referencesTreeProvider = new ReferencesTreeProvider();
 	variables.violationDescriptionProvider = new ViolationDescriptionProvider();
 
@@ -70,6 +73,11 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.graphs.save', graphs.save),
 		vscode.commands.registerCommand('understand.graphs.view', graphs.view),
 
+		// Commands: Metrics
+		vscode.commands.registerCommand('understand.metrics.copyApiName', metrics.copyApiName),
+		vscode.commands.registerCommand('understand.metrics.copyFriendlyNameAndValue', metrics.copyFriendlyNameAndValue),
+		vscode.commands.registerCommand('understand.metrics.documentation', metrics.documentation),
+
 		// Commands: References
 		vscode.commands.registerCommand('understand.references.findAllImplementations', references.findAllImplementations),
 		vscode.commands.registerCommand('understand.references.findAllReferences', references.findAllReferences),
@@ -92,6 +100,7 @@ export async function activate(context: vscode.ExtensionContext)
 		// Commands: Settings
 		vscode.commands.registerCommand('understand.settings.showSettings', settings.showSettings),
 		vscode.commands.registerCommand('understand.settings.showSettingsProject', settings.showSettingsProject),
+		vscode.commands.registerCommand('understand.settings.showSettingsMetricsView', settings.showSettingsMetricsView),
 		vscode.commands.registerCommand('understand.settings.showSettingsReferencesView', settings.showSettingsReferencesView),
 
 		// Commands: Violations
@@ -122,6 +131,7 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.window.registerWebviewViewProvider('understandAi', variables.aiViewProvider),
 		vscode.window.registerWebviewViewProvider('understandAnnotations', variables.annotationsViewProvider),
 		vscode.window.registerTreeDataProvider('understandGraphs', variables.graphTreeProvider),
+		vscode.window.registerTreeDataProvider('understandMetrics', variables.metricTreeProvider),
 		vscode.window.registerTreeDataProvider('understandReferences', variables.referencesTreeProvider),
 	);
 

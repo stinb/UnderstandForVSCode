@@ -18,6 +18,7 @@ import {
 import { handleUnderstandChangedAnnotations } from '../viewProviders/annotations';
 import { actuallyChangedTextEditorSelection } from './context';
 import { handleUnderstandGraphsListed } from '../treeProviders/graphs';
+import { handleUnderstandMetricsListed } from '../treeProviders/metrics';
 import { handleUnderstandChangedReferences } from '../treeProviders/references';
 import { Section } from '../types/annotation';
 import {
@@ -99,6 +100,7 @@ export async function startLsp()
 		variables.languageClient.onNotification('understand/changedAnnotations', handleUnderstandChangedAnnotations);
 		variables.languageClient.onNotification('understand/changedDatabaseState', handleUnderstandChangedDatabaseState);
 		variables.languageClient.onNotification('understand/changedReferences', handleUnderstandChangedReferences);
+		variables.languageClient.onNotification('understand/metrics/listed', handleUnderstandMetricsListed);
 		variables.languageClient.onNotification('understand/graphs/drew', handleUnderstandGraphsDrew);
 		variables.languageClient.onNotification('understand/graphs/listed', handleUnderstandGraphsListed);
 		variables.languageClient.onNotification('understand/graphs/optionRanges', handleUnderstandGraphsOptionRanges);

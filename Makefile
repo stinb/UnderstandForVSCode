@@ -1,5 +1,5 @@
 # Variables
-TS_IN := $(wildcard src/*.ts) $(wildcard src/commands/*.ts) $(wildcard src/other/*.ts) $(wildcard src/viewProviders/*.ts)
+TS_IN := $(wildcard src/*.ts) $(wildcard src/commands/*.ts) $(wildcard src/other/*.ts) $(wildcard src/treeProviders/*.ts) $(wildcard src/types/*.ts) $(wildcard src/viewProviders/*.ts)
 TS_OUT := extension.js
 ESBUILD := node node_modules/esbuild/bin/esbuild ./src/main.ts --bundle --outfile=$(TS_OUT) --external:vscode --format=cjs --platform=node --minify
 VSIX_IN := $(TS_IN) package.json $(wildcard res/*) $(wildcard res/views/*) $(wildcard *.md) Makefile

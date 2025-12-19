@@ -5,6 +5,7 @@ import { AiChatProvider } from './aiChatProvider';
 import { AiViewProvider } from '../viewProviders/ai';
 import { AnnotationsViewProvider } from '../viewProviders/annotations';
 import { GraphTreeProvider } from '../treeProviders/graphs';
+import { MetricTreeProvider } from '../treeProviders/metrics';
 import { ReferencesTreeProvider } from '../treeProviders/references';
 import { GraphProvider } from '../other/graphProvider';
 
@@ -26,6 +27,8 @@ export const variables: Variables = {
 	graphTreeProvider: undefined,
 	// @ts-ignore TODO audit this
 	languageClient: undefined,
+	// @ts-ignore initialized in `activate`
+	metricTreeProvider: undefined,
 	// The view to leave alone for now
 	preserveView: '',
 	// @ts-ignore initialized in `activate`
@@ -44,6 +47,7 @@ interface Variables {
 	graphProvider: GraphProvider,
 	graphTreeProvider: GraphTreeProvider,
 	languageClient: LanguageClient,
+	metricTreeProvider: MetricTreeProvider,
 	preserveView: string,
 	referencesTreeProvider: ReferencesTreeProvider,
 	violationDescriptionProvider: ViolationDescriptionProvider,

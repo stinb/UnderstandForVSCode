@@ -15,6 +15,12 @@ export function showSettingsProject()
 }
 
 
+/** Show setting for the metrics view in the Settings UI */
+export function showSettingsMetricsView()
+{
+	vscode.commands.executeCommand('workbench.action.openSettings', '@ext:scitools.understand understand.metricsView');
+}
+
 
 /** Show setting for the references view in the Settings UI */
 export function showSettingsReferencesView()
