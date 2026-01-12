@@ -7,6 +7,18 @@ export type ChangedOption = {
 	value: boolean | number | string | string[],
 };
 
+export type ClickedEntity = {
+	method: 'clickedEntity',
+	id: number,
+};
+
+export type ClickedLocation = {
+	method: 'clickedLocation',
+	path: string,
+	line: number,
+	column: number,
+};
+
 export type SaveBase64 = {
 	method: 'saveBase64',
 	content: string,
@@ -19,7 +31,7 @@ export type SaveString = {
 	path: string,
 };
 
-export type GraphMessageFromSandbox = ChangedOption | SaveBase64 | SaveString;
+export type GraphMessageFromSandbox = ChangedOption | ClickedEntity | ClickedLocation | SaveBase64 | SaveString;
 
 
 export type Convert = {

@@ -65,6 +65,7 @@ export class GraphProvider
 		this.focusedGraph.save();
 	}
 
+
 	toggleOptions()
 	{
 		if (!this.focusedGraph)
@@ -262,6 +263,17 @@ class Graph
 					uniqueName: this.uniqueName,
 				});
 				break;
+			case 'clickedEntity':
+				variables.languageClient.sendNotification('understand/sync', {
+					id: message.id,
+				});
+				break;
+			case 'clickedLocation': {
+				vscode.window.showTextDocument(vscode.Uri.file(message.path), {
+					selection: new vscode.Range(message.line, message.column, message.line, message.column),
+				});
+				break;
+			}
 			case 'saveBase64':
 				saveFile(message.path, Buffer.from(message.content, 'base64'));
 				break;
