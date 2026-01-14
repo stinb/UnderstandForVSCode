@@ -51,8 +51,25 @@ main {
 	font-size: 2rem;
 }
 
+[href]
+{
+	cursor: pointer;
+	transition: all 0.125s;
+}
+
+ellipse[href]:hover, polygon[href]:hover, rect[href]:hover
+{
+	fill: var(--vscode-editor-hoverHighlightBackground);
+}
+
+polyline[href]:hover, path[href]:hover
+{
+	stroke: var(--vscode-focusBorder);
+}
+
 text {
 	fill: var(--vscode-foreground);
+	pointer-events: none;
 	user-select: none;
 }
 

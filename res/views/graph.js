@@ -336,6 +336,39 @@ function onChangeStringList(e)
 }
 
 
+/** @param {PointerEvent} event */
+function onClickNode(event)
+{
+	if (!(event.target instanceof Element))
+		return;
+
+	const url = URL.parse(event.target.getAttribute('href') || '');
+	if (!url)
+		return;
+
+	switch (url.protocol) {
+		case 'entity:': {
+			vscode.postMessage({
+				method: 'clickedEntity',
+				id: parseInt(url.searchParams.get('id') || 'NaN'),
+			});
+			break;
+		}
+		case 'loc:': {
+			vscode.postMessage({
+				method: 'clickedLocation',
+				path: decodeURIComponent(url.pathname),
+				line: parseIntToZeroBased(url.searchParams.get('line') || 'NaN'),
+				column: parseIntToZeroBased(url.searchParams.get('column') || 'NaN'),
+			});
+			break;
+		}
+		default:
+			return;
+	}
+}
+
+
 /** @param {KeyboardEvent} e */
 function onKeyDown(e)
 {
@@ -443,6 +476,21 @@ function onMessage(e)
 			if (!container)
 				return;
 			container.innerHTML = message.svg;
+
+			// Fix the ability to hover on and click nodes
+			for (const node of container.querySelectorAll('ellipse, polygon, rect'))
+				if (node.getAttribute('fill') === 'none')
+					node.setAttribute('fill', '#00000000');
+
+			// Add the click handlers
+			for (const node of container.querySelectorAll('[href]')) {
+				if (urlSupported(node.getAttribute('href') || ''))
+					// @ts-ignore
+					node.onclick = onClickNode;
+				else
+					node.removeAttribute('href');
+			}
+
 			return;
 		}
 		case 'updateOptionRanges': {
@@ -511,6 +559,17 @@ async function saveRaster(path, svg, type)
 		path: path,
 		content: content,
 	});
+}
+
+
+/**
+ * @param {string} string
+ * @returns {number}
+ */
+function parseIntToZeroBased(string)
+{
+	const result = parseInt(string);
+	return isNaN(result) ? 0 : (result - 1);
 }
 
 
@@ -617,6 +676,27 @@ function updateOptionRanges(optionRanges)
 		if (!range)
 			continue;
 		updateNumberRange(label, input, range.minimum, range.maximum);
+	}
+}
+
+
+/**
+ * @param {string} unparsedUrl
+ * @returns {boolean}
+ */
+function urlSupported(unparsedUrl)
+{
+	const url = URL.parse(unparsedUrl);
+	if (!url)
+		return false;
+
+	switch (url.protocol) {
+		case 'entity:':
+		case 'loc:':
+			return true;
+		case 'arch:':
+		default:
+			return false;
 	}
 }
 
