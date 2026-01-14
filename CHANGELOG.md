@@ -1,5 +1,8 @@
 # Change Log
 
+# [1.1.1] - 2025 Jan 14
+- Add view: Metrics
+
 # [1.1.0] - 2025 Oct 24
 - Improve sync for the sidebar views
 - AI Chat: Add regenerate button for last response
