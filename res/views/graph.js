@@ -336,13 +336,13 @@ function onChangeStringList(e)
 }
 
 
-/** @param {PointerEvent} event */
-function onClickNode(event)
+/** @param {PointerEvent} e */
+function onClickNode(e)
 {
-	if (!(event.target instanceof Element))
+	if (!(e.target instanceof Element))
 		return;
 
-	const url = URL.parse(event.target.getAttribute('href') || '');
+	const url = URL.parse(e.target.getAttribute('href') || '');
 	if (!url)
 		return;
 
@@ -388,6 +388,41 @@ function onKeyUp(e)
 		case 'ArrowUp': case 'ArrowLeft': case 'ArrowDown': case 'ArrowRight':
 			keys[e.key] = false;
 	}
+}
+
+
+/** @param {MouseEvent} e */
+function onMouseEnterNode(e)
+{
+	const container = document.getElementById('graphContainer');
+	if (!container || !(e.target instanceof Element))
+		return;
+
+	const url = URL.parse(e.target.getAttribute('href') || '');
+	if (!url)
+		return;
+
+	switch (url.protocol) {
+		case 'entity:': {
+			container.title = 'See entity';
+			break;
+		}
+		case 'loc:': {
+			container.title = 'Go to code';
+			break;
+		}
+	}
+}
+
+
+/** @param {MouseEvent} e */
+function onMouseLeaveNode(e)
+{
+	const container = document.getElementById('graphContainer');
+	if (!container)
+		return;
+
+	container.title = '';
 }
 
 
@@ -437,10 +472,20 @@ function onMessage(e)
 			/** @ts-ignore @type {SVGSVGElement} */
 			const svg = svgs[0].cloneNode(true);
 
-			// Set the text color
+			// Prepare the text to be drawn to the file
 			const fill = document.documentElement.style.getPropertyValue('--vscode-foreground');
 			for (const text of svg.getElementsByTagName('text'))
 				text.setAttribute('fill', fill);
+
+			// Prepare the theme colors to be drawn to the file
+			for (const node of svg.querySelectorAll('ellipse, path, polygon, polyline, rect')) {
+				let color = node.getAttribute('fill');
+				if (color === 'var(--vscode-foreground)')
+					node.setAttribute('fill', fill);
+				color = node.getAttribute('stroke');
+				if (color === 'var(--vscode-foreground)')
+					node.setAttribute('stroke', fill);
+			}
 
 			// Save it
 			switch (message.extension) {
@@ -477,18 +522,29 @@ function onMessage(e)
 				return;
 			container.innerHTML = message.svg;
 
-			// Fix the ability to hover on and click nodes
-			for (const node of container.querySelectorAll('ellipse, polygon, rect'))
-				if (node.getAttribute('fill') === 'none')
-					node.setAttribute('fill', '#00000000');
+			for (const node of container.querySelectorAll('ellipse, path, polygon, polyline, rect')) {
+				// Fix the ability to hover on and click nodes
+				let color = node.getAttribute('fill');
+				if (color === 'none')
+					node.setAttribute('fill', '#0000');
+				// Fix the nearly invisible black color to work in any color theme
+				else if (color === '#000000' || color === '#000' || color === 'black')
+					node.setAttribute('fill', 'var(--vscode-foreground)');
+				color = node.getAttribute('stroke');
+				if (color === '#000000' || color === '#000' || color === 'black')
+					node.setAttribute('stroke', 'var(--vscode-foreground)');
+			}
 
 			// Add the click handlers
-			for (const node of container.querySelectorAll('[href]')) {
-				if (urlSupported(node.getAttribute('href') || ''))
-					// @ts-ignore
+			for (const node of /** @type {NodeListOf<SVGElement>} */ (container.querySelectorAll('svg [href]'))) {
+				if (urlSupported(node.getAttribute('href') || '')) {
 					node.onclick = onClickNode;
-				else
+					node.onmouseenter = onMouseEnterNode;
+					node.onmouseleave = onMouseLeaveNode;
+				}
+				else {
 					node.removeAttribute('href');
+				}
 			}
 
 			return;
