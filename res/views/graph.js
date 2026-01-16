@@ -408,7 +408,18 @@ function onMouseEnterNode(e)
 			break;
 		}
 		case 'loc:': {
-			container.title = 'Go to code';
+			const path = decodeURIComponent(url.pathname);
+			const match = /[^/\\]+$/.exec(path);
+			if (match) {
+				const line = url.searchParams.get('line');
+				if (line !== null)
+					container.title = `Go to ${match[0]} at line ${line}`;
+				else
+					container.title = `Go to ${match[0]}`;
+			}
+			else {
+				container.title = 'Go to code';
+			}
 			break;
 		}
 	}
