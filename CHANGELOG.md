@@ -1,5 +1,9 @@
 # Change Log
 
+# [1.1.2] - 2025 Jan 27
+- Graph: Add ability to click on graph nodes for entities and locations
+- Graph: Improve colors to use theme text color
+
 # [1.1.1] - 2025 Jan 14
 - Add view: Metrics
 
