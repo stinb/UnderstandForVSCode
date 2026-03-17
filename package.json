@@ -2,7 +2,7 @@
 	"name": "understand",
 	"displayName": "Understand",
 	"description": "The Software Developer's Multi-Tool",
-	"version": "1.1.2",
+	"version": "1.1.3-rc1",
 	"publisher": "scitools",
 	"repository": {
 		"type": "git",
@@ -300,15 +300,30 @@
 					],
 					"description": "Open a chat with full width or half width"
 				},
+				"understand.aiView.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show content of the AI view"
+				},
 				"understand.analysis.automaticallyAnalyze": {
 					"type": "boolean",
 					"default": true,
 					"description": "Automatically analyze on project open, file save/create/delete"
 				},
+				"understand.annotationsView.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show content of the Annotations view"
+				},
 				"understand.files.watch": {
 					"type": "string",
 					"default": "**",
 					"markdownDescription": "[Glob pattern](https://aka.ms/vscode-glob-patterns) of files to watch, to notify the server when they are changed/created/deleted, for example `**/src/**/*.{c,h}`"
+				},
+				"understand.graphsView.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show content of the Graphs view"
 				},
 				"understand.metricsView.disabledMetrics": {
 					"type": "array",
@@ -316,6 +331,11 @@
 					"items": {
 						"type": "string"
 					}
+				},
+				"understand.metricsView.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show content of the Metrics view"
 				},
 				"understand.project.path": {
 					"type": "string",
@@ -330,6 +350,11 @@
 						"Manual"
 					],
 					"description": "Either allow the language server to find the Understand project automatically, or manually set it once"
+				},
+				"understand.referencesView.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show content of the References view"
 				},
 				"understand.referencesView.organization": {
 					"type": "string",
