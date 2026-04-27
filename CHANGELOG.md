@@ -1,5 +1,10 @@
 # Change Log
 
+# [1.1.4] - 2026 Apr 27
+- Fix: AI chat no longer sends while IME is composing (#688)
+- Fix: invoke esbuild via node_modules/.bin to support esbuild 0.25+
+- Bump dependencies (brace-expansion, lodash, picomatch)
+
 # [1.1.3] - 2025 Mar 24
 - Add options to increase performance by disabling unused features
 
