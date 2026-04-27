@@ -257,8 +257,8 @@ function handleClickSuggestion(event)
 /** @param {KeyboardEvent} event */
 function handleKeyDown(event)
 {
-	// Shift-enter: insert a new line
-	if (event.shiftKey)
+	// Shift-enter: insert a new line; isComposing: IME is mid-composition
+	if (event.shiftKey || event.isComposing)
 		return;
 
 	const input = event.target;
