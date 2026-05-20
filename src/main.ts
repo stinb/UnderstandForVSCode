@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import * as ai from './commands/ai';
+import * as aiProviderSettings from './commands/aiProviderSettings';
 import * as analysis from './commands/analysis';
 import * as annotations from './commands/annotations';
 import * as exploreInUnderstand from './commands/exploreInUnderstand';
@@ -44,6 +45,7 @@ export async function activate(context: vscode.ExtensionContext)
 
 	context.subscriptions.push(
 		// Commands: AI
+		vscode.commands.registerCommand('understand.ai.editProviderSettings', aiProviderSettings.editProviderSettings),
 		vscode.commands.registerCommand('understand.ai.copyChat', ai.copyChat),
 		vscode.commands.registerCommand('understand.ai.deleteAllMessages', ai.deleteAllMessages),
 		vscode.commands.registerCommand('understand.ai.generateAiOverview', ai.generateAiOverview),

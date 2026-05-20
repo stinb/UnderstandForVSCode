@@ -2,7 +2,7 @@
 	"name": "understand",
 	"displayName": "Understand",
 	"description": "The Software Developer's Multi-Tool",
-	"version": "1.1.4",
+	"version": "1.1.5",
 	"publisher": "scitools",
 	"repository": {
 		"type": "git",
@@ -29,6 +29,11 @@
 	],
 	"contributes": {
 		"commands": [
+			{
+				"command": "understand.ai.editProviderSettings",
+				"title": "Edit Understand AI Provider Settings",
+				"category": "Understand: AI"
+			},
 			{
 				"command": "understand.ai.copyChat",
 				"title": "Copy AI Chat",
@@ -288,7 +293,8 @@
 				"category": "Understand: Violations"
 			}
 		],
-		"configuration": {
+		"configuration": [
+			{
 			"title": "Understand",
 			"properties": {
 				"understand.ai.chatSize": {
@@ -413,7 +419,30 @@
 					"description": "Preview the detailed description of a violation when the mouse hovers on it in the editor"
 				}
 			}
-		},
+			},
+			{
+			"title": "Understand: AI",
+			"properties": {
+				"understand.AI.provider": {
+					"type": "string",
+					"default": "Understand Local",
+					"enum": [
+						"Understand Local",
+						"Understand Remote",
+						"LM Studio",
+						"Ollama",
+						"ChatGPT (OpenAI)",
+						"Claude",
+						"Gemini",
+						"Grok (xAI)",
+						"Other"
+					],
+					"markdownDescription": "AI provider. [⚙ Edit Understand AI Provider Settings](command:understand.ai.editProviderSettings)",
+					"description": "AI provider."
+				}
+			}
+			}
+		],
 		"menus": {
 			"commandPalette": [
 				{
