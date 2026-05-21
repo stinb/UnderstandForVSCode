@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { escapeHtml } from '../other/html';
+import { restartLsp } from '../other/languageClient';
 import { variables } from '../other/variables';
 
 
@@ -74,7 +75,7 @@ function testTcpConnection(host: string, port: number): Promise<string>
 }
 
 
-export function editProviderSettings()
+export function editProviderSettings(context: vscode.ExtensionContext)
 {
 	if (panel) {
 		panel.reveal();
@@ -105,8 +106,10 @@ export function editProviderSettings()
 			: path.join(path.dirname(path.dirname(path.dirname(serverExe))), 'conf', 'understand', 'models'))
 		: '';
 
+	const gs = context.globalState;
+
 	// Find which preset model is currently active (by saved path or model ID)
-	const savedModelPath = cfg.get<string>('understand.AI.localModelPath', '');
+	const savedModelPath = gs.get<string>('understand.AI.localModelPath') ?? '';
 	const savedBasename  = savedModelPath.replace(/\\/g, '/').split('/').pop() || '';
 	const activeModel =
 		LOCAL_MODEL_CHOICES.find(m => m.filename === savedBasename) ??
@@ -122,61 +125,85 @@ export function editProviderSettings()
 	}
 
 	const settings = {
-		provider:                cfg.get<string>('understand.AI.provider',                'Understand Local'),
+		provider:                cfg.get<string>('understand.AI.provider',  'Understand Local'),
 		localModelPath:          savedModelPath,
 		localDefaultCustomPath:  localDefaultCustomPath,
-		localContextWindowSize:  cfg.get<number>('understand.AI.localContextWindowSize',  32000),
-		remoteServer:            cfg.get<string>('understand.AI.remoteServer',            ''),
-		lmStudioServer:          cfg.get<string>('understand.AI.lmStudioServer',          '127.0.0.1:1234'),
-		lmStudioModel:           cfg.get<string>('understand.AI.lmStudioModel',           ''),
-		ollamaServer:            cfg.get<string>('understand.AI.ollamaServer',            '127.0.0.1:11434'),
-		ollamaModel:             cfg.get<string>('understand.AI.ollamaModel',             ''),
-		chatGPTServer:           cfg.get<string>('understand.AI.chatGPTServer',           '') || 'https://api.openai.com',
-		chatGPTApiKey:           cfg.get<string>('understand.AI.chatGPTApiKey',           ''),
-		chatGPTModel:            cfg.get<string>('understand.AI.chatGPTModel',            ''),
-		claudeServer:            cfg.get<string>('understand.AI.claudeServer',            'https://api.anthropic.com'),
-		claudeApiKey:            cfg.get<string>('understand.AI.claudeApiKey',            ''),
-		claudeModel:             cfg.get<string>('understand.AI.claudeModel',             ''),
-		geminiServer:            cfg.get<string>('understand.AI.geminiServer',            'https://generativelanguage.googleapis.com/v1beta/openai'),
-		geminiApiKey:            cfg.get<string>('understand.AI.geminiApiKey',            ''),
-		geminiModel:             cfg.get<string>('understand.AI.geminiModel',             ''),
-		grokServer:              cfg.get<string>('understand.AI.grokServer',              'https://api.x.ai'),
-		grokApiKey:              cfg.get<string>('understand.AI.grokApiKey',              ''),
-		grokModel:               cfg.get<string>('understand.AI.grokModel',              ''),
-		otherServer:             cfg.get<string>('understand.AI.otherServer',             ''),
-		otherApiKey:             cfg.get<string>('understand.AI.otherApiKey',             ''),
-		otherModel:              cfg.get<string>('understand.AI.otherModel',              ''),
+		localContextWindowSize:  gs.get<number>('understand.AI.localContextWindowSize') ?? 32000,
+		remoteServer:            gs.get<string>('understand.AI.remoteServer')            ?? '',
+		lmStudioServer:          gs.get<string>('understand.AI.lmStudioServer')          ?? '127.0.0.1:1234',
+		lmStudioModel:           gs.get<string>('understand.AI.lmStudioModel')           ?? '',
+		ollamaServer:            gs.get<string>('understand.AI.ollamaServer')            ?? '127.0.0.1:11434',
+		ollamaModel:             gs.get<string>('understand.AI.ollamaModel')             ?? '',
+		chatGPTServer:           gs.get<string>('understand.AI.chatGPTServer')           || 'https://api.openai.com',
+		chatGPTApiKey:           gs.get<string>('understand.AI.chatGPTApiKey')           ?? '',
+		chatGPTModel:            gs.get<string>('understand.AI.chatGPTModel')            ?? '',
+		claudeServer:            gs.get<string>('understand.AI.claudeServer')            ?? 'https://api.anthropic.com',
+		claudeApiKey:            gs.get<string>('understand.AI.claudeApiKey')            ?? '',
+		claudeModel:             gs.get<string>('understand.AI.claudeModel')             ?? '',
+		geminiServer:            gs.get<string>('understand.AI.geminiServer')            ?? 'https://generativelanguage.googleapis.com/v1beta/openai',
+		geminiApiKey:            gs.get<string>('understand.AI.geminiApiKey')            ?? '',
+		geminiModel:             gs.get<string>('understand.AI.geminiModel')             ?? '',
+		grokServer:              gs.get<string>('understand.AI.grokServer')              ?? 'https://api.x.ai',
+		grokApiKey:              gs.get<string>('understand.AI.grokApiKey')              ?? '',
+		grokModel:               gs.get<string>('understand.AI.grokModel')               ?? '',
+		otherServer:             gs.get<string>('understand.AI.otherServer')             ?? '',
+		otherApiKey:             gs.get<string>('understand.AI.otherApiKey')             ?? '',
+		otherModel:              gs.get<string>('understand.AI.otherModel')              ?? '',
+		lmStudioData:            gs.get<boolean>('understand.AI.ack.lmStudioData')       ?? false,
+		ollamaData:              gs.get<boolean>('understand.AI.ack.ollamaData')         ?? false,
+		chatGPTData:             gs.get<boolean>('understand.AI.ack.chatGPTData')        ?? false,
+		chatGPTFee:              gs.get<boolean>('understand.AI.ack.chatGPTFee')         ?? false,
+		claudeData:              gs.get<boolean>('understand.AI.ack.claudeData')         ?? false,
+		claudeFee:               gs.get<boolean>('understand.AI.ack.claudeFee')          ?? false,
+		geminiData:              gs.get<boolean>('understand.AI.ack.geminiData')         ?? false,
+		geminiFee:               gs.get<boolean>('understand.AI.ack.geminiFee')          ?? false,
+		grokData:                gs.get<boolean>('understand.AI.ack.grokData')           ?? false,
+		grokFee:                 gs.get<boolean>('understand.AI.ack.grokFee')            ?? false,
+		otherData:               gs.get<boolean>('understand.AI.ack.otherData')          ?? false,
+		otherFee:                gs.get<boolean>('understand.AI.ack.otherFee')           ?? false,
 	};
 
 	webview.onDidReceiveMessage(async (msg) => {
 		switch (msg.command) {
 			case 'save': {
 				const s = msg.settings;
-				const target = vscode.ConfigurationTarget.Global;
-				await cfg.update('understand.AI.provider',               s.provider,               target);
-				await cfg.update('understand.AI.localModelPath',         s.localModelPath,         target);
-				await cfg.update('understand.AI.localContextWindowSize', s.localContextWindowSize, target);
-				await cfg.update('understand.AI.remoteServer',           s.remoteServer,           target);
-				await cfg.update('understand.AI.lmStudioServer',         s.lmStudioServer,         target);
-				await cfg.update('understand.AI.lmStudioModel',          s.lmStudioModel,          target);
-				await cfg.update('understand.AI.ollamaServer',           s.ollamaServer,           target);
-				await cfg.update('understand.AI.ollamaModel',            s.ollamaModel,            target);
-				await cfg.update('understand.AI.chatGPTServer',          s.chatGPTServer,          target);
-				await cfg.update('understand.AI.chatGPTApiKey',          s.chatGPTApiKey,          target);
-				await cfg.update('understand.AI.chatGPTModel',           s.chatGPTModel,           target);
-				await cfg.update('understand.AI.claudeServer',           s.claudeServer,           target);
-				await cfg.update('understand.AI.claudeApiKey',           s.claudeApiKey,           target);
-				await cfg.update('understand.AI.claudeModel',            s.claudeModel,            target);
-				await cfg.update('understand.AI.geminiServer',           s.geminiServer,           target);
-				await cfg.update('understand.AI.geminiApiKey',           s.geminiApiKey,           target);
-				await cfg.update('understand.AI.geminiModel',            s.geminiModel,            target);
-				await cfg.update('understand.AI.grokServer',             s.grokServer,             target);
-				await cfg.update('understand.AI.grokApiKey',             s.grokApiKey,             target);
-				await cfg.update('understand.AI.grokModel',              s.grokModel,              target);
-				await cfg.update('understand.AI.otherServer',            s.otherServer,            target);
-				await cfg.update('understand.AI.otherApiKey',            s.otherApiKey,            target);
-				await cfg.update('understand.AI.otherModel',             s.otherModel,             target);
+				await cfg.update('understand.AI.provider', s.provider, vscode.ConfigurationTarget.Global);
+				await gs.update('understand.AI.localModelPath',         s.localModelPath);
+				await gs.update('understand.AI.localContextWindowSize', s.localContextWindowSize);
+				await gs.update('understand.AI.remoteServer',           s.remoteServer);
+				await gs.update('understand.AI.lmStudioServer',         s.lmStudioServer);
+				await gs.update('understand.AI.lmStudioModel',          s.lmStudioModel);
+				await gs.update('understand.AI.ollamaServer',           s.ollamaServer);
+				await gs.update('understand.AI.ollamaModel',            s.ollamaModel);
+				await gs.update('understand.AI.chatGPTServer',          s.chatGPTServer);
+				await gs.update('understand.AI.chatGPTApiKey',          s.chatGPTApiKey);
+				await gs.update('understand.AI.chatGPTModel',           s.chatGPTModel);
+				await gs.update('understand.AI.claudeServer',           s.claudeServer);
+				await gs.update('understand.AI.claudeApiKey',           s.claudeApiKey);
+				await gs.update('understand.AI.claudeModel',            s.claudeModel);
+				await gs.update('understand.AI.geminiServer',           s.geminiServer);
+				await gs.update('understand.AI.geminiApiKey',           s.geminiApiKey);
+				await gs.update('understand.AI.geminiModel',            s.geminiModel);
+				await gs.update('understand.AI.grokServer',             s.grokServer);
+				await gs.update('understand.AI.grokApiKey',             s.grokApiKey);
+				await gs.update('understand.AI.grokModel',              s.grokModel);
+				await gs.update('understand.AI.otherServer',            s.otherServer);
+				await gs.update('understand.AI.otherApiKey',            s.otherApiKey);
+				await gs.update('understand.AI.otherModel',             s.otherModel);
+				await gs.update('understand.AI.ack.lmStudioData',       s.lmStudioData);
+				await gs.update('understand.AI.ack.ollamaData',         s.ollamaData);
+				await gs.update('understand.AI.ack.chatGPTData',        s.chatGPTData);
+				await gs.update('understand.AI.ack.chatGPTFee',         s.chatGPTFee);
+				await gs.update('understand.AI.ack.claudeData',         s.claudeData);
+				await gs.update('understand.AI.ack.claudeFee',          s.claudeFee);
+				await gs.update('understand.AI.ack.geminiData',         s.geminiData);
+				await gs.update('understand.AI.ack.geminiFee',          s.geminiFee);
+				await gs.update('understand.AI.ack.grokData',           s.grokData);
+				await gs.update('understand.AI.ack.grokFee',            s.grokFee);
+				await gs.update('understand.AI.ack.otherData',          s.otherData);
+				await gs.update('understand.AI.ack.otherFee',           s.otherFee);
 				panel?.dispose();
+				restartLsp();
 				break;
 			}
 			case 'cancel':
@@ -291,6 +318,7 @@ export function editProviderSettings()
 					if (!server) { webview.postMessage({ command: 'otherModels', models: [], error: '' }); break; }
 					if (!server.startsWith('http://') && !server.startsWith('https://'))
 						server = 'https://' + server;
+					server = server.replace(/\/v1\/?$/, '');
 					const headers: Record<string, string> = {};
 					if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
 					const resp = await fetch(`${server}/v1/models`, { headers, signal: AbortSignal.timeout(5000) });
@@ -490,8 +518,12 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
       ${s.lmStudioModel ? `<option value="${escapeHtml(s.lmStudioModel)}">${escapeHtml(s.lmStudioModel)}</option>` : '<option value="">(fetching models...)</option>'}
     </select>
   </div>
+  <div id="lmStudioModelManualRow" class="row" style="display:none">
+    <label>Model (manual):</label>
+    <input type="text" id="lmStudioModelManual" placeholder="Enter model name manually">
+  </div>
   <div class="ack-row">
-    <input type="checkbox" id="lmStudioData">
+    <input type="checkbox" id="lmStudioData"${s.lmStudioData ? ' checked' : ''}>
     <label for="lmStudioData">${escapeHtml(dataText)}</label>
   </div>
 </div>
@@ -508,8 +540,12 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
       ${s.ollamaModel ? `<option value="${escapeHtml(s.ollamaModel)}">${escapeHtml(s.ollamaModel)}</option>` : '<option value="">(fetching models...)</option>'}
     </select>
   </div>
+  <div id="ollamaModelManualRow" class="row" style="display:none">
+    <label>Model (manual):</label>
+    <input type="text" id="ollamaModelManual" placeholder="Enter model name manually">
+  </div>
   <div class="ack-row">
-    <input type="checkbox" id="ollamaData">
+    <input type="checkbox" id="ollamaData"${s.ollamaData ? ' checked' : ''}>
     <label for="ollamaData">${escapeHtml(dataText)}</label>
   </div>
 </div>
@@ -530,12 +566,16 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
       ${s.chatGPTModel ? `<option value="${escapeHtml(s.chatGPTModel)}">${escapeHtml(s.chatGPTModel)}</option>` : '<option value="">(enter API key above)</option>'}
     </select>
   </div>
+  <div id="chatGPTModelManualRow" class="row" style="display:none">
+    <label>Model (manual):</label>
+    <input type="text" id="chatGPTModelManual" placeholder="Enter model name manually">
+  </div>
   <div class="ack-row">
-    <input type="checkbox" id="chatGPTData">
+    <input type="checkbox" id="chatGPTData"${s.chatGPTData ? ' checked' : ''}>
     <label for="chatGPTData">${escapeHtml(dataText)}</label>
   </div>
   <div id="chatGPTFeeRow" class="ack-row"${s.chatGPTApiKey ? '' : ' style="display:none"'}>
-    <input type="checkbox" id="chatGPTFee">
+    <input type="checkbox" id="chatGPTFee"${s.chatGPTFee ? ' checked' : ''}>
     <label for="chatGPTFee">${escapeHtml(feeText)}</label>
   </div>
 </div>
@@ -556,12 +596,16 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
       ${s.claudeModel ? `<option value="${escapeHtml(s.claudeModel)}">${escapeHtml(s.claudeModel)}</option>` : '<option value="">(enter API key above)</option>'}
     </select>
   </div>
+  <div id="claudeModelManualRow" class="row" style="display:none">
+    <label>Model (manual):</label>
+    <input type="text" id="claudeModelManual" placeholder="Enter model name manually">
+  </div>
   <div class="ack-row">
-    <input type="checkbox" id="claudeData">
+    <input type="checkbox" id="claudeData"${s.claudeData ? ' checked' : ''}>
     <label for="claudeData">${escapeHtml(dataText)}</label>
   </div>
   <div id="claudeFeeRow" class="ack-row"${s.claudeApiKey ? '' : ' style="display:none"'}>
-    <input type="checkbox" id="claudeFee">
+    <input type="checkbox" id="claudeFee"${s.claudeFee ? ' checked' : ''}>
     <label for="claudeFee">${escapeHtml(feeText)}</label>
   </div>
 </div>
@@ -582,12 +626,16 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
       ${s.geminiModel ? `<option value="${escapeHtml(s.geminiModel)}">${escapeHtml(s.geminiModel)}</option>` : '<option value="">(enter API key above)</option>'}
     </select>
   </div>
+  <div id="geminiModelManualRow" class="row" style="display:none">
+    <label>Model (manual):</label>
+    <input type="text" id="geminiModelManual" placeholder="Enter model name manually">
+  </div>
   <div class="ack-row">
-    <input type="checkbox" id="geminiData">
+    <input type="checkbox" id="geminiData"${s.geminiData ? ' checked' : ''}>
     <label for="geminiData">${escapeHtml(dataText)}</label>
   </div>
   <div id="geminiFeeRow" class="ack-row"${s.geminiApiKey ? '' : ' style="display:none"'}>
-    <input type="checkbox" id="geminiFee">
+    <input type="checkbox" id="geminiFee"${s.geminiFee ? ' checked' : ''}>
     <label for="geminiFee">${escapeHtml(feeText)}</label>
   </div>
 </div>
@@ -608,12 +656,16 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
       ${s.grokModel ? `<option value="${escapeHtml(s.grokModel)}">${escapeHtml(s.grokModel)}</option>` : '<option value="">(enter API key above)</option>'}
     </select>
   </div>
+  <div id="grokModelManualRow" class="row" style="display:none">
+    <label>Model (manual):</label>
+    <input type="text" id="grokModelManual" placeholder="Enter model name manually">
+  </div>
   <div class="ack-row">
-    <input type="checkbox" id="grokData">
+    <input type="checkbox" id="grokData"${s.grokData ? ' checked' : ''}>
     <label for="grokData">${escapeHtml(dataText)}</label>
   </div>
   <div id="grokFeeRow" class="ack-row"${s.grokApiKey ? '' : ' style="display:none"'}>
-    <input type="checkbox" id="grokFee">
+    <input type="checkbox" id="grokFee"${s.grokFee ? ' checked' : ''}>
     <label for="grokFee">${escapeHtml(feeText)}</label>
   </div>
 </div>
@@ -634,12 +686,16 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
       ${s.otherModel ? `<option value="${escapeHtml(s.otherModel)}">${escapeHtml(s.otherModel)}</option>` : '<option value="">(enter server above)</option>'}
     </select>
   </div>
+  <div id="otherModelManualRow" class="row" style="display:none">
+    <label>Model (manual):</label>
+    <input type="text" id="otherModelManual" placeholder="Enter model name manually">
+  </div>
   <div class="ack-row">
-    <input type="checkbox" id="otherData">
+    <input type="checkbox" id="otherData"${s.otherData ? ' checked' : ''}>
     <label for="otherData">${escapeHtml(dataText)}</label>
   </div>
   <div id="otherFeeRow" class="ack-row"${s.otherApiKey ? '' : ' style="display:none"'}>
-    <input type="checkbox" id="otherFee">
+    <input type="checkbox" id="otherFee"${s.otherFee ? ' checked' : ''}>
     <label for="otherFee">${escapeHtml(feeText)}</label>
   </div>
 </div>
@@ -719,6 +775,21 @@ function validate() {
         errorMsg = vs.error;
       else if (vs.error)
         warnMsg = vs.error;
+    }
+    if (!errorMsg) {
+      const modelSelectMap = {
+        'LM Studio': 'lmStudioModel', 'Ollama': 'ollamaModel',
+        'ChatGPT (OpenAI)': 'chatGPTModel', 'Claude': 'claudeModel',
+        'Gemini': 'geminiModel', 'Grok (xAI)': 'grokModel', 'Other': 'otherModel',
+      };
+      const modelManualMap = {
+        'LM Studio': 'lmStudioModelManual', 'Ollama': 'ollamaModelManual',
+        'ChatGPT (OpenAI)': 'chatGPTModelManual', 'Claude': 'claudeModelManual',
+        'Gemini': 'geminiModelManual', 'Grok (xAI)': 'grokModelManual', 'Other': 'otherModelManual',
+      };
+      const selectId = modelSelectMap[provider];
+      if (selectId && !(val(modelManualMap[provider]) || val(selectId)).trim())
+        errorMsg = 'Enter a model name to continue.';
     }
     if (!errorMsg) {
       const cfg = feeConfig[provider];
@@ -805,23 +876,26 @@ document.getElementById('remoteServer').addEventListener('input', (e) => {
 const lmStudioSavedModel = ${JSON.stringify(s.lmStudioModel)};
 let lmStudioFetchTimer = null;
 
+function toggleManualRow(rowId, inputId, models, error, savedModel) {
+  const show = models.length === 0 && error !== 'Authentication required';
+  const row = document.getElementById(rowId);
+  const input = document.getElementById(inputId);
+  if (row) row.style.display = show ? '' : 'none';
+  if (show && input && !input.value && savedModel) input.value = savedModel;
+  if (!show && input) input.value = '';
+}
+
 function populateLmStudioModels(models) {
   const select = document.getElementById('lmStudioModel');
   const current = select.value || lmStudioSavedModel;
   select.innerHTML = '';
   if (models.length === 0) {
     const opt = document.createElement('option');
-    opt.value = current;
-    opt.textContent = current || '(no models loaded)';
+    opt.value = current; opt.textContent = current || '(no models loaded)';
     select.appendChild(opt);
   } else {
     const list = (current && !models.includes(current)) ? [current, ...models] : models;
-    list.forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m;
-      opt.textContent = m;
-      select.appendChild(opt);
-    });
+    list.forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m; select.appendChild(opt); });
     if (current) select.value = current;
   }
 }
@@ -849,17 +923,11 @@ function populateOllamaModels(models) {
   select.innerHTML = '';
   if (models.length === 0) {
     const opt = document.createElement('option');
-    opt.value = current;
-    opt.textContent = current || '(no models loaded)';
+    opt.value = current; opt.textContent = current || '(no models loaded)';
     select.appendChild(opt);
   } else {
     const list = (current && !models.includes(current)) ? [current, ...models] : models;
-    list.forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m;
-      opt.textContent = m;
-      select.appendChild(opt);
-    });
+    list.forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m; select.appendChild(opt); });
     if (current) select.value = current;
   }
 }
@@ -889,17 +957,11 @@ function populateChatGPTModels(models) {
   select.innerHTML = '';
   if (models.length === 0) {
     const opt = document.createElement('option');
-    opt.value = current;
-    opt.textContent = current || '(enter API key above)';
+    opt.value = current; opt.textContent = current || '(enter API key above)';
     select.appendChild(opt);
   } else {
     const list = (current && !models.includes(current)) ? [current, ...models] : models;
-    list.forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m;
-      opt.textContent = m;
-      select.appendChild(opt);
-    });
+    list.forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m; select.appendChild(opt); });
     if (current) select.value = current;
   }
 }
@@ -937,8 +999,7 @@ function populateClaudeModels(models) {
   select.innerHTML = '';
   if (models.length === 0) {
     const opt = document.createElement('option');
-    opt.value = current;
-    opt.textContent = current || '(enter API key above)';
+    opt.value = current; opt.textContent = current || '(enter API key above)';
     select.appendChild(opt);
   } else {
     const list = (current && !models.includes(current)) ? [current, ...models] : models;
@@ -968,8 +1029,7 @@ function populateGeminiModels(models) {
   select.innerHTML = '';
   if (models.length === 0) {
     const opt = document.createElement('option');
-    opt.value = current;
-    opt.textContent = current || '(enter API key above)';
+    opt.value = current; opt.textContent = current || '(enter API key above)';
     select.appendChild(opt);
   } else {
     const list = (current && !models.includes(current)) ? [current, ...models] : models;
@@ -999,8 +1059,7 @@ function populateGrokModels(models) {
   select.innerHTML = '';
   if (models.length === 0) {
     const opt = document.createElement('option');
-    opt.value = current;
-    opt.textContent = current || '(enter API key above)';
+    opt.value = current; opt.textContent = current || '(enter API key above)';
     select.appendChild(opt);
   } else {
     const list = (current && !models.includes(current)) ? [current, ...models] : models;
@@ -1030,8 +1089,7 @@ function populateOtherModels(models) {
   select.innerHTML = '';
   if (models.length === 0) {
     const opt = document.createElement('option');
-    opt.value = current;
-    opt.textContent = current || '(enter server above)';
+    opt.value = current; opt.textContent = current || '(enter server above)';
     select.appendChild(opt);
   } else {
     const list = (current && !models.includes(current)) ? [current, ...models] : models;
@@ -1050,6 +1108,11 @@ document.getElementById('otherServer').addEventListener('input', (e) => {
 });
 document.getElementById('otherApiKey').addEventListener('input', (e) => {
   fetchOtherModels(document.getElementById('otherServer')?.value ?? '', e.target.value);
+});
+
+// Manual model inputs: re-validate when user types
+['lmStudioModelManual', 'ollamaModelManual', 'chatGPTModelManual', 'claudeModelManual', 'geminiModelManual', 'grokModelManual', 'otherModelManual'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', validate);
 });
 
 // Acknowledgment checkboxes
@@ -1104,31 +1167,45 @@ window.addEventListener('message', event => {
   }
   if (event.data.command === 'lmStudioModels') {
     lmStudioVerifying = false; lmStudioVerifyError = event.data.error;
-    populateLmStudioModels(event.data.models); validate();
+    populateLmStudioModels(event.data.models);
+    toggleManualRow('lmStudioModelManualRow', 'lmStudioModelManual', event.data.models, event.data.error, lmStudioSavedModel);
+    validate();
   }
   if (event.data.command === 'ollamaModels') {
     ollamaVerifying = false; ollamaVerifyError = event.data.error;
-    populateOllamaModels(event.data.models); validate();
+    populateOllamaModels(event.data.models);
+    toggleManualRow('ollamaModelManualRow', 'ollamaModelManual', event.data.models, event.data.error, ollamaSavedModel);
+    validate();
   }
   if (event.data.command === 'chatGPTModels') {
     chatGPTVerifying = false; chatGPTVerifyError = event.data.error;
-    populateChatGPTModels(event.data.models); validate();
+    populateChatGPTModels(event.data.models);
+    toggleManualRow('chatGPTModelManualRow', 'chatGPTModelManual', event.data.models, event.data.error, chatGPTSavedModel);
+    validate();
   }
   if (event.data.command === 'claudeModels') {
     claudeVerifying = false; claudeVerifyError = event.data.error;
-    populateClaudeModels(event.data.models); validate();
+    populateClaudeModels(event.data.models);
+    toggleManualRow('claudeModelManualRow', 'claudeModelManual', event.data.models, event.data.error, claudeSavedModel);
+    validate();
   }
   if (event.data.command === 'geminiModels') {
     geminiVerifying = false; geminiVerifyError = event.data.error;
-    populateGeminiModels(event.data.models); validate();
+    populateGeminiModels(event.data.models);
+    toggleManualRow('geminiModelManualRow', 'geminiModelManual', event.data.models, event.data.error, geminiSavedModel);
+    validate();
   }
   if (event.data.command === 'grokModels') {
     grokVerifying = false; grokVerifyError = event.data.error;
-    populateGrokModels(event.data.models); validate();
+    populateGrokModels(event.data.models);
+    toggleManualRow('grokModelManualRow', 'grokModelManual', event.data.models, event.data.error, grokSavedModel);
+    validate();
   }
   if (event.data.command === 'otherModels') {
     otherVerifying = false; otherVerifyError = event.data.error;
-    populateOtherModels(event.data.models); validate();
+    populateOtherModels(event.data.models);
+    toggleManualRow('otherModelManualRow', 'otherModelManual', event.data.models, event.data.error, otherSavedModel);
+    validate();
   }
 });
 
@@ -1144,24 +1221,36 @@ document.getElementById('save').addEventListener('click', () => {
       localContextWindowSize: num('localContextWindowSize'),
       remoteServer:           val('remoteServer'),
       lmStudioServer:         val('lmStudioServer'),
-      lmStudioModel:          val('lmStudioModel'),
+      lmStudioModel:          val('lmStudioModelManual') || val('lmStudioModel'),
       ollamaServer:           val('ollamaServer'),
-      ollamaModel:            val('ollamaModel'),
+      ollamaModel:            val('ollamaModelManual')   || val('ollamaModel'),
       chatGPTServer:          val('chatGPTServer'),
       chatGPTApiKey:          val('chatGPTApiKey'),
-      chatGPTModel:           val('chatGPTModel'),
+      chatGPTModel:           val('chatGPTModelManual')  || val('chatGPTModel'),
       claudeServer:           val('claudeServer'),
       claudeApiKey:           val('claudeApiKey'),
-      claudeModel:            val('claudeModel'),
+      claudeModel:            val('claudeModelManual')   || val('claudeModel'),
       geminiServer:           val('geminiServer'),
       geminiApiKey:           val('geminiApiKey'),
-      geminiModel:            val('geminiModel'),
+      geminiModel:            val('geminiModelManual')   || val('geminiModel'),
       grokServer:             val('grokServer'),
       grokApiKey:             val('grokApiKey'),
-      grokModel:              val('grokModel'),
+      grokModel:              val('grokModelManual')     || val('grokModel'),
       otherServer:            val('otherServer'),
       otherApiKey:            val('otherApiKey'),
-      otherModel:             val('otherModel'),
+      otherModel:             val('otherModelManual')    || val('otherModel'),
+      lmStudioData:           document.getElementById('lmStudioData')?.checked ?? false,
+      ollamaData:             document.getElementById('ollamaData')?.checked   ?? false,
+      chatGPTData:            document.getElementById('chatGPTData')?.checked  ?? false,
+      chatGPTFee:             document.getElementById('chatGPTFee')?.checked   ?? false,
+      claudeData:             document.getElementById('claudeData')?.checked   ?? false,
+      claudeFee:              document.getElementById('claudeFee')?.checked    ?? false,
+      geminiData:             document.getElementById('geminiData')?.checked   ?? false,
+      geminiFee:              document.getElementById('geminiFee')?.checked    ?? false,
+      grokData:               document.getElementById('grokData')?.checked     ?? false,
+      grokFee:                document.getElementById('grokFee')?.checked      ?? false,
+      otherData:              document.getElementById('otherData')?.checked    ?? false,
+      otherFee:               document.getElementById('otherFee')?.checked     ?? false,
     },
   });
 });

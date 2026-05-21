@@ -45,7 +45,7 @@ export async function activate(context: vscode.ExtensionContext)
 
 	context.subscriptions.push(
 		// Commands: AI
-		vscode.commands.registerCommand('understand.ai.editProviderSettings', aiProviderSettings.editProviderSettings),
+		vscode.commands.registerCommand('understand.ai.editProviderSettings', () => aiProviderSettings.editProviderSettings(context)),
 		vscode.commands.registerCommand('understand.ai.copyChat', ai.copyChat),
 		vscode.commands.registerCommand('understand.ai.deleteAllMessages', ai.deleteAllMessages),
 		vscode.commands.registerCommand('understand.ai.generateAiOverview', ai.generateAiOverview),

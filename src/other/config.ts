@@ -108,7 +108,8 @@ export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 			shouldNotify = true;
 	}
 
-	const shouldRestart: boolean = event.affectsConfiguration('understand.server');
+	const shouldRestart: boolean = event.affectsConfiguration('understand.server') ||
+	                               event.affectsConfiguration('understand.AI');
 
 	if (shouldNotify && !shouldRestart)
 		variables.languageClient.sendNotification('workspace/didChangeConfiguration', params);
