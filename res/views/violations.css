@@ -1,0 +1,88 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-foreground);
+}
+
+.empty {
+  padding: 0 12px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.separator {
+  border-top: 1px solid var(--vscode-widget-border, var(--vscode-panel-border, #454545));
+  margin-top: 6px;
+}
+
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.header:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.filename {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lineno {
+  color: var(--vscode-descriptionForeground);
+  white-space: nowrap;
+  padding-left: 8px;
+}
+
+.message {
+  padding: 1px 8px 1px 16px;
+  cursor: pointer;
+  word-break: break-word;
+}
+
+.message:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.location {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1px 8px 1px 24px;
+  cursor: pointer;
+  color: var(--vscode-descriptionForeground);
+}
+
+.location:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.loc-message {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loc-info {
+  white-space: nowrap;
+  padding-left: 8px;
+}
+
+.filepath-tooltip {
+  display: none;
+  position: fixed;
+  background: var(--vscode-editorHoverWidget-background);
+  color: var(--vscode-editorHoverWidget-foreground);
+  border: 1px solid var(--vscode-editorHoverWidget-border);
+  padding: 4px 8px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1000;
+}

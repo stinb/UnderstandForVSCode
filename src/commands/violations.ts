@@ -1,5 +1,18 @@
 import * as vscode from 'vscode';
 
+import { variables } from '../other/variables';
+
+
+/** Go to a location in a file (from the violations view) */
+export async function goToLocation(uri: vscode.Uri, line: number, character: number)
+{
+	variables.preserveView = 'violations';
+	await vscode.window.showTextDocument(uri, {
+		selection: new vscode.Range(line, character, line, character),
+	});
+	variables.preserveView = '';
+}
+
 
 /** Fix violation (run the fix-it hint) */
 export function fix()

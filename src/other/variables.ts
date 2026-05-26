@@ -7,6 +7,7 @@ import { AnnotationsViewProvider } from '../viewProviders/annotations';
 import { GraphTreeProvider } from '../treeProviders/graphs';
 import { MetricTreeProvider } from '../treeProviders/metrics';
 import { ReferencesTreeProvider } from '../treeProviders/references';
+import { ViolationsViewProvider } from '../viewProviders/violations';
 import { GraphProvider } from '../other/graphProvider';
 
 
@@ -35,6 +36,8 @@ export const variables: Variables = {
 	referencesTreeProvider: undefined,
 	// @ts-ignore initialized in `activate`
 	violationDescriptionProvider: undefined,
+	// @ts-ignore initialized in `activate`
+	violationTreeProvider: undefined,
 };
 
 
@@ -51,4 +54,5 @@ interface Variables {
 	preserveView: string,
 	referencesTreeProvider: ReferencesTreeProvider,
 	violationDescriptionProvider: ViolationDescriptionProvider,
+	violationTreeProvider: ViolationsViewProvider,
 }

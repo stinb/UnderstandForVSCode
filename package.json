@@ -291,6 +291,11 @@
 				"command": "understand.violations.toggleVisibilityAndFocus",
 				"title": "Toggle Visibility and Focus",
 				"category": "Understand: Violations"
+			},
+			{
+				"command": "understand.violationsView.goToLocation",
+				"title": "Go to Location",
+				"category": "Understand: Violations View"
 			}
 		],
 		"configuration": [
@@ -579,6 +584,10 @@
 				{
 					"command": "understand.violations.toggleVisibilityAndFocus",
 					"when": "understandProject"
+				},
+				{
+					"command": "understand.violationsView.goToLocation",
+					"when": "false"
 				}
 			],
 			"editor/context": [
@@ -743,6 +752,12 @@
 					"id": "understandReferences",
 					"name": "References",
 					"type": "tree"
+				},
+				{
+					"icon": "$(bug)",
+					"id": "understandViolations",
+					"name": "Explore Violations",
+					"type": "webview"
 				}
 			]
 		}

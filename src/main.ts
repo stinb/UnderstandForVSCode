@@ -23,6 +23,7 @@ import { GraphProvider } from './other/graphProvider';
 import { GraphTreeProvider } from './treeProviders/graphs';
 import { MetricTreeProvider } from './treeProviders/metrics';
 import { ReferencesTreeProvider } from './treeProviders/references';
+import { ViolationsViewProvider } from './viewProviders/violations';
 import { watchFiles } from './other/fileSystem';
 import { actuallyChangedTextEditorSelection, onDidChangeTextEditorSelection } from './other/context';
 
@@ -38,6 +39,7 @@ export async function activate(context: vscode.ExtensionContext)
 	variables.metricTreeProvider = new MetricTreeProvider();
 	variables.referencesTreeProvider = new ReferencesTreeProvider();
 	variables.violationDescriptionProvider = new ViolationDescriptionProvider();
+	variables.violationTreeProvider = new ViolationsViewProvider();
 
 	watchFiles();
 
@@ -114,6 +116,9 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.violations.ignore', violations.ignore),
 		vscode.commands.registerCommand('understand.violations.toggleVisibilityAndFocus', violations.toggleVisibilityAndFocus),
 
+		// Commands: Violations View
+		vscode.commands.registerCommand('understand.violationsView.goToLocation', violations.goToLocation),
+
 		// Hover provider, for detailed descriptions
 		vscode.languages.registerHoverProvider(documentSelector, new UnderstandHoverProvider()),
 
@@ -132,9 +137,33 @@ export async function activate(context: vscode.ExtensionContext)
 		// Create web views
 		vscode.window.registerWebviewViewProvider('understandAi', variables.aiViewProvider),
 		vscode.window.registerWebviewViewProvider('understandAnnotations', variables.annotationsViewProvider),
+		vscode.window.registerWebviewViewProvider('understandViolations', variables.violationTreeProvider),
 		vscode.window.registerTreeDataProvider('understandGraphs', variables.graphTreeProvider),
 		vscode.window.registerTreeDataProvider('understandMetrics', variables.metricTreeProvider),
 		vscode.window.registerTreeDataProvider('understandReferences', variables.referencesTreeProvider),
+	);
+
+	let diagUpdateTimer: ReturnType<typeof setTimeout> | undefined;
+	context.subscriptions.push(
+		vscode.languages.onDidChangeDiagnostics(event => {
+			const editor = vscode.window.activeTextEditor;
+			if (!editor || editor.document.uri.scheme !== 'file')
+				return;
+			if (!event.uris.some(uri => uri.toString() === editor.document.uri.toString()))
+				return;
+			if (diagUpdateTimer)
+				clearTimeout(diagUpdateTimer);
+			diagUpdateTimer = setTimeout(() => {
+				diagUpdateTimer = undefined;
+				const currentEditor = vscode.window.activeTextEditor;
+				if (!currentEditor || currentEditor.document.uri.scheme !== 'file')
+					return;
+				variables.violationTreeProvider.updateFile(
+					currentEditor.document.uri,
+					vscode.languages.getDiagnostics(currentEditor.document.uri),
+				);
+			}, 150);
+		}),
 	);
 
 	startLsp();
