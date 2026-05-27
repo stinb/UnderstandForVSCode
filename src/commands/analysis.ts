@@ -1,4 +1,4 @@
-import { executeCommand } from './helpers';
+import { executeAtPosition, executeCommand } from './helpers';
 
 
 /** Analyze all files in all open projects */
@@ -12,6 +12,13 @@ export function analyzeAllFiles()
 export function analyzeChangedFiles()
 {
 	executeCommand('understand.server.analysis.analyzeChangedFiles');
+}
+
+
+/** Analyze the currently open file */
+export function analyzeCurrentFile()
+{
+	executeAtPosition('understand.server.analysis.analyzeCurrentFile');
 }
 
 

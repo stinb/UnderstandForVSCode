@@ -58,6 +58,7 @@ export async function activate(context: vscode.ExtensionContext)
 		// Commands: Analysis
 		vscode.commands.registerCommand('understand.analysis.analyzeAllFiles', analysis.analyzeAllFiles),
 		vscode.commands.registerCommand('understand.analysis.analyzeChangedFiles', analysis.analyzeChangedFiles),
+		vscode.commands.registerCommand('understand.analysis.analyzeCurrentFile', analysis.analyzeCurrentFile),
 		vscode.commands.registerCommand('understand.analysis.stopAnalyzingFiles', analysis.stopAnalyzingFiles),
 
 		// Commands: Annotations

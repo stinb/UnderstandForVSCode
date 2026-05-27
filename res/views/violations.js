@@ -1,5 +1,73 @@
 (function () {
 	const vscode = acquireVsCodeApi();
+	const root = document.getElementById('root');
+
+	// ── Rendering ─────────────────────────────────────────────────────────────
+
+	function make(tag, className) {
+		const e = document.createElement(tag);
+		if (className) e.className = className;
+		return e;
+	}
+
+	function makeNav(tag, className, uri, line, char) {
+		const e = make(tag, className);
+		e.dataset.uri = uri;
+		e.dataset.line = line;
+		e.dataset.char = char;
+		return e;
+	}
+
+	function render(data) {
+		while (root.firstChild) root.removeChild(root.firstChild);
+
+		if (data.type === 'clear') {
+			const p = make('p', 'empty');
+			p.textContent = data.message;
+			root.appendChild(p);
+			return;
+		}
+
+		for (const v of data.violations) {
+			const wrapper = make('div', 'violation');
+
+			wrapper.appendChild(make('div', 'separator'));
+
+			const header = makeNav('div', 'header', v.uri, v.line, v.char);
+			const filename = make('span', 'filename');
+			filename.textContent = v.fileName;
+			filename.dataset.fp = v.filePath;
+			const lineno = make('span', 'lineno');
+			lineno.textContent = String(v.line + 1);
+			header.appendChild(filename);
+			header.appendChild(lineno);
+			wrapper.appendChild(header);
+
+			const msg = makeNav('div', 'message', v.uri, v.line, v.char);
+			msg.textContent = v.message;
+			wrapper.appendChild(msg);
+
+			for (const info of v.related) {
+				const loc = makeNav('div', 'location', info.uri, info.line, info.char);
+				const locMsg = make('span', 'loc-message');
+				locMsg.textContent = info.message;
+				const locInfo = make('span', 'loc-info');
+				locInfo.textContent = `${info.file}  ${info.line + 1}`;
+				locInfo.dataset.fp = info.path;
+				loc.appendChild(locMsg);
+				loc.appendChild(locInfo);
+				wrapper.appendChild(loc);
+			}
+
+			root.appendChild(wrapper);
+		}
+	}
+
+	// ── Messages ──────────────────────────────────────────────────────────────
+
+	window.addEventListener('message', event => {
+		render(event.data);
+	});
 
 	// ── Navigation ────────────────────────────────────────────────────────────
 
@@ -56,4 +124,8 @@
 		if (el && !el.contains(event.relatedTarget))
 			tip.style.display = 'none';
 	});
+
+	// ── Ready ─────────────────────────────────────────────────────────────────
+
+	vscode.postMessage({ type: 'ready' });
 }());

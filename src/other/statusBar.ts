@@ -235,6 +235,10 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 			command: 'understand.analysis.analyzeChangedFiles',
 		},
 		{
+			name: 'Analyze this file',
+			command: 'understand.analysis.analyzeCurrentFile',
+		},
+		{
 			name: 'Create new .und project',
 			command: 'understand.exploreInUnderstand.newProject',
 		},
@@ -265,6 +269,7 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 				case DbState.Resolved:
 					enabledCommands.add('understand.analysis.analyzeAllFiles');
 					enabledCommands.add('understand.analysis.analyzeChangedFiles');
+					enabledCommands.add('understand.analysis.analyzeCurrentFile');
 					enabledCommands.add('understand.settings.showSettingsProject');
 					break;
 				default:
