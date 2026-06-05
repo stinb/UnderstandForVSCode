@@ -1,5 +1,14 @@
 # Change Log
 
+# [1.1.6] - 2026 Jun 5
+- Add: Edit Understand AI Provider Settings panel (#692)
+- Improve: AI provider settings with model fetch, persistence, and UX improvements
+- Fix: build script for esbuild 0.25+ native binary on Node 24
+
+# [1.1.5] - 2026 May 21
+- Add: Explore Violations sidebar with sort by line, fast file-switch, analyze this file, and related locations (#34)
+- Fix: build on Windows
+
 # [1.1.4] - 2026 Apr 27
 - Fix: AI chat no longer sends while IME is composing (#688)
 - Fix: invoke esbuild via node_modules/.bin to support esbuild 0.25+
