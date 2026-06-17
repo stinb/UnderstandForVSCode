@@ -774,7 +774,8 @@
 		"tmp": "^0.2.7",
 		"qs": "^6.15.2",
 		"uuid": "^11.1.1",
-		"brace-expansion": "^5.0.6"
+		"brace-expansion": "^5.0.6",
+		"markdown-it": "^14.2.0"
 	},
 	"devDependencies": {
 		"@types/markdown-it": "14.1.2",
