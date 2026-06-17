@@ -68,7 +68,6 @@ async function sendSelection()
 		setContext(contexts.file, false);
 		const uniqueName = focusedUniqueName();
 		variables.languageClient.sendNotification('understand/sync', { uniqueName });
-		variables.violationTreeProvider.clear();
 		return;
 	}
 
@@ -80,12 +79,6 @@ async function sendSelection()
 		character: position.character,
 		preserve: preserveView,
 	});
-
-	if (preserveView !== 'violations'
-			&& editor.document.uri.toString() !== variables.violationTreeProvider.currentUri?.toString()) {
-		const diagnostics = vscode.languages.getDiagnostics(editor.document.uri);
-		variables.violationTreeProvider.updateFile(editor.document.uri, diagnostics);
-	}
 
 	const resolved: boolean = await variables.languageClient.sendRequest('understand/isResolved', {
 		uri: editor.document.uri.toString(),

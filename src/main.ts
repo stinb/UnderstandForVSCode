@@ -146,23 +146,12 @@ export async function activate(context: vscode.ExtensionContext)
 
 	let diagUpdateTimer: ReturnType<typeof setTimeout> | undefined;
 	context.subscriptions.push(
-		vscode.languages.onDidChangeDiagnostics(event => {
-			const editor = vscode.window.activeTextEditor;
-			if (!editor || editor.document.uri.scheme !== 'file')
-				return;
-			if (!event.uris.some(uri => uri.toString() === editor.document.uri.toString()))
-				return;
+		vscode.languages.onDidChangeDiagnostics(() => {
 			if (diagUpdateTimer)
 				clearTimeout(diagUpdateTimer);
 			diagUpdateTimer = setTimeout(() => {
 				diagUpdateTimer = undefined;
-				const currentEditor = vscode.window.activeTextEditor;
-				if (!currentEditor || currentEditor.document.uri.scheme !== 'file')
-					return;
-				variables.violationTreeProvider.updateFile(
-					currentEditor.document.uri,
-					vscode.languages.getDiagnostics(currentEditor.document.uri),
-				);
+				variables.violationTreeProvider.update();
 			}, 150);
 		}),
 	);

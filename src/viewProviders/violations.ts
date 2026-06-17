@@ -19,15 +19,12 @@ interface ReadyMessage {
 
 export class ViolationsViewProvider implements vscode.WebviewViewProvider
 {
-	private _currentUri: vscode.Uri | undefined;
-	private _currentDiagnostics: vscode.Diagnostic[] = [];
 	private _webview: vscode.Webview | undefined;
 	private _webviewView: vscode.WebviewView | undefined;
+	private _lastSignature = '';
 	private uriScript = '';
 	private uriStyle = '';
 	private cspSource = '';
-
-	get currentUri(): vscode.Uri | undefined { return this._currentUri; }
 
 
 	resolveWebviewView(
@@ -62,61 +59,52 @@ export class ViolationsViewProvider implements vscode.WebviewViewProvider
 			goToLocation(uri, message.line, message.character);
 		}
 		else if (message.type === 'ready') {
-			this.postUpdate();
+			// Fresh webview DOM — force a re-render regardless of the guard
+			this._lastSignature = '';
+			this.update();
 		}
 	}
 
 
-	updateFile(uri: vscode.Uri, diagnostics: vscode.Diagnostic[])
-	{
-		this._currentUri = uri;
-		this._currentDiagnostics = diagnostics.filter(d => d.source === 'Understand');
-
-		if (this._webviewView) {
-			const fileName = uri.fsPath.replace(/.*[\\/]/, '');
-			this._webviewView.title = `Explore Violations - ${fileName} (${this._currentDiagnostics.length})`;
-		}
-
-		if (this._webview)
-			this.postUpdate();
-	}
-
-
-	clear()
-	{
-		if (this._currentUri === undefined)
-			return;
-		this._currentUri = undefined;
-		this._currentDiagnostics = [];
-
-		if (this._webviewView)
-			this._webviewView.title = 'Explore Violations';
-
-		if (this._webview)
-			this.postUpdate();
-	}
-
-
-	private postUpdate()
+	/**
+	 * Show every file's violations across the workspace (not just the active
+	 * file). The diagnostics are already published by the language server for
+	 * all analyzed files, so we read the whole set here and let the webview
+	 * group them by file.
+	 */
+	update()
 	{
 		if (!this._webview)
 			return;
 
-		const uri = this._currentUri;
-		const diagnostics = this._currentDiagnostics;
+		// Gather Understand violations from every file, paired with their uri
+		const items: { uri: vscode.Uri, diagnostic: vscode.Diagnostic }[] = [];
+		for (const [uri, diagnostics] of vscode.languages.getDiagnostics()) {
+			if (uri.scheme !== 'file')
+				continue;
+			for (const diagnostic of diagnostics)
+				if (diagnostic.source === 'Understand')
+					items.push({ uri, diagnostic });
+		}
 
-		if (!uri || diagnostics.length === 0) {
-			const msg = uri ? 'No violations in this file.' : 'Open a file to see its violations.';
-			this._webview.postMessage({ type: 'clear', message: msg });
+		// Sort by file, then by position, so file groups and rows are stable
+		items.sort((a, b) => {
+			const fileDiff = a.uri.fsPath.localeCompare(b.uri.fsPath);
+			if (fileDiff !== 0)
+				return fileDiff;
+			const lineDiff = a.diagnostic.range.start.line - b.diagnostic.range.start.line;
+			return lineDiff !== 0 ? lineDiff : a.diagnostic.range.start.character - b.diagnostic.range.start.character;
+		});
+
+		if (this._webviewView)
+			this._webviewView.title = 'Explore Violations';
+
+		if (items.length === 0) {
+			this._webview.postMessage({ type: 'clear', message: 'No violations found in the project.' });
 			return;
 		}
 
-		const sorted = [...diagnostics].sort((a, b) => {
-			const lineDiff = a.range.start.line - b.range.start.line;
-			return lineDiff !== 0 ? lineDiff : a.range.start.character - b.range.start.character;
-		});
-
-		const violations = sorted.map(d => ({
+		const violations = items.map(({ uri, diagnostic: d }) => ({
 			uri: uri.toString(),
 			line: d.range.start.line,
 			char: d.range.start.character,
@@ -132,6 +120,13 @@ export class ViolationsViewProvider implements vscode.WebviewViewProvider
 				path: info.location.uri.fsPath,
 			})),
 		}));
+
+		// Skip re-rendering (which would reset scroll position) when the set of
+		// violations is unchanged — diagnostics can re-publish without changing.
+		const signature = JSON.stringify(violations);
+		if (signature === this._lastSignature)
+			return;
+		this._lastSignature = signature;
 
 		this._webview.postMessage({ type: 'update', violations });
 	}

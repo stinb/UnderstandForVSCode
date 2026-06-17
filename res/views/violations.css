@@ -11,22 +11,80 @@ body {
   color: var(--vscode-descriptionForeground);
 }
 
+.summary {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 4px 10px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--vscode-sideBar-background, var(--vscode-editor-background));
+}
+
+.summary-files {
+  color: var(--vscode-descriptionForeground);
+  font-size: 0.9em;
+  letter-spacing: 0.04em;
+}
+
+.summary-count {
+  min-width: 16px;
+  padding: 0 6px;
+  border-radius: 9px;
+  text-align: center;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  font-size: 0.85em;
+  line-height: 1.4;
+}
+
 .separator {
   border-top: 1px solid var(--vscode-widget-border, var(--vscode-panel-border, #454545));
   margin-top: 6px;
 }
 
 
-.header {
+.file-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 2px 8px;
+  padding: 3px 8px 3px 12px;
+  margin-top: 6px;
+  border-top: 1px solid var(--vscode-widget-border, var(--vscode-panel-border, #454545));
+  font-weight: 600;
   cursor: pointer;
 }
 
-.header:hover {
+.file-header:hover {
   background: var(--vscode-list-hoverBackground);
+}
+
+.file-header .filename {
+  flex: 1 1 auto;
+}
+
+.file-count {
+  flex: 0 0 auto;
+  margin-left: 8px;
+  min-width: 16px;
+  padding: 0 5px;
+  border-radius: 9px;
+  text-align: center;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  font-size: 0.85em;
+  font-weight: normal;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.file-group {
+  padding-left: 24px;
+}
+
+.file-group.collapsed {
+  display: none;
 }
 
 .filename {
@@ -39,6 +97,19 @@ body {
   color: var(--vscode-descriptionForeground);
   white-space: nowrap;
   padding-left: 8px;
+  cursor: pointer;
+}
+
+.lineno:hover {
+  color: var(--vscode-foreground);
+  text-decoration: underline;
+}
+
+/* A little space and a divider line between consecutive violations */
+.violation + .violation {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid var(--vscode-widget-border, var(--vscode-panel-border, #454545));
 }
 
 .message {
@@ -49,6 +120,56 @@ body {
 
 .message:hover {
   background: var(--vscode-list-hoverBackground);
+}
+
+/* Violations with visit-location steps: the message row is a twistie */
+.message.toggle {
+  display: flex;
+  align-items: flex-start;
+  padding-left: 4px;
+}
+
+.chevron {
+  flex: 0 0 auto;
+  width: 16px;
+  text-align: center;
+  color: var(--vscode-descriptionForeground);
+  user-select: none;
+}
+
+.chevron::before {
+  content: '\25BE'; /* ▾ expanded */
+}
+
+.toggle.collapsed .chevron::before {
+  content: '\25B8'; /* ▸ collapsed */
+}
+
+.message-text {
+  word-break: break-word;
+}
+
+.message.toggle .message-text {
+  flex: 1 1 auto;
+}
+
+.step-count {
+  flex: 0 0 auto;
+  margin-left: 8px;
+  min-width: 16px;
+  padding: 0 5px;
+  border-radius: 9px;
+  text-align: center;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  font-size: 0.85em;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* Steps are collapsed by default */
+.locations.collapsed {
+  display: none;
 }
 
 .location {
