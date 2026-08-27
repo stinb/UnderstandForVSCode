@@ -33,7 +33,8 @@ export class UnderstandUriHandler implements vscode.UriHandler
 }
 
 
-async function violationDescription(id: string)
+/** Show the detailed description of a check as a rendered markdown preview */
+export async function violationDescription(id: string)
 {
 	// Show markdown
 	const editor = await vscode.window.showTextDocument(vscode.Uri.from({

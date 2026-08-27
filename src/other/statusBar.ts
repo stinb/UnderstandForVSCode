@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as lc from 'vscode-languageclient/node';
 
-import { contexts, setContext } from './context';
+import { contexts, invalidateFileStatus, setContext } from './context';
 import { variables, } from './variables';
 
 
@@ -53,9 +53,18 @@ interface StatusBarItem extends vscode.StatusBarItem {
 }
 
 
+/** Result of the "understand/fileStatus" request */
+export interface FileStatus {
+	inProject: boolean,
+	analysis: 'analyzed' | 'stale' | 'none',
+	resolved: boolean,
+}
+
+
 let db = { path: '', state: DbState.Finding };
 
 let mainStatusBarItem: vscode.StatusBarItem;
+let fileStatusBarItem: vscode.StatusBarItem;
 let progressStatusBarItems = new Map<string, StatusBarItem>();
 
 
@@ -113,6 +122,45 @@ export function changeMainStatus(status: MainState)
 			setContext(contexts.project, true);
 			break;
 	}
+}
+
+
+/** Change the file status bar item: the current file's project & analysis status */
+export function changeFileStatus(status: FileStatus | undefined)
+{
+	if (fileStatusBarItem === undefined) {
+		fileStatusBarItem = vscode.window.createStatusBarItem('file', vscode.StatusBarAlignment.Left, 99);
+		fileStatusBarItem.name = 'Understand File';
+	}
+
+	// No file or no project: show nothing
+	if (status === undefined) {
+		fileStatusBarItem.hide();
+		return;
+	}
+
+	if (!status.inProject) {
+		fileStatusBarItem.text = '$(circle-slash) Not in project';
+		fileStatusBarItem.tooltip = 'This file is not a file of the Understand project';
+		fileStatusBarItem.command = undefined;
+	}
+	else if (status.analysis === 'analyzed') {
+		fileStatusBarItem.text = '$(check) Analyzed';
+		fileStatusBarItem.tooltip = 'Project file, analyzed and up to date';
+		fileStatusBarItem.command = undefined;
+	}
+	else if (status.analysis === 'stale') {
+		fileStatusBarItem.text = '$(warning) Needs analysis';
+		fileStatusBarItem.tooltip = 'Project file, modified since it was last analyzed — click to analyze changed files';
+		fileStatusBarItem.command = 'understand.analysis.analyzeChangedFiles';
+	}
+	else {
+		fileStatusBarItem.text = '$(circle-large-outline) Not analyzed';
+		fileStatusBarItem.tooltip = 'Project file that has not been analyzed yet — click to analyze changed files';
+		fileStatusBarItem.command = 'understand.analysis.analyzeChangedFiles';
+	}
+
+	fileStatusBarItem.show();
 }
 
 
@@ -190,6 +238,10 @@ export function handleProgress(params: ProgressParams)
 		else if (progress.kind === 'end') {
 			progressStatusBarItems.delete(token);
 			progressStatusBarItem.dispose();
+			// A finished ANALYSIS may have changed the current file's status;
+			// other tasks (AI generation) can't, so they keep the cache warm
+			if (token === 'Understand Analysis')
+				invalidateFileStatus();
 		}
 	}
 
@@ -204,6 +256,7 @@ export function handleProgress(params: ProgressParams)
 export function handleUnderstandChangedDatabaseState(params: Db)
 {
 	db = params;
+	invalidateFileStatus();
 
 	if (progressStatusBarItems.size === 0)
 		changeMainStatus(MainState.Ready);

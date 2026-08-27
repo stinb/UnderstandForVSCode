@@ -57,6 +57,7 @@ function drawAi(sections)
 			if (emptyCardIds.length > 1) {
 				const buttonUi = document.createElement('button');
 				buttonUi.className = 'generateMany';
+				buttonUi.title = 'Generate AI overviews for everything in this section';
 				buttonUi.dataset.uniqueNames = JSON.stringify(emptyCardIds);
 				sectionHeaderUi.appendChild(buttonUi);
 
@@ -94,9 +95,10 @@ function drawAi(sections)
 			buttonsUi.className = 'buttons';
 			cardHeaderUi.appendChild(buttonsUi);
 
-			const chatButton = drawButton(buttonsUi, 'chat', 'codicon-comment-discussion');
-			const copyButton = drawButton(buttonsUi, 'copy', 'codicon-copy');
-			drawButton(buttonsUi, 'regenerate', card.body ? 'codicon-refresh' : 'codicon-sparkle');
+			const chatButton = drawButton(buttonsUi, 'chat', 'codicon-comment-discussion', 'Start an AI chat about this');
+			const copyButton = drawButton(buttonsUi, 'copy', 'codicon-copy', 'Copy the AI overview');
+			drawButton(buttonsUi, 'regenerate', card.body ? 'codicon-refresh' : 'codicon-sparkle',
+				card.body ? 'Regenerate the AI overview' : 'Generate an AI overview');
 
 			if (card.body.length === 0) {
 				chatButton.classList.add('notDisplayed');
@@ -121,12 +123,14 @@ function drawAi(sections)
  * @param {HTMLDivElement} buttons
  * @param {string} kind
  * @param {string} icon
+ * @param {string} title tooltip explaining what the button does
  * @returns {HTMLButtonElement}
  */
-function drawButton(buttons, kind, icon)
+function drawButton(buttons, kind, icon, title)
 {
 	const button = document.createElement('button');
 	button.className = kind;
+	button.title = title;
 	buttons.appendChild(button);
 
 	const span = document.createElement('span');
@@ -288,6 +292,15 @@ function handleMessageEvent(event)
 		}
 		case 'aiError': {
 			setCardBody(message.uniqueName, message.text);
+			// The generation is over (it failed): stop the spinner and offer to
+			// generate again — only the success path (aiTextEnd) did this before,
+			// so a failed generation spun forever
+			const annotation = document.getElementById(message.uniqueName);
+			if (annotation) {
+				const regenerateIcon = annotation.querySelector('.regenerate span');
+				if (regenerateIcon)
+					regenerateIcon.className = 'codicon codicon-sparkle';
+			}
 			break;
 		}
 		case 'aiText': {

@@ -1,5 +1,11 @@
 # Change Log
 
+# [1.1.7] - 2026 Aug 26
+- Add: license code setting for containers and other environments, with optional deregister on exit (#27)
+- Add: file status on the status bar — in project, analyzed, or needs analysis (#6)
+- Add: Checks view listing the configured CodeCheck configs and their checks; click a check for its detailed description (#39)
+- Fix: AI Overview spacing, button tooltips, spinner stuck after a failed generation, and a misleading "manually disabled" error when the AI provider is unreachable
+
 # [1.1.6] - 2026 Jun 5
 - Add: Edit Understand AI Provider Settings panel (#692)
 - Improve: AI provider settings with model fetch, persistence, and UX improvements

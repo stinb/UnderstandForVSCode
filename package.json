@@ -2,7 +2,7 @@
 	"name": "understand",
 	"displayName": "Understand",
 	"description": "The Software Developer's Multi-Tool",
-	"version": "1.1.6",
+	"version": "1.1.7",
 	"publisher": "scitools",
 	"repository": {
 		"type": "git",
@@ -331,6 +331,11 @@
 					"default": true,
 					"description": "Show content of the Annotations view"
 				},
+				"understand.checksView.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show content of the Checks view"
+				},
 				"understand.files.watch": {
 					"type": "string",
 					"default": "**",
@@ -340,6 +345,20 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Show content of the Graphs view"
+				},
+				"understand.license.code": {
+					"type": "string",
+					"default": "",
+					"scope": "machine-overridable",
+					"description": "License code for the language server, passed to it as the UNDERSTAND_LICENSE_CODE environment variable: used for this server only and never written to the shared license configuration. Intended for containers and other environments where running `und -setlicensecode` is inconvenient",
+					"ignoreSync": true
+				},
+				"understand.license.deregisterOnExit": {
+					"type": "boolean",
+					"default": false,
+					"scope": "machine-overridable",
+					"description": "When the language server stops, release this machine's installation of the license code on the license server. Combine with the license code setting in a container so that an exiting container never leaves a license registered",
+					"ignoreSync": true
 				},
 				"understand.metricsView.disabledMetrics": {
 					"type": "array",
@@ -738,6 +757,13 @@
 					"id": "understandAnnotations",
 					"name": "Annotations",
 					"type": "webview",
+					"visibility": "collapsed"
+				},
+				{
+					"icon": "$(checklist)",
+					"id": "understandChecks",
+					"name": "Checks",
+					"type": "tree",
 					"visibility": "collapsed"
 				},
 				{

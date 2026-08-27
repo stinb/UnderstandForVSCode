@@ -4,6 +4,7 @@ import { ViolationDescriptionProvider } from './textProviders';
 import { AiChatProvider } from './aiChatProvider';
 import { AiViewProvider } from '../viewProviders/ai';
 import { AnnotationsViewProvider } from '../viewProviders/annotations';
+import { CheckTreeProvider } from '../treeProviders/checks';
 import { GraphTreeProvider } from '../treeProviders/graphs';
 import { MetricTreeProvider } from '../treeProviders/metrics';
 import { ReferencesTreeProvider } from '../treeProviders/references';
@@ -18,6 +19,8 @@ export const variables: Variables = {
 	aiViewProvider: undefined,
 	// @ts-ignore initialized in `activate`
 	annotationsViewProvider: undefined,
+	// @ts-ignore initialized in `activate`
+	checkTreeProvider: undefined,
 	// @ts-ignore initialized in `activate`
 	extensionUri: undefined,
 	// @ts-ignore initialized in `activate`
@@ -45,6 +48,7 @@ interface Variables {
 	aiChatProvider: AiChatProvider,
 	aiViewProvider: AiViewProvider,
 	annotationsViewProvider: AnnotationsViewProvider,
+	checkTreeProvider: CheckTreeProvider,
 	extensionUri: Uri,
 	fileSystemWatcher: FileSystemWatcher,
 	graphProvider: GraphProvider,

@@ -14,18 +14,19 @@ import * as violations from './commands/violations';
 import { onDidChangeConfiguration } from './other/config';
 import { UnderstandHoverProvider } from './other/hover';
 import { documentSelector, startLsp, stopLsp, } from './other/languageClient';
-import { UnderstandUriHandler } from './other/uriHandler';
+import { UnderstandUriHandler, violationDescription } from './other/uriHandler';
 import { variables } from './other/variables';
 import { URI_SCHEME_VIOLATION_DESCRIPTION, ViolationDescriptionProvider } from './other/textProviders';
 import { AiViewProvider } from './viewProviders/ai';
 import { AnnotationsViewProvider } from './viewProviders/annotations';
+import { CheckTreeProvider } from './treeProviders/checks';
 import { GraphProvider } from './other/graphProvider';
 import { GraphTreeProvider } from './treeProviders/graphs';
 import { MetricTreeProvider } from './treeProviders/metrics';
 import { ReferencesTreeProvider } from './treeProviders/references';
 import { ViolationsViewProvider } from './viewProviders/violations';
 import { watchFiles } from './other/fileSystem';
-import { actuallyChangedTextEditorSelection, onDidChangeTextEditorSelection } from './other/context';
+import { actuallyChangedTextEditorSelection, invalidateFileStatus, onDidChangeTextEditorSelection } from './other/context';
 
 
 /** Activate the extension */
@@ -33,6 +34,7 @@ export async function activate(context: vscode.ExtensionContext)
 {
 	variables.aiViewProvider = new AiViewProvider();
 	variables.annotationsViewProvider = new AnnotationsViewProvider();
+	variables.checkTreeProvider = new CheckTreeProvider();
 	variables.extensionUri = context.extensionUri;
 	variables.graphTreeProvider = new GraphTreeProvider();
 	variables.graphProvider = new GraphProvider();
@@ -58,6 +60,9 @@ export async function activate(context: vscode.ExtensionContext)
 		// Commands: Analysis
 		vscode.commands.registerCommand('understand.analysis.analyzeAllFiles', analysis.analyzeAllFiles),
 		vscode.commands.registerCommand('understand.analysis.analyzeChangedFiles', analysis.analyzeChangedFiles),
+
+		// Commands: Checks
+		vscode.commands.registerCommand('understand.checks.showDescription', violationDescription),
 		vscode.commands.registerCommand('understand.analysis.analyzeCurrentFile', analysis.analyzeCurrentFile),
 		vscode.commands.registerCommand('understand.analysis.stopAnalyzingFiles', analysis.stopAnalyzingFiles),
 
@@ -132,6 +137,12 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.window.onDidChangeActiveTextEditor(actuallyChangedTextEditorSelection),
 		vscode.window.onDidChangeTextEditorSelection(onDidChangeTextEditorSelection),
 
+		// A save can make the file's analysis stale: refresh the status bar
+		vscode.workspace.onDidSaveTextDocument(() => {
+			invalidateFileStatus();
+			actuallyChangedTextEditorSelection();
+		}),
+
 		// Handle the violation-descriptions: URI
 		vscode.window.registerUriHandler(new UnderstandUriHandler()),
 
@@ -139,6 +150,7 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.window.registerWebviewViewProvider('understandAi', variables.aiViewProvider),
 		vscode.window.registerWebviewViewProvider('understandAnnotations', variables.annotationsViewProvider),
 		vscode.window.registerWebviewViewProvider('understandViolations', variables.violationTreeProvider),
+		vscode.window.registerTreeDataProvider('understandChecks', variables.checkTreeProvider),
 		vscode.window.registerTreeDataProvider('understandGraphs', variables.graphTreeProvider),
 		vscode.window.registerTreeDataProvider('understandMetrics', variables.metricTreeProvider),
 		vscode.window.registerTreeDataProvider('understandReferences', variables.referencesTreeProvider),

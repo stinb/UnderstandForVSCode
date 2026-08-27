@@ -1,6 +1,8 @@
 :root {
 	--outline: 1px;
 	--spacing: 1rem;
+	/* Tree-like density: vertical rhythm close to the built-in tree views */
+	--itemGap: 0.125rem;
 }
 
 @font-face {
@@ -19,7 +21,7 @@ body {
 }
 
 .sectionHeader {
-	margin: var(--spacing);
+	margin: 0.375rem 0.5rem 0.125rem;
 }
 
 .sectionHeader, .cardHeader {
@@ -31,10 +33,10 @@ body {
 	background: var(--vscode-input-background);
 	display: flex;
 	flex-direction: column;
-	gap: var(--spacing);
-	margin: var(--spacing);
-	padding: var(--spacing);
-	line-height: 1.5em;
+	gap: 0.25rem;
+	margin: 0.125rem 0.5rem;
+	padding: 0.25rem 0.5rem;
+	line-height: 1.4em;
 }
 
 a:hover {

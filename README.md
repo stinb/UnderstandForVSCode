@@ -16,6 +16,15 @@ See the extension in action in [our video](https://youtu.be/4Unt2SXtkrE).
 
 To use this extension, you must have a valid _Understand_ license. Try it for free with a trial license. Students and teachers can get a free educational license. Please see available options at [scitools.com/pricing](https://scitools.com/pricing). Once you have a license, redeem it in _Understand_ or _Und_ and it's used for all our applications. Read [here](https://support.scitools.com/support/solutions/articles/70000582782-command-line-licensing) to get your license code from our licensing website and redeem them it _Understand_. For the command line, read [here](https://support.scitools.com/support/solutions/articles/70000582776-redeeming-an-understand-license-or-claim-code) to redeem it in _Und_.
 
+### Licensing in containers
+
+For a devcontainer, a Docker container, or any environment where redeeming the license with _Understand_ or _Und_ first is inconvenient, set the license code in the extension settings:
+
+- `understand.license.code` — the language server uses this code for its own process only (it is passed as the `UNDERSTAND_LICENSE_CODE` environment variable) and never writes it to the shared license configuration, so it cannot clash with other workflows on the same machine.
+- `understand.license.deregisterOnExit` — when the language server stops, it releases this machine's installation of the code on the license server, so an exiting container never leaves a license registered.
+
+In a devcontainer, both can go in `devcontainer.json` under `customizations.vscode.settings`.
+
 
 ---
 ## Compare to Other Extensions

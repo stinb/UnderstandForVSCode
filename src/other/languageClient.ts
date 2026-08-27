@@ -3,6 +3,7 @@ import * as lc from 'vscode-languageclient/node';
 
 import { variables } from './variables';
 import {
+	getBooleanFromConfig,
 	getIntFromConfig,
 	getStringFromConfig,
 	getUserverPathIfUnix,
@@ -16,6 +17,7 @@ import {
 	handleUnderstandChangedDatabaseState,
 } from './statusBar';
 import { handleUnderstandChangedAnnotations } from '../viewProviders/annotations';
+import { handleUnderstandChecksListed } from '../treeProviders/checks';
 import { actuallyChangedTextEditorSelection } from './context';
 import { handleUnderstandGraphsListed } from '../treeProviders/graphs';
 import { handleUnderstandMetricsListed } from '../treeProviders/metrics';
@@ -99,6 +101,7 @@ export async function startLsp()
 		variables.languageClient.onNotification('understand/changedAi', handleUnderstandChangedAi);
 		variables.languageClient.onNotification('understand/changedAnnotations', handleUnderstandChangedAnnotations);
 		variables.languageClient.onNotification('understand/changedDatabaseState', handleUnderstandChangedDatabaseState);
+		variables.languageClient.onNotification('understand/checks/listed', handleUnderstandChecksListed);
 		variables.languageClient.onNotification('understand/changedReferences', handleUnderstandChangedReferences);
 		variables.languageClient.onNotification('understand/metrics/listed', handleUnderstandMetricsListed);
 		variables.languageClient.onNotification('understand/graphs/drew', handleUnderstandGraphsDrew);
@@ -135,6 +138,7 @@ function getLanguageClientOptions(): lc.LanguageClientOptions
 		initializationOptions: {
 			uriScheme: vscode.env.uriScheme, // 'vscode'
 			uriAuthority: 'scitools.understand',
+			deregisterOnExit: getBooleanFromConfig('understand.license.deregisterOnExit'),
 		},
 	};
 }
@@ -157,11 +161,19 @@ async function getLanguageServerOptions(): Promise<lc.ServerOptions>
 			break;
 	}
 
+	// Give the server the configured license code as an environment variable,
+	// which the server uses for this process only and never writes to the
+	// shared license configuration
+	const env = Object.assign({}, process.env); // Important for avoiding a bad analysis
+	const licenseCode = getStringFromConfig('understand.license.code');
+	if (licenseCode.length)
+		env.UNDERSTAND_LICENSE_CODE = licenseCode;
+
 	return {
 		command: getStringFromConfig('understand.server.executable') || await getUserverPathIfUnix() || 'userver',
 		transport: transport,
 		options: {
-			env: process.env, // Important for avoiding a bad analysis
+			env: env,
 		},
 	};
 }
