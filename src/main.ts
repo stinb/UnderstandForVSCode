@@ -20,6 +20,8 @@ import { URI_SCHEME_VIOLATION_DESCRIPTION, ViolationDescriptionProvider } from '
 import { AiViewProvider } from './viewProviders/ai';
 import { AnnotationsViewProvider } from './viewProviders/annotations';
 import { CheckTreeProvider } from './treeProviders/checks';
+import { InfoTreeProvider } from './treeProviders/info';
+import { ViolationTreeProvider, violationsGroupBy } from './treeProviders/violations';
 import { GraphProvider } from './other/graphProvider';
 import { GraphTreeProvider } from './treeProviders/graphs';
 import { MetricTreeProvider } from './treeProviders/metrics';
@@ -37,11 +39,13 @@ export async function activate(context: vscode.ExtensionContext)
 	variables.checkTreeProvider = new CheckTreeProvider();
 	variables.extensionUri = context.extensionUri;
 	variables.graphTreeProvider = new GraphTreeProvider();
+	variables.infoTreeProvider = new InfoTreeProvider();
 	variables.graphProvider = new GraphProvider();
 	variables.metricTreeProvider = new MetricTreeProvider();
 	variables.referencesTreeProvider = new ReferencesTreeProvider();
 	variables.violationDescriptionProvider = new ViolationDescriptionProvider();
 	variables.violationTreeProvider = new ViolationsViewProvider();
+	variables.violationsListProvider = new ViolationTreeProvider();
 
 	watchFiles();
 
@@ -63,6 +67,11 @@ export async function activate(context: vscode.ExtensionContext)
 
 		// Commands: Checks
 		vscode.commands.registerCommand('understand.checks.showDescription', violationDescription),
+		vscode.commands.registerCommand('understand.violations.groupBy', violationsGroupBy),
+		vscode.commands.registerCommand('understand.violations.openCodeCheckConfiguration', violations.openCodeCheckConfiguration),
+		vscode.commands.registerCommand('understand.violations.excludeFromCodeCheck', violations.excludeFromCodeCheck),
+		vscode.commands.registerCommand('understand.violations.excludeFolderFromCodeCheck', violations.excludeFolderFromCodeCheck),
+		vscode.commands.registerCommand('understand.violations.editExcludedPaths', violations.editExcludedPaths),
 		vscode.commands.registerCommand('understand.analysis.analyzeCurrentFile', analysis.analyzeCurrentFile),
 		vscode.commands.registerCommand('understand.analysis.stopAnalyzingFiles', analysis.stopAnalyzingFiles),
 
@@ -151,7 +160,13 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.window.registerWebviewViewProvider('understandAnnotations', variables.annotationsViewProvider),
 		vscode.window.registerWebviewViewProvider('understandViolations', variables.violationTreeProvider),
 		vscode.window.registerTreeDataProvider('understandChecks', variables.checkTreeProvider),
+		(() => {
+			const view = vscode.window.createTreeView('understandViolationsList', { treeDataProvider: variables.violationsListProvider });
+			variables.violationsListProvider.attach(view);
+			return view;
+		})(),
 		vscode.window.registerTreeDataProvider('understandGraphs', variables.graphTreeProvider),
+		vscode.window.registerTreeDataProvider('understandInfo', variables.infoTreeProvider),
 		vscode.window.registerTreeDataProvider('understandMetrics', variables.metricTreeProvider),
 		vscode.window.registerTreeDataProvider('understandReferences', variables.referencesTreeProvider),
 	);

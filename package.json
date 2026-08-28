@@ -2,7 +2,7 @@
 	"name": "understand",
 	"displayName": "Understand",
 	"description": "The Software Developer's Multi-Tool",
-	"version": "1.1.7",
+	"version": "1.2.0",
 	"publisher": "scitools",
 	"repository": {
 		"type": "git",
@@ -28,7 +28,50 @@
 		"workspaceContains:**/*.und/id.txt"
 	],
 	"contributes": {
+		"viewsWelcome": [
+			{
+				"view": "understandInfo",
+				"contents": "Click a function, variable, or type name in the editor and its attributes appear here."
+			},
+			{
+				"view": "understandViolationsList",
+				"contents": "Every violation the background CodeChecks found in the project, grouped by file, check, severity, or entity.\nAnalyze the project to fill it, and use Group Violations By... in this view's title bar to regroup."
+			}
+		],
+		"jsonValidation": [
+			{
+				"fileMatch": "**/codecheck/configs/*.json",
+				"url": "./res/codecheckConfigSchema.json"
+			}
+		],
 		"commands": [
+			{
+				"command": "understand.violations.openCodeCheckConfiguration",
+				"title": "Open CodeCheck Configuration",
+				"category": "Understand: Violations",
+				"icon": "$(gear)"
+			},
+			{
+				"command": "understand.violations.excludeFromCodeCheck",
+				"title": "Exclude from CodeCheck",
+				"category": "Understand: Violations"
+			},
+			{
+				"command": "understand.violations.excludeFolderFromCodeCheck",
+				"title": "Exclude Folder from CodeCheck",
+				"category": "Understand: Violations"
+			},
+			{
+				"command": "understand.violations.editExcludedPaths",
+				"title": "Edit CodeCheck Excluded Paths",
+				"category": "Understand: Violations"
+			},
+			{
+				"command": "understand.violations.groupBy",
+				"title": "Group Violations By...",
+				"category": "Understand: Violations",
+				"icon": "$(group-by-ref-type)"
+			},
 			{
 				"command": "understand.ai.editProviderSettings",
 				"title": "Edit Understand AI Provider Settings",
@@ -305,171 +348,181 @@
 		],
 		"configuration": [
 			{
-			"title": "Understand",
-			"properties": {
-				"understand.ai.chatSize": {
-					"type": "string",
-					"default": "Half",
-					"enum": [
-						"Full",
-						"Half"
-					],
-					"description": "Open a chat with full width or half width"
-				},
-				"understand.aiView.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "Show content of the AI view"
-				},
-				"understand.analysis.automaticallyAnalyze": {
-					"type": "boolean",
-					"default": true,
-					"description": "Automatically analyze on project open, file save/create/delete"
-				},
-				"understand.annotationsView.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "Show content of the Annotations view"
-				},
-				"understand.checksView.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "Show content of the Checks view"
-				},
-				"understand.files.watch": {
-					"type": "string",
-					"default": "**",
-					"markdownDescription": "[Glob pattern](https://aka.ms/vscode-glob-patterns) of files to watch, to notify the server when they are changed/created/deleted, for example `**/src/**/*.{c,h}`"
-				},
-				"understand.graphsView.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "Show content of the Graphs view"
-				},
-				"understand.license.code": {
-					"type": "string",
-					"default": "",
-					"scope": "machine-overridable",
-					"description": "License code for the language server, passed to it as the UNDERSTAND_LICENSE_CODE environment variable: used for this server only and never written to the shared license configuration. Intended for containers and other environments where running `und -setlicensecode` is inconvenient",
-					"ignoreSync": true
-				},
-				"understand.license.deregisterOnExit": {
-					"type": "boolean",
-					"default": false,
-					"scope": "machine-overridable",
-					"description": "When the language server stops, release this machine's installation of the license code on the license server. Combine with the license code setting in a container so that an exiting container never leaves a license registered",
-					"ignoreSync": true
-				},
-				"understand.metricsView.disabledMetrics": {
-					"type": "array",
-					"markdownDescription": "API names of [metrics](https://support.scitools.com/support/solutions/articles/70000582223-what-metrics-does-understand-have-) to hide (example: AvgCountLine)",
-					"items": {
-						"type": "string"
+				"title": "Understand",
+				"properties": {
+					"understand.ai.chatSize": {
+						"type": "string",
+						"default": "Half",
+						"enum": [
+							"Full",
+							"Half"
+						],
+						"description": "Open a chat with full width or half width"
+					},
+					"understand.aiView.enabled": {
+						"type": "boolean",
+						"default": true,
+						"description": "Show content of the AI view"
+					},
+					"understand.analysis.automaticallyAnalyze": {
+						"type": "boolean",
+						"default": true,
+						"description": "Automatically analyze on project open, file save/create/delete"
+					},
+					"understand.annotationsView.enabled": {
+						"type": "boolean",
+						"default": true,
+						"description": "Show content of the Annotations view"
+					},
+					"understand.checksView.enabled": {
+						"type": "boolean",
+						"default": true,
+						"description": "Show content of the Checks view"
+					},
+					"understand.violationsView.enabled": {
+						"type": "boolean",
+						"default": true,
+						"description": "Show content of the Violations view"
+					},
+					"understand.files.watch": {
+						"type": "string",
+						"default": "**",
+						"markdownDescription": "[Glob pattern](https://aka.ms/vscode-glob-patterns) of files to watch, to notify the server when they are changed/created/deleted, for example `**/src/**/*.{c,h}`"
+					},
+					"understand.infoView.enabled": {
+						"type": "boolean",
+						"default": true,
+						"description": "Show content of the Info view"
+					},
+					"understand.graphsView.enabled": {
+						"type": "boolean",
+						"default": true,
+						"description": "Show content of the Graphs view"
+					},
+					"understand.license.code": {
+						"type": "string",
+						"default": "",
+						"scope": "machine-overridable",
+						"description": "License code for the language server, passed to it as the UNDERSTAND_LICENSE_CODE environment variable: used for this server only and never written to the shared license configuration. Intended for containers and other environments where running `und -setlicensecode` is inconvenient",
+						"ignoreSync": true
+					},
+					"understand.license.deregisterOnExit": {
+						"type": "boolean",
+						"default": false,
+						"scope": "machine-overridable",
+						"description": "When the language server stops, release this machine's installation of the license code on the license server. Combine with the license code setting in a container so that an exiting container never leaves a license registered",
+						"ignoreSync": true
+					},
+					"understand.metricsView.disabledMetrics": {
+						"type": "array",
+						"markdownDescription": "API names of [metrics](https://support.scitools.com/support/solutions/articles/70000582223-what-metrics-does-understand-have-) to hide (example: AvgCountLine)",
+						"items": {
+							"type": "string"
+						}
+					},
+					"understand.metricsView.enabled": {
+						"type": "boolean",
+						"default": true,
+						"description": "Show content of the Metrics view"
+					},
+					"understand.project.path": {
+						"type": "string",
+						"description": "Absolute path of the Understand project (PROJECT_NAME.und folder, most likely should be configured in Workspace/Folder Settings)",
+						"ignoreSync": true
+					},
+					"understand.project.pathFindingMethod": {
+						"type": "string",
+						"default": "Automatic",
+						"enum": [
+							"Automatic",
+							"Manual"
+						],
+						"description": "Either allow the language server to find the Understand project automatically, or manually set it once"
+					},
+					"understand.referencesView.enabled": {
+						"type": "boolean",
+						"default": true,
+						"description": "Show content of the References view"
+					},
+					"understand.referencesView.organization": {
+						"type": "string",
+						"default": "Files",
+						"enum": [
+							"Files",
+							"Flat"
+						],
+						"enumDescriptions": [
+							"Grouped by files (entity > files > references)",
+							"Ungrouped (entity > references)"
+						],
+						"description": "How the references are grouped"
+					},
+					"understand.referencesView.preserveFocus": {
+						"type": "boolean",
+						"default": true,
+						"description": "Enable to keep focus on the References view, otherwise focus on the editor"
+					},
+					"understand.server.communicationProtocol": {
+						"type": "string",
+						"default": "Named Pipe",
+						"enum": [
+							"Named Pipe",
+							"TCP Socket"
+						],
+						"description": "Way to communicate with the language server"
+					},
+					"understand.server.communicationTcpPort": {
+						"type": "number",
+						"default": 6789,
+						"minimum": 0,
+						"maximum": 65535,
+						"description": "TCP port used if the communication protocol is TCP socket"
+					},
+					"understand.server.executable": {
+						"type": "string",
+						"default": "",
+						"description": "Command or full path of `userver`, the Understand Language server",
+						"ignoreSync": true
+					},
+					"understand.trace.server": {
+						"type": "string",
+						"default": "Off",
+						"enum": [
+							"Off",
+							"Messages",
+							"Compact",
+							"Verbose"
+						],
+						"description": "Log trace for communication with the language server"
+					},
+					"understand.violations.hover.detailedDescription": {
+						"type": "boolean",
+						"default": true,
+						"description": "Preview the detailed description of a violation when the mouse hovers on it in the editor"
 					}
-				},
-				"understand.metricsView.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "Show content of the Metrics view"
-				},
-				"understand.project.path": {
-					"type": "string",
-					"description": "Absolute path of the Understand project (PROJECT_NAME.und folder, most likely should be configured in Workspace/Folder Settings)",
-					"ignoreSync": true
-				},
-				"understand.project.pathFindingMethod": {
-					"type": "string",
-					"default": "Automatic",
-					"enum": [
-						"Automatic",
-						"Manual"
-					],
-					"description": "Either allow the language server to find the Understand project automatically, or manually set it once"
-				},
-				"understand.referencesView.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "Show content of the References view"
-				},
-				"understand.referencesView.organization": {
-					"type": "string",
-					"default": "Files",
-					"enum": [
-						"Files",
-						"Flat"
-					],
-					"enumDescriptions": [
-						"Grouped by files (entity > files > references)",
-						"Ungrouped (entity > references)"
-					],
-					"description": "How the references are grouped"
-				},
-				"understand.referencesView.preserveFocus": {
-					"type": "boolean",
-					"default": true,
-					"description": "Enable to keep focus on the References view, otherwise focus on the editor"
-				},
-				"understand.server.communicationProtocol": {
-					"type": "string",
-					"default": "Named Pipe",
-					"enum": [
-						"Named Pipe",
-						"TCP Socket"
-					],
-					"description": "Way to communicate with the language server"
-				},
-				"understand.server.communicationTcpPort": {
-					"type": "number",
-					"default": 6789,
-					"minimum": 0,
-					"maximum": 65535,
-					"description": "TCP port used if the communication protocol is TCP socket"
-				},
-				"understand.server.executable": {
-					"type": "string",
-					"default": "",
-					"description": "Command or full path of `userver`, the Understand Language server",
-					"ignoreSync": true
-				},
-				"understand.trace.server": {
-					"type": "string",
-					"default": "Off",
-					"enum": [
-						"Off",
-						"Messages",
-						"Compact",
-						"Verbose"
-					],
-					"description": "Log trace for communication with the language server"
-				},
-				"understand.violations.hover.detailedDescription": {
-					"type": "boolean",
-					"default": true,
-					"description": "Preview the detailed description of a violation when the mouse hovers on it in the editor"
 				}
-			}
 			},
 			{
-			"title": "Understand: AI",
-			"properties": {
-				"understand.AI.provider": {
-					"type": "string",
-					"default": "Understand Local",
-					"enum": [
-						"Understand Local",
-						"Understand Remote",
-						"LM Studio",
-						"Ollama",
-						"ChatGPT (OpenAI)",
-						"Claude",
-						"Gemini",
-						"Grok (xAI)",
-						"Other"
-					],
-					"markdownDescription": "AI provider. [⚙ Edit Understand AI Provider Settings](command:understand.ai.editProviderSettings)",
-					"description": "AI provider."
+				"title": "Understand: AI",
+				"properties": {
+					"understand.AI.provider": {
+						"type": "string",
+						"default": "Understand Local",
+						"enum": [
+							"Understand Local",
+							"Understand Remote",
+							"LM Studio",
+							"Ollama",
+							"ChatGPT (OpenAI)",
+							"Claude",
+							"Gemini",
+							"Grok (xAI)",
+							"Other"
+						],
+						"markdownDescription": "AI provider. [⚙ Edit Understand AI Provider Settings](command:understand.ai.editProviderSettings)",
+						"description": "AI provider."
+					}
 				}
-			}
 			}
 		],
 		"menus": {
@@ -661,6 +714,10 @@
 				{
 					"command": "understand.annotations.addAnnotation",
 					"when": "understandProject && !explorerResourceIsFolder"
+				},
+				{
+					"command": "understand.violations.excludeFromCodeCheck",
+					"when": "understandProject"
 				}
 			],
 			"view/title": [
@@ -693,9 +750,55 @@
 					"command": "understand.settings.showSettingsReferencesView",
 					"when": "view == understandReferences",
 					"group": "navigation@3"
+				},
+				{
+					"command": "understand.violations.groupBy",
+					"when": "view == understandViolationsList",
+					"group": "navigation"
+				},
+				{
+					"command": "understand.violations.editExcludedPaths",
+					"when": "view == understandViolationsList"
+				},
+				{
+					"command": "understand.violations.openCodeCheckConfiguration",
+					"when": "view == understandViolationsList"
+				}
+			],
+			"webview/context": [
+				{
+					"command": "understand.ai.regenerateAiOverview",
+					"when": "webviewId == 'understandAi' && webviewSection == 'annotation'",
+					"group": "understand@1"
+				},
+				{
+					"command": "understand.annotations.startEditingAnnotation",
+					"when": "webviewId == 'understandAnnotations' && webviewSection == 'annotation'",
+					"group": "understand@1"
+				},
+				{
+					"command": "understand.annotations.deleteAnnotation",
+					"when": "webviewId == 'understandAnnotations' && webviewSection == 'annotation'",
+					"group": "understand@2"
 				}
 			],
 			"view/item/context": [
+				{
+					"command": "understand.violations.excludeFromCodeCheck",
+					"when": "view == understandViolationsList && viewItem == understandViolationFileGroup"
+				},
+				{
+					"command": "understand.violations.excludeFromCodeCheck",
+					"when": "view == understandViolationsList && viewItem == understandViolation"
+				},
+				{
+					"command": "understand.violations.excludeFolderFromCodeCheck",
+					"when": "view == understandViolationsList && viewItem == understandViolationFileGroup"
+				},
+				{
+					"command": "understand.violations.excludeFolderFromCodeCheck",
+					"when": "view == understandViolationsList && viewItem == understandViolation"
+				},
 				{
 					"command": "understand.metrics.copyApiName",
 					"when": "view == understandMetrics && viewItem == understandMetric",
@@ -715,23 +818,6 @@
 					"command": "understand.referencesView.dismissEntity",
 					"when": "view == understandReferences && viewItem == understandPinnedEntity",
 					"group": "inline@2"
-				}
-			],
-			"webview/context": [
-				{
-					"command": "understand.ai.regenerateAiOverview",
-					"when": "webviewId == 'understandAi' && webviewSection == 'annotation'",
-					"group": "understand@1"
-				},
-				{
-					"command": "understand.annotations.startEditingAnnotation",
-					"when": "webviewId == 'understandAnnotations' && webviewSection == 'annotation'",
-					"group": "understand@1"
-				},
-				{
-					"command": "understand.annotations.deleteAnnotation",
-					"when": "webviewId == 'understandAnnotations' && webviewSection == 'annotation'",
-					"group": "understand@2"
 				}
 			]
 		},
@@ -773,6 +859,14 @@
 					"type": "tree"
 				},
 				{
+					"icon": "$(info)",
+					"id": "understandInfo",
+					"name": "Info",
+					"type": "tree",
+					"visibility": "collapsed",
+					"when": "config.understand.infoView.enabled"
+				},
+				{
 					"icon": "$(pulse)",
 					"id": "understandMetrics",
 					"name": "Metrics",
@@ -789,6 +883,14 @@
 					"id": "understandViolations",
 					"name": "Explore Violations",
 					"type": "webview"
+				},
+				{
+					"icon": "$(warning)",
+					"id": "understandViolationsList",
+					"name": "Violations",
+					"type": "tree",
+					"visibility": "collapsed",
+					"when": "config.understand.violationsView.enabled"
 				}
 			]
 		}

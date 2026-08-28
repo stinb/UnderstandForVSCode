@@ -5,6 +5,8 @@ import { AiChatProvider } from './aiChatProvider';
 import { AiViewProvider } from '../viewProviders/ai';
 import { AnnotationsViewProvider } from '../viewProviders/annotations';
 import { CheckTreeProvider } from '../treeProviders/checks';
+import { InfoTreeProvider } from '../treeProviders/info';
+import { ViolationTreeProvider } from '../treeProviders/violations';
 import { GraphTreeProvider } from '../treeProviders/graphs';
 import { MetricTreeProvider } from '../treeProviders/metrics';
 import { ReferencesTreeProvider } from '../treeProviders/references';
@@ -29,6 +31,8 @@ export const variables: Variables = {
 	graphProvider: undefined,
 	// @ts-ignore initialized in `activate`
 	graphTreeProvider: undefined,
+	// @ts-ignore initialized in `activate`
+	infoTreeProvider: undefined,
 	// @ts-ignore TODO audit this
 	languageClient: undefined,
 	// @ts-ignore initialized in `activate`
@@ -41,6 +45,8 @@ export const variables: Variables = {
 	violationDescriptionProvider: undefined,
 	// @ts-ignore initialized in `activate`
 	violationTreeProvider: undefined,
+	// @ts-ignore initialized in `activate`
+	violationsListProvider: undefined,
 };
 
 
@@ -53,10 +59,12 @@ interface Variables {
 	fileSystemWatcher: FileSystemWatcher,
 	graphProvider: GraphProvider,
 	graphTreeProvider: GraphTreeProvider,
+	infoTreeProvider: InfoTreeProvider,
 	languageClient: LanguageClient,
 	metricTreeProvider: MetricTreeProvider,
 	preserveView: string,
 	referencesTreeProvider: ReferencesTreeProvider,
 	violationDescriptionProvider: ViolationDescriptionProvider,
 	violationTreeProvider: ViolationsViewProvider,
+	violationsListProvider: ViolationTreeProvider,
 }

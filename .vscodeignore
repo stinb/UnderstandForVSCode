@@ -10,3 +10,4 @@ package.json
 src
 tsconfig.json
 workflows
+dist

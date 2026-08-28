@@ -1,0 +1,80 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Understand CodeCheck configuration",
+	"description": "A named set of CodeCheck checks, stored in the project's codecheck/configs folder and shared with the team.",
+	"type": "object",
+	"properties": {
+		"name": {
+			"type": "string",
+			"description": "The configuration's display name."
+		},
+		"automatic": {
+			"type": "boolean",
+			"description": "Run in the background after every analysis (this is what feeds the Problems panel and the Violations view)."
+		},
+		"can_baseline": {
+			"type": "boolean",
+			"description": "Whether inspections with this configuration can be used as a baseline."
+		},
+		"checks": {
+			"type": "array",
+			"description": "The checks to run: a check ID string, or an object carrying per-check options.",
+			"items": {
+				"anyOf": [
+					{
+						"type": "string",
+						"description": "A check ID, e.g. \"STI_UNUSED\" or \"MISRA12_15.6\"."
+					},
+					{
+						"type": "object",
+						"properties": {
+							"id": {
+								"type": "string",
+								"description": "The check ID."
+							},
+							"severity": {
+								"type": "integer",
+								"minimum": -1,
+								"maximum": 100,
+								"description": "Severity override: 0 Informational, 25 Low, 50 Medium, 75 High, 100 Urgent, -1 none."
+							},
+							"options": {
+								"type": "object",
+								"description": "The check's option values, keyed by option ID."
+							}
+						},
+						"required": ["id"]
+					}
+				]
+			}
+		},
+		"excludes": {
+			"type": "array",
+			"items": { "type": "string" },
+			"description": "Path prefixes this configuration's checks leave alone — third-party or generated code. A file is skipped when its project-relative path starts with one of these, e.g. \"src/lib/\" or \"build/\". Takes effect on the next analysis."
+		},
+		"excluded_checks": {
+			"type": "array",
+			"items": { "type": "string" },
+			"description": "Check IDs to drop even when a tag or parent would include them."
+		},
+		"tags": {
+			"type": "array",
+			"items": { "type": "string" },
+			"description": "Include every check carrying one of these tags."
+		},
+		"parents": {
+			"type": "array",
+			"items": { "type": "string" },
+			"description": "Include every check under one of these group paths."
+		},
+		"description": {
+			"type": "string",
+			"description": "Free-text description of the configuration."
+		},
+		"enabledByDefault": {
+			"type": "boolean",
+			"description": "Whether the configuration starts enabled."
+		}
+	}
+}

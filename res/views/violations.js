@@ -69,6 +69,11 @@
 			const fileCollapsed = !expandedFiles.has(group.filePath);
 			const header = make('div', 'file-header toggle');
 			header.dataset.path = group.filePath;
+			// Right-click -> Exclude from CodeCheck (webview/context menu)
+			header.dataset.vscodeContext = JSON.stringify({
+				webviewSection: 'understandViolationFile',
+				filePath: group.filePath,
+			});
 			if (fileCollapsed) header.classList.add('collapsed');
 			header.appendChild(make('span', 'chevron'));
 			const filename = make('span', 'filename');

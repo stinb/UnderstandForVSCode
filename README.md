@@ -92,6 +92,10 @@ See [scitools.com/eula](https://scitools.com/eula) and also in Understand see He
 * Ignore CodeCheck violations or quick fix some with [code actions](https://code.visualstudio.com/docs/editor/refactoring#_code-actions-quick-fixes-and-refactorings)
 * Detailed descriptions of CodeCheck violations
 * Violations available in the editor, file explorer [side bar](https://code.visualstudio.com/docs/getstarted/userinterface), and problems [panel](https://code.visualstudio.com/docs/getstarted/userinterface)
+* Problems carry each check's own severity (error, warning, info, or hint)
+* A **Violations** view lists every violation in the project — group them by file, check, severity, or entity with *Group Violations By...*
+* An **Info** view shows the current entity the way the [Python API](https://docs.scitools.com/manuals/python/) reads it — `ent.id`, `ent.kindname`, `ent.uniquename`, and the rest — handy when writing scripts and plugins
+* Keep checks out of third-party or generated code: right-click a file or folder → **Exclude from CodeCheck** (managed via **Edit CodeCheck Excluded Paths**; the configuration JSON stays editable directly, with schema completions, via **Open CodeCheck Configuration**)
 
 ---
 ### Quickly Analyze Your Code

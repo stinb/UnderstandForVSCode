@@ -63,6 +63,13 @@ export interface FileStatus {
 
 let db = { path: '', state: DbState.Finding };
 
+
+/** The open project's resolved .und path, empty while none is open */
+export function databasePath(): string
+{
+	return db.path;
+}
+
 let mainStatusBarItem: vscode.StatusBarItem;
 let fileStatusBarItem: vscode.StatusBarItem;
 let progressStatusBarItems = new Map<string, StatusBarItem>();
@@ -106,7 +113,7 @@ export function changeMainStatus(status: MainState)
 					break;
 				default:
 					mainStatusBarItem.text = '$(error) Understand';
-					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, `Database not resolved yet by the Understand language server`);
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Database not resolved yet by the Understand language server');
 					setContext(contexts.project, true);
 					break;
 			}
