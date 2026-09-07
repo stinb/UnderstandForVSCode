@@ -157,3 +157,21 @@ code.body:focus, code.body:not([contenteditable]) {
 .notDisplayed {
 	display: none;
 }
+
+details.thinking {
+	margin: 0 0 0.6em;
+	opacity: 0.75;
+	font-size: 0.92em;
+}
+
+details.thinking > summary {
+	cursor: pointer;
+	user-select: none;
+	color: var(--vscode-descriptionForeground);
+}
+
+details.thinking > .thinkingBody {
+	margin-top: 0.3em;
+	padding-left: 0.6em;
+	border-left: 2px solid var(--vscode-panel-border);
+}

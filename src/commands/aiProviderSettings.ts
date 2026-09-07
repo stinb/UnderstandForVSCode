@@ -75,8 +75,93 @@ function testTcpConnection(host: string, port: number): Promise<string>
 }
 
 
+
+/** Model lists, fetched by the server so the licence is enforced there.
+ *
+ * The request returns immediately and the answer arrives as an
+ * understand/ai/modelsListed notification carrying the request id back, so
+ * each caller waits for exactly its own reply (und-issues#709).
+ */
+type ModelsReply = { models: string[], error: string };
+
+/** Webview message -> the provider to ask about and the message to answer with */
+export const MODEL_FETCHES: Record<string, { provider: string, reply: string }> = {
+	fetchChatGPTModels:  { provider: 'chatGpt',  reply: 'chatGPTModels' },
+	fetchClaudeModels:   { provider: 'claude',   reply: 'claudeModels' },
+	fetchGeminiModels:   { provider: 'gemini',   reply: 'geminiModels' },
+	fetchGrokModels:     { provider: 'grok',     reply: 'grokModels' },
+	fetchOtherModels:    { provider: 'other',    reply: 'otherModels' },
+	fetchOllamaModels:   { provider: 'ollama',   reply: 'ollamaModels' },
+	fetchLmStudioModels: { provider: 'lmStudio', reply: 'lmStudioModels' },
+};
+
+const pendingModels = new Map<number, (r: ModelsReply) => void>();
+let nextModelsRequest = 0;
+let modelsListenerClient: unknown;
+
+function attachModelsListener()
+{
+	// Saving these settings restarts the language client, and the handlers go
+	// with the client it was registered on. Track which client is listening
+	// rather than whether one ever did.
+	if (modelsListenerClient === variables.languageClient || !variables.languageClient)
+		return;
+	modelsListenerClient = variables.languageClient;
+	variables.languageClient.onNotification('understand/ai/modelsListed',
+		(params: { requestId?: number, models?: string[], error?: string }) => {
+			const resolve = pendingModels.get(params.requestId ?? -1);
+			if (!resolve)
+				return;
+			pendingModels.delete(params.requestId ?? -1);
+			resolve({ models: params.models ?? [], error: params.error ?? '' });
+		});
+}
+
+async function requestModels(
+	provider: string,
+	server: string | undefined,
+	apiKey: string | undefined,
+): Promise<ModelsReply>
+{
+	if (!variables.aiLicensed)
+		return { models: [], error: 'AI is not enabled by your Understand license.' };
+	if (!server || !server.trim())
+		return { models: [], error: '' };
+
+	attachModelsListener();
+	const requestId = ++nextModelsRequest;
+	const reply = new Promise<ModelsReply>(resolve => {
+		pendingModels.set(requestId, resolve);
+		// Only for a server that died mid-request: the fetch itself is bounded
+		// at 10s server-side, and that answer -- with the provider's real error
+		// -- must arrive before this generic one.
+		setTimeout(() => {
+			if (pendingModels.delete(requestId))
+				resolve({ models: [], error: 'No response from the Understand server.' });
+		}, 15000);
+	});
+
+	try {
+		await variables.languageClient.sendRequest('understand/ai/listModels',
+			{ requestId, provider, server: server.trim(), apiKey: (apiKey ?? '').trim() });
+	} catch (e) {
+		pendingModels.delete(requestId);
+		return { models: [], error: networkErrMsg(e) };
+	}
+	return reply;
+}
 export function editProviderSettings(context: vscode.ExtensionContext)
 {
+	// Applying a model here starts a download, and the model lists come from the
+	// providers themselves, so this panel must not open when the licence
+	// withholds AI (und-issues#709). The command is hidden too; this is the
+	// guard for anything that invokes it directly.
+	if (!variables.aiLicensed) {
+		vscode.window.showInformationMessage(
+			'AI is not enabled by your Understand license.');
+		return;
+	}
+
 	if (panel) {
 		panel.reveal();
 		return;
@@ -164,6 +249,16 @@ export function editProviderSettings(context: vscode.ExtensionContext)
 	};
 
 	webview.onDidReceiveMessage(async (msg) => {
+		// Model lists: the server asks the provider, so the licence is enforced
+		// there and an unlicensed editor never reaches a vendor (und-issues#709).
+		const fetch = MODEL_FETCHES[msg.command as string];
+		if (fetch) {
+			const r = await requestModels(fetch.provider, msg.server as string,
+			                              msg.apiKey as string | undefined);
+			webview.postMessage({ command: fetch.reply, models: r.models, error: r.error });
+			return;
+		}
+
 		switch (msg.command) {
 			case 'save': {
 				const s = msg.settings;
@@ -222,153 +317,6 @@ export function editProviderSettings(context: vscode.ExtensionContext)
 			case 'openUrl':
 				vscode.env.openExternal(vscode.Uri.parse(msg.url));
 				break;
-			case 'fetchChatGPTModels': {
-				try {
-					let server = (msg.server as string).trim();
-					const apiKey = (msg.apiKey as string).trim();
-					if (!server || !apiKey) { webview.postMessage({ command: 'chatGPTModels', models: [], error: '' }); break; }
-					if (!server.startsWith('http://') && !server.startsWith('https://'))
-						server = 'https://' + server;
-					const resp = await fetch(`${server}/v1/models`, {
-						headers: { 'Authorization': `Bearer ${apiKey}` },
-						signal: AbortSignal.timeout(5000),
-					});
-					if (resp.status === 401 || resp.status === 403) {
-						webview.postMessage({ command: 'chatGPTModels', models: [], error: 'Authentication required' });
-					} else {
-						const json = await resp.json() as { data?: { id: string }[] };
-						const models = (json.data ?? []).map(m => m.id).sort();
-						webview.postMessage({ command: 'chatGPTModels', models, error: '' });
-					}
-				} catch (e) {
-					webview.postMessage({ command: 'chatGPTModels', models: [], error: networkErrMsg(e) });
-				}
-				break;
-			}
-			case 'fetchClaudeModels': {
-				try {
-					let server = (msg.server as string).trim();
-					const apiKey = (msg.apiKey as string).trim();
-					if (!server || !apiKey) { webview.postMessage({ command: 'claudeModels', models: [], error: '' }); break; }
-					if (!server.startsWith('http://') && !server.startsWith('https://'))
-						server = 'https://' + server;
-					const resp = await fetch(`${server}/v1/models`, {
-						headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-						signal: AbortSignal.timeout(5000),
-					});
-					if (resp.status === 401 || resp.status === 403) {
-						webview.postMessage({ command: 'claudeModels', models: [], error: 'Authentication required' });
-					} else {
-						const json = await resp.json() as { data?: { id: string }[] };
-						webview.postMessage({ command: 'claudeModels', models: (json.data ?? []).map(m => m.id).sort(), error: '' });
-					}
-				} catch (e) {
-					webview.postMessage({ command: 'claudeModels', models: [], error: networkErrMsg(e) });
-				}
-				break;
-			}
-			case 'fetchGeminiModels': {
-				try {
-					let server = (msg.server as string).trim();
-					const apiKey = (msg.apiKey as string).trim();
-					if (!server || !apiKey) { webview.postMessage({ command: 'geminiModels', models: [], error: '' }); break; }
-					if (!server.startsWith('http://') && !server.startsWith('https://'))
-						server = 'https://' + server;
-					const resp = await fetch(`${server}/models`, {
-						headers: { 'Authorization': `Bearer ${apiKey}` },
-						signal: AbortSignal.timeout(5000),
-					});
-					if (resp.status === 401 || resp.status === 403) {
-						webview.postMessage({ command: 'geminiModels', models: [], error: 'Authentication required' });
-					} else {
-						const json = await resp.json() as { data?: { id: string }[] };
-						webview.postMessage({ command: 'geminiModels', models: (json.data ?? []).map(m => m.id).sort(), error: '' });
-					}
-				} catch (e) {
-					webview.postMessage({ command: 'geminiModels', models: [], error: networkErrMsg(e) });
-				}
-				break;
-			}
-			case 'fetchGrokModels': {
-				try {
-					let server = (msg.server as string).trim();
-					const apiKey = (msg.apiKey as string).trim();
-					if (!server || !apiKey) { webview.postMessage({ command: 'grokModels', models: [], error: '' }); break; }
-					if (!server.startsWith('http://') && !server.startsWith('https://'))
-						server = 'https://' + server;
-					const resp = await fetch(`${server}/v1/models`, {
-						headers: { 'Authorization': `Bearer ${apiKey}` },
-						signal: AbortSignal.timeout(5000),
-					});
-					if (resp.status === 401 || resp.status === 403) {
-						webview.postMessage({ command: 'grokModels', models: [], error: 'Authentication required' });
-					} else {
-						const json = await resp.json() as { data?: { id: string }[] };
-						webview.postMessage({ command: 'grokModels', models: (json.data ?? []).map(m => m.id).sort(), error: '' });
-					}
-				} catch (e) {
-					webview.postMessage({ command: 'grokModels', models: [], error: networkErrMsg(e) });
-				}
-				break;
-			}
-			case 'fetchOtherModels': {
-				try {
-					let server = (msg.server as string).trim();
-					const apiKey = (msg.apiKey as string).trim();
-					if (!server) { webview.postMessage({ command: 'otherModels', models: [], error: '' }); break; }
-					if (!server.startsWith('http://') && !server.startsWith('https://'))
-						server = 'https://' + server;
-					server = server.replace(/\/v1\/?$/, '');
-					const headers: Record<string, string> = {};
-					if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
-					const resp = await fetch(`${server}/v1/models`, { headers, signal: AbortSignal.timeout(5000) });
-					if (resp.status === 401 || resp.status === 403) {
-						webview.postMessage({ command: 'otherModels', models: [], error: 'Authentication required' });
-					} else {
-						const json = await resp.json() as { data?: { id: string }[] };
-						webview.postMessage({ command: 'otherModels', models: (json.data ?? []).map(m => m.id).sort(), error: '' });
-					}
-				} catch (e) {
-					webview.postMessage({ command: 'otherModels', models: [], error: networkErrMsg(e) });
-				}
-				break;
-			}
-			case 'fetchOllamaModels': {
-				try {
-					let server = (msg.server as string).trim();
-					if (!server) { webview.postMessage({ command: 'ollamaModels', models: [], error: '' }); break; }
-					if (!server.startsWith('http://') && !server.startsWith('https://'))
-						server = 'http://' + server;
-					const resp = await fetch(`${server}/api/tags`, { signal: AbortSignal.timeout(5000) });
-					if (resp.status === 401 || resp.status === 403) {
-						webview.postMessage({ command: 'ollamaModels', models: [], error: 'Authentication required' });
-					} else {
-						const json = await resp.json() as { models?: { name: string }[] };
-						webview.postMessage({ command: 'ollamaModels', models: (json.models ?? []).map(m => m.name), error: '' });
-					}
-				} catch (e) {
-					webview.postMessage({ command: 'ollamaModels', models: [], error: networkErrMsg(e) });
-				}
-				break;
-			}
-			case 'fetchLmStudioModels': {
-				try {
-					let server = (msg.server as string).trim();
-					if (!server) { webview.postMessage({ command: 'lmStudioModels', models: [], error: '' }); break; }
-					if (!server.startsWith('http://') && !server.startsWith('https://'))
-						server = 'http://' + server;
-					const resp = await fetch(`${server}/v1/models`, { signal: AbortSignal.timeout(5000) });
-					if (resp.status === 401 || resp.status === 403) {
-						webview.postMessage({ command: 'lmStudioModels', models: [], error: 'Authentication required' });
-					} else {
-						const json = await resp.json() as { data?: { id: string }[] };
-						webview.postMessage({ command: 'lmStudioModels', models: (json.data ?? []).map(m => m.id), error: '' });
-					}
-				} catch (e) {
-					webview.postMessage({ command: 'lmStudioModels', models: [], error: networkErrMsg(e) });
-				}
-				break;
-			}
 			case 'verifyRemote': {
 				const gen = ++verifyGeneration;
 				const { host, port } = parseUndAiServer(msg.server);

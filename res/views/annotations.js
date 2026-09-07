@@ -27,6 +27,75 @@ const domParser = new DOMParser;
 
 let aiText = '';
 
+/**
+ * Split reasoning-model output into its <think> reasoning and the answer.
+ * Qwen3/Granite wrap chain-of-thought in <think>...</think> ahead of the
+ * answer; while streaming the closing tag may not have arrived yet.
+ * @param {string} text
+ * @returns {{ thinking: string, answer: string, open: boolean }}
+ */
+function splitThinking(text)
+{
+	const B = '<think>', E = '</think>';
+	let thinking = '', answer = '', open = false, i = 0;
+	while (i < text.length) {
+		const b = text.indexOf(B, i);
+		if (b === -1) { answer += text.slice(i); break; }
+		answer += text.slice(i, b);
+		const e = text.indexOf(E, b + B.length);
+		if (e === -1) { thinking += text.slice(b + B.length); open = true; break; }
+		thinking += text.slice(b + B.length, e);
+		i = e + E.length;
+	}
+	return { thinking: thinking.trim(), answer: answer.trim(), open };
+}
+
+/**
+ * Render markdown into parent, dropping unsafe nodes.
+ * @param {HTMLElement} parent
+ * @param {string} text
+ */
+function appendMarkdown(parent, text)
+{
+	const body = domParser.parseFromString(md.render(text), 'text/html').body;
+	for (const child of body.querySelectorAll('iframe, link, script'))
+		child.remove();
+	for (const element of body.childNodes) {
+		if (element instanceof HTMLIFrameElement
+		|| element instanceof HTMLLinkElement
+		|| element instanceof HTMLScriptElement)
+			continue;
+		parent.append(element);
+	}
+}
+
+/**
+ * Render an AI card body: the answer as markdown, with any reasoning tucked
+ * into a collapsible "Thinking" section (open while the model is still
+ * thinking, collapsed once the answer begins).
+ * @param {HTMLElement} parent
+ * @param {string} text
+ */
+function renderAiBody(parent, text)
+{
+	parent.innerHTML = '';
+	const { thinking, answer, open } = splitThinking(text);
+	if (thinking) {
+		const details = document.createElement('details');
+		details.className = 'thinking';
+		details.open = open;
+		const summary = document.createElement('summary');
+		summary.textContent = open ? 'Thinking…' : 'Thinking';
+		details.append(summary);
+		const inner = document.createElement('div');
+		inner.className = 'thinkingBody';
+		appendMarkdown(inner, thinking);
+		details.append(inner);
+		parent.append(details);
+	}
+	appendMarkdown(parent, answer);
+}
+
 
 /** @param {Section[] | undefined} sections */
 function drawAi(sections)
@@ -107,12 +176,7 @@ function drawAi(sections)
 
 			const bodyUi = document.createElement('div');
 			bodyUi.className = 'body';
-			const body = domParser.parseFromString(md.render(card.body), 'text/html').body;
-			for (const child of body.querySelectorAll('link, script'))
-				child.remove();
-			for (const element of body.childNodes)
-				if (!(element instanceof HTMLLinkElement) && !(element instanceof HTMLScriptElement))
-					bodyUi.append(element);
+			renderAiBody(bodyUi, card.body);
 			cardUi.appendChild(bodyUi);
 		}
 	}
@@ -430,18 +494,7 @@ function setCardBody(uniqueName, text)
 	parent = parent.querySelector('.body');
 	if (!parent)
 		return;
-	parent.innerHTML = '';
-
-	const body = domParser.parseFromString(md.render(text), 'text/html').body;
-	for (const child of body.querySelectorAll('iframe, link, script'))
-		child.remove();
-	for (const element of body.childNodes) {
-		if (element instanceof HTMLIFrameElement
-		|| element instanceof HTMLLinkElement
-		|| element instanceof HTMLScriptElement)
-			continue;
-		parent.append(element);
-	}
+	renderAiBody(parent, text);
 }
 
 

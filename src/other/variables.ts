@@ -16,6 +16,9 @@ import { GraphProvider } from '../other/graphProvider';
 
 /** Global variables used in different files */
 export const variables: Variables = {
+	// Whether the licence grants AI. False until the server says otherwise,
+	// so nothing AI-related runs before we know (und-issues#709).
+	aiLicensed: false,
 	aiChatProvider: new AiChatProvider,
 	// @ts-ignore initialized in `activate`
 	aiViewProvider: undefined,
@@ -52,6 +55,7 @@ export const variables: Variables = {
 
 interface Variables {
 	aiChatProvider: AiChatProvider,
+	aiLicensed: boolean,
 	aiViewProvider: AiViewProvider,
 	annotationsViewProvider: AnnotationsViewProvider,
 	checkTreeProvider: CheckTreeProvider,

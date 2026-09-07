@@ -529,11 +529,11 @@
 			"commandPalette": [
 				{
 					"command": "understand.ai.generateAiOverview",
-					"when": "understandFile"
+					"when": "understandFile && understandAiLicensed"
 				},
 				{
 					"command": "understand.ai.stopAiGeneration",
-					"when": "understandProject"
+					"when": "understandProject && understandAiLicensed"
 				},
 				{
 					"command": "understand.analysis.analyzeAllFiles",
@@ -665,6 +665,26 @@
 				{
 					"command": "understand.violationsView.goToLocation",
 					"when": "false"
+				},
+				{
+					"command": "understand.ai.editProviderSettings",
+					"when": "understandAiLicensed"
+				},
+				{
+					"command": "understand.ai.copyChat",
+					"when": "understandAiLicensed"
+				},
+				{
+					"command": "understand.ai.deleteAllMessages",
+					"when": "understandAiLicensed"
+				},
+				{
+					"command": "understand.ai.regenerateAiOverview",
+					"when": "understandAiLicensed"
+				},
+				{
+					"command": "understand.ai.saveChat",
+					"when": "understandAiLicensed"
 				}
 			],
 			"editor/context": [
@@ -680,17 +700,17 @@
 			"editor/title": [
 				{
 					"command": "understand.ai.copyChat",
-					"when": "activeWebviewPanelId == understandChat",
+					"when": "activeWebviewPanelId == understandChat && understandAiLicensed",
 					"group": "navigation"
 				},
 				{
 					"command": "understand.ai.deleteAllMessages",
-					"when": "activeWebviewPanelId == understandChat",
+					"when": "activeWebviewPanelId == understandChat && understandAiLicensed",
 					"group": "navigation"
 				},
 				{
 					"command": "understand.ai.saveChat",
-					"when": "activeWebviewPanelId == understandChat",
+					"when": "activeWebviewPanelId == understandChat && understandAiLicensed",
 					"group": "navigation"
 				},
 				{
@@ -768,7 +788,7 @@
 			"webview/context": [
 				{
 					"command": "understand.ai.regenerateAiOverview",
-					"when": "webviewId == 'understandAi' && webviewSection == 'annotation'",
+					"when": "webviewId == 'understandAi' && webviewSection == 'annotation' && understandAiLicensed",
 					"group": "understand@1"
 				},
 				{
@@ -836,7 +856,8 @@
 					"icon": "$(sparkle)",
 					"id": "understandAi",
 					"name": "AI Overview",
-					"type": "webview"
+					"type": "webview",
+					"when": "understandAiLicensed"
 				},
 				{
 					"icon": "$(comment)",

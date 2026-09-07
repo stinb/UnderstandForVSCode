@@ -20,7 +20,7 @@ import { handleUnderstandChangedAnnotations } from '../viewProviders/annotations
 import { handleUnderstandChecksListed } from '../treeProviders/checks';
 import { handleUnderstandInfo } from '../treeProviders/info';
 import { handleUnderstandViolationsListed } from '../treeProviders/violations';
-import { actuallyChangedTextEditorSelection } from './context';
+import { actuallyChangedTextEditorSelection, contexts, setContext } from './context';
 import { handleUnderstandGraphsListed } from '../treeProviders/graphs';
 import { handleUnderstandMetricsListed } from '../treeProviders/metrics';
 import { handleUnderstandChangedReferences } from '../treeProviders/references';
@@ -95,6 +95,19 @@ export async function startLsp()
 		const editor = vscode.window.activeTextEditor;
 		if (editor)
 			actuallyChangedTextEditorSelection();
+		// Entitlements. The initialize result carries the startup value, so no AI
+		// UI is live before we know; the notification carries later changes, so a
+		// revoked licence hides it without a restart (und-issues#709).
+		const init = variables.languageClient.initializeResult as
+			{ understand?: { aiLicensed?: boolean } } | undefined;
+		variables.aiLicensed = init?.understand?.aiLicensed === true;
+		setContext(contexts.aiLicensed, variables.aiLicensed);
+		variables.languageClient.onNotification('understand/changedLicenseFeatures',
+			(params: { aiLicensed?: boolean }) => {
+				variables.aiLicensed = params.aiLicensed === true;
+				setContext(contexts.aiLicensed, variables.aiLicensed);
+			});
+
 		variables.languageClient.onNotification('$/progress', handleProgress);
 		variables.languageClient.onNotification('understand/ai/clear', handleUnderstandAiClear);
 		variables.languageClient.onNotification('understand/ai/error', handleUnderstandAiError);

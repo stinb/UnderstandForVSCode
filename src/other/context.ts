@@ -8,6 +8,9 @@ import { focusedUniqueName } from './sync';
 export const contexts = {
 	project: 'understandProject',
 	file: 'understandFile',
+	// Whether the licence grants AI. Starts false so no AI UI is live
+	// before the server tells us (und-issues#709).
+	aiLicensed: 'understandAiLicensed',
 };
 
 
