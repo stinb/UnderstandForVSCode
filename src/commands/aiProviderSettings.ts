@@ -124,7 +124,7 @@ async function requestModels(
 ): Promise<ModelsReply>
 {
 	if (!variables.aiLicensed)
-		return { models: [], error: 'AI is not enabled by your Understand license.' };
+		return { models: [], error: vscode.l10n.t('Your Administrator has disabled all AI features.') };
 	if (!server || !server.trim())
 		return { models: [], error: '' };
 
@@ -158,7 +158,7 @@ export function editProviderSettings(context: vscode.ExtensionContext)
 	// guard for anything that invokes it directly.
 	if (!variables.aiLicensed) {
 		vscode.window.showInformationMessage(
-			'AI is not enabled by your Understand license.');
+			vscode.l10n.t('Your Administrator has disabled all AI features.'));
 		return;
 	}
 

@@ -24,6 +24,7 @@
 	],
 	"icon": "res/logoColor.png",
 	"main": "extension.js",
+	"l10n": "./l10n",
 	"activationEvents": [
 		"workspaceContains:**/*.und/id.txt"
 	],
