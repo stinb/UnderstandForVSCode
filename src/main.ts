@@ -14,37 +14,42 @@ import * as violations from './commands/violations';
 import { onDidChangeConfiguration } from './other/config';
 import { UnderstandHoverProvider } from './other/hover';
 import { documentSelector, startLsp, stopLsp, } from './other/languageClient';
-import { UnderstandUriHandler, violationDescription } from './other/uriHandler';
+import { UnderstandUriHandler } from './other/uriHandler';
 import { variables } from './other/variables';
-import { URI_SCHEME_VIOLATION_DESCRIPTION, ViolationDescriptionProvider } from './other/textProviders';
+import { activateAnnotationDecorations, refreshAnnotationDecorations } from './other/annotationDecorations';
+import { AnnotateCodeLensProvider, AnnotationHoverProvider } from './other/annotationEditor';
+import { annotateLine } from './commands/annotateLine';
+import { openAnnotation, openAnnotationFromBrowser, openFieldFromBrowser } from './commands/openAnnotation';
+import { gutterAnnotate, gutterDelete, gutterOpen, openAnnotationHere } from './commands/gutterMenu';
+import { editAnnotationFields, retypeAnnotation } from './commands/editAnnotationFields';
+import { annotateArchitecture, attachAnnotationMedia, openAnnotationMedia } from './commands/annotationMedia';
+import { CheckCodeActionProvider, showCheck } from './commands/showCheck';
 import { AiViewProvider } from './viewProviders/ai';
-import { AnnotationsViewProvider } from './viewProviders/annotations';
-import { CheckTreeProvider } from './treeProviders/checks';
+import { AnnotationTreeProvider, AnnotationRowDecorations, annotationsGroupBy, annotationsShowAllFiles, annotationsShowCurrentFile, annotationsShowIncomplete, annotationsShowComplete } from './treeProviders/annotations';
+import { ignoreViolationWithDetails } from './commands/ignoreTemplates';
+import { ignoreInline, ignoreWithAnnotation } from './commands/ignoreViolation';
 import { InfoTreeProvider } from './treeProviders/info';
-import { ViolationTreeProvider, violationsGroupBy } from './treeProviders/violations';
+import { ViolationTreeProvider, openViolation, violationsGroupBy } from './treeProviders/violations';
 import { GraphProvider } from './other/graphProvider';
 import { GraphTreeProvider } from './treeProviders/graphs';
 import { MetricTreeProvider } from './treeProviders/metrics';
 import { ReferencesTreeProvider } from './treeProviders/references';
-import { ViolationsViewProvider } from './viewProviders/violations';
 import { watchFiles } from './other/fileSystem';
 import { actuallyChangedTextEditorSelection, invalidateFileStatus, onDidChangeTextEditorSelection } from './other/context';
+import { fileDecorationProvider } from './other/fileDecorations';
 
 
 /** Activate the extension */
 export async function activate(context: vscode.ExtensionContext)
 {
 	variables.aiViewProvider = new AiViewProvider();
-	variables.annotationsViewProvider = new AnnotationsViewProvider();
-	variables.checkTreeProvider = new CheckTreeProvider();
+	variables.annotationsTreeProvider = new AnnotationTreeProvider();
 	variables.extensionUri = context.extensionUri;
 	variables.graphTreeProvider = new GraphTreeProvider();
 	variables.infoTreeProvider = new InfoTreeProvider();
 	variables.graphProvider = new GraphProvider();
 	variables.metricTreeProvider = new MetricTreeProvider();
 	variables.referencesTreeProvider = new ReferencesTreeProvider();
-	variables.violationDescriptionProvider = new ViolationDescriptionProvider();
-	variables.violationTreeProvider = new ViolationsViewProvider();
 	variables.violationsListProvider = new ViolationTreeProvider();
 
 	watchFiles();
@@ -66,7 +71,22 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.analysis.analyzeChangedFiles', analysis.analyzeChangedFiles),
 
 		// Commands: Checks
-		vscode.commands.registerCommand('understand.checks.showDescription', violationDescription),
+		// The check behind a violation, as a card in the field editor window:
+		// from the Violations row, the lightbulb, and the Problems panel's link.
+		vscode.commands.registerCommand('understand.checks.show', showCheck),
+		vscode.languages.registerCodeActionsProvider({ scheme: 'file' }, new CheckCodeActionProvider(),
+			{ providedCodeActionKinds: CheckCodeActionProvider.kinds }),
+		vscode.commands.registerCommand('understand.annotations.groupBy', annotationsGroupBy),
+		vscode.commands.registerCommand('understand.annotations.showAllFiles', annotationsShowAllFiles),
+		vscode.commands.registerCommand('understand.annotations.showCurrentFile', annotationsShowCurrentFile),
+		vscode.commands.registerCommand('understand.annotations.showIncomplete', annotationsShowIncomplete),
+		vscode.commands.registerCommand('understand.annotations.showComplete', annotationsShowComplete),
+		vscode.commands.registerCommand('understand.annotations.openFromBrowser', openAnnotationFromBrowser),
+		vscode.commands.registerCommand('understand.violations.open', openViolation),
+		vscode.commands.registerCommand('understand.violations.ignoreInline', ignoreInline),
+		vscode.commands.registerCommand('understand.violations.ignoreWithAnnotation', ignoreWithAnnotation),
+		vscode.commands.registerCommand('understand.annotations.openFieldFromBrowser', openFieldFromBrowser),
+		vscode.commands.registerCommand('understand.ignoreViolationWithDetails', ignoreViolationWithDetails),
 		vscode.commands.registerCommand('understand.violations.groupBy', violationsGroupBy),
 		vscode.commands.registerCommand('understand.violations.openCodeCheckConfiguration', violations.openCodeCheckConfiguration),
 		vscode.commands.registerCommand('understand.violations.excludeFromCodeCheck', violations.excludeFromCodeCheck),
@@ -77,11 +97,11 @@ export async function activate(context: vscode.ExtensionContext)
 
 		// Commands: Annotations
 		vscode.commands.registerCommand('understand.annotations.addAnnotation', annotations.addAnnotation),
-		vscode.commands.registerCommand('understand.annotations.addEntityAnnotation', annotations.addEntityAnnotation),
-		vscode.commands.registerCommand('understand.annotations.addFileAnnotation', annotations.addFileAnnotation),
-		vscode.commands.registerCommand('understand.annotations.addLineAnnotation', annotations.addLineAnnotation),
 		vscode.commands.registerCommand('understand.annotations.deleteAnnotation', annotations.deleteAnnotation),
-		vscode.commands.registerCommand('understand.annotations.startEditingAnnotation', annotations.startEditingAnnotation),
+		vscode.commands.registerCommand('understand.annotations.deleteSelected', annotations.deleteSelectedAnnotations),
+		// "Edit Text" and "Edit Fields" are the one editor: the form shows a
+		// freeform annotation's note and a templated one's fields.
+		vscode.commands.registerCommand('understand.annotations.startEditingAnnotation', editAnnotationFields),
 
 		// Commands: Explore in Understand
 		vscode.commands.registerCommand('understand.exploreInUnderstand.currentFile', exploreInUnderstand.currentFile),
@@ -140,8 +160,6 @@ export async function activate(context: vscode.ExtensionContext)
 		// Watch for settings changes, which should prompt the user to re-connect
 		vscode.workspace.onDidChangeConfiguration(onDidChangeConfiguration),
 
-		vscode.workspace.registerTextDocumentContentProvider(URI_SCHEME_VIOLATION_DESCRIPTION, variables.violationDescriptionProvider),
-
 		// Watch for editor focus changing, which should change the 'understandFile' context
 		vscode.window.onDidChangeActiveTextEditor(actuallyChangedTextEditorSelection),
 		vscode.window.onDidChangeTextEditorSelection(onDidChangeTextEditorSelection),
@@ -152,17 +170,26 @@ export async function activate(context: vscode.ExtensionContext)
 			actuallyChangedTextEditorSelection();
 		}),
 
-		// Handle the violation-descriptions: URI
+		// The file status on the file name itself: explorer, editor tab and
+		// Open Editors (ext #6)
+		vscode.window.registerFileDecorationProvider(fileDecorationProvider),
+
+		// The violation-descriptions URI every diagnostic links to: the check card
 		vscode.window.registerUriHandler(new UnderstandUriHandler()),
 
 		// Create web views
 		vscode.window.registerWebviewViewProvider('understandAi', variables.aiViewProvider),
-		vscode.window.registerWebviewViewProvider('understandAnnotations', variables.annotationsViewProvider),
-		vscode.window.registerWebviewViewProvider('understandViolations', variables.violationTreeProvider),
-		vscode.window.registerTreeDataProvider('understandChecks', variables.checkTreeProvider),
+		// Paints a Browser row red while its record has a required field empty.
+		vscode.window.registerFileDecorationProvider(new AnnotationRowDecorations()),
 		(() => {
 			const view = vscode.window.createTreeView('understandViolationsList', { treeDataProvider: variables.violationsListProvider });
 			variables.violationsListProvider.attach(view);
+			return view;
+		})(),
+		(() => {
+			const view = vscode.window.createTreeView('understandAnnotationBrowser',
+				{ treeDataProvider: variables.annotationsTreeProvider, canSelectMany: true });
+			variables.annotationsTreeProvider.attach(view);
 			return view;
 		})(),
 		vscode.window.registerTreeDataProvider('understandGraphs', variables.graphTreeProvider),
@@ -171,16 +198,49 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.window.registerTreeDataProvider('understandReferences', variables.referencesTreeProvider),
 	);
 
-	let diagUpdateTimer: ReturnType<typeof setTimeout> | undefined;
+	// The editor's own annotation affordances: an icon in the gutter of a
+	// line that has one, a hover that reads it, and a lens on the cursor's
+	// line to add one. See annotationDecorations.ts for what VS Code can and
+	// cannot do here.
+	activateAnnotationDecorations(context);
+	variables.annotateCodeLensProvider = new AnnotateCodeLensProvider();
 	context.subscriptions.push(
-		vscode.languages.onDidChangeDiagnostics(() => {
-			if (diagUpdateTimer)
-				clearTimeout(diagUpdateTimer);
-			diagUpdateTimer = setTimeout(() => {
-				diagUpdateTimer = undefined;
-				variables.violationTreeProvider.update();
-			}, 150);
+		vscode.languages.registerHoverProvider(
+			{ scheme: 'file' }, new AnnotationHoverProvider()),
+		vscode.languages.registerCodeLensProvider(
+			{ scheme: 'file' }, variables.annotateCodeLensProvider),
+		// The lens sits on the cursor's line, so it is re-asked as the cursor
+		// moves and as the active editor changes.
+		vscode.window.onDidChangeTextEditorSelection(
+			() => variables.annotateCodeLensProvider.refresh()),
+		// The lens offers to ignore the line's violations, so it follows them.
+		vscode.languages.onDidChangeDiagnostics(
+			() => variables.annotateCodeLensProvider.refresh()),
+		vscode.window.onDidChangeActiveTextEditor(() => {
+			variables.annotateCodeLensProvider.refresh();
+			variables.annotationsTreeProvider.activeFileChanged();
 		}),
+		// The annotation switches (understand.annotations.enabled, .gutterIcons)
+		// take effect at once: marks redrawn, the lens re-asked.
+		vscode.workspace.onDidChangeConfiguration(event => {
+			if (event.affectsConfiguration('understand.annotations')) {
+				refreshAnnotationDecorations();
+				variables.annotateCodeLensProvider.refresh();
+			}
+		}),
+		vscode.commands.registerCommand('understand.annotateLine', annotateLine),
+		// The gutter's right-click menu: the line comes with the click.
+		vscode.commands.registerCommand('understand.gutter.annotate', gutterAnnotate),
+		vscode.commands.registerCommand('understand.gutter.open', gutterOpen),
+		vscode.commands.registerCommand('understand.gutter.delete', gutterDelete),
+		// The CodeLens on an annotated line, and the hover's Open link.
+		vscode.commands.registerCommand('understand.annotations.openNextOnLine', openAnnotationHere),
+		vscode.commands.registerCommand('understand.annotations.open', openAnnotation),
+		vscode.commands.registerCommand('understand.annotations.editFields', editAnnotationFields),
+		vscode.commands.registerCommand('understand.annotations.retype', retypeAnnotation),
+		vscode.commands.registerCommand('understand.annotations.attachMedia', attachAnnotationMedia),
+		vscode.commands.registerCommand('understand.annotations.openMedia', openAnnotationMedia),
+		vscode.commands.registerCommand('understand.annotateArchitecture', annotateArchitecture),
 	);
 
 	startLsp();

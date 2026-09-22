@@ -16,8 +16,8 @@ import {
 	handleProgress,
 	handleUnderstandChangedDatabaseState,
 } from './statusBar';
-import { handleUnderstandChangedAnnotations } from '../viewProviders/annotations';
-import { handleUnderstandChecksListed } from '../treeProviders/checks';
+import { handleUnderstandAnnotationsListed } from '../treeProviders/annotations';
+import { handleUnderstandAnnotationMarks } from './annotationDecorations';
 import { handleUnderstandInfo } from '../treeProviders/info';
 import { handleUnderstandViolationsListed } from '../treeProviders/violations';
 import { actuallyChangedTextEditorSelection, contexts, setContext } from './context';
@@ -78,9 +78,41 @@ export async function restartLsp()
 }
 
 
+/**
+ * The library restarts a server whose connection closes, up to five times in
+ * three minutes, then reports a crash. A server that lost its licence closes
+ * on purpose and says why first (understand/licenseLost); restarting it only
+ * repeats the refusal, and the crash dialog hides the one message that helps.
+ * Stop with the server's own words instead. Everything else keeps the default.
+ */
+function licenseAwareErrorHandler(): lc.ErrorHandler
+{
+	let fallback: lc.ErrorHandler | undefined;
+	const defaults = () => fallback ??= variables.languageClient.createDefaultErrorHandler();
+	return {
+		error: (error, message, count) => defaults().error(error, message, count),
+		closed: () => variables.licenseLost
+			? { action: lc.CloseAction.DoNotRestart, message: variables.licenseLost, handled: true }
+			: defaults().closed(),
+	};
+}
+
+
+/** The server lost its licence and could not get it back: say so, once. */
+function handleUnderstandLicenseLost(params: { message?: string })
+{
+	variables.licenseLost = params.message || 'The Understand licence for this machine was lost.';
+	changeMainStatus(MainState.NoLicense);
+	vscode.window.showErrorMessage(variables.licenseLost);
+}
+
+
 /** Start language client & language server */
 export async function startLsp()
 {
+	// A fresh start is a fresh attempt at the licence.
+	variables.licenseLost = '';
+
 	// Create the language client
 	variables.languageClient = new lc.LanguageClient(
 		'Understand',
@@ -108,15 +140,16 @@ export async function startLsp()
 				setContext(contexts.aiLicensed, variables.aiLicensed);
 			});
 
+		variables.languageClient.onNotification('understand/licenseLost', handleUnderstandLicenseLost);
 		variables.languageClient.onNotification('$/progress', handleProgress);
 		variables.languageClient.onNotification('understand/ai/clear', handleUnderstandAiClear);
 		variables.languageClient.onNotification('understand/ai/error', handleUnderstandAiError);
 		variables.languageClient.onNotification('understand/ai/text', handleUnderstandAiText);
 		variables.languageClient.onNotification('understand/ai/textEnd', handleUnderstandAiTextEnd);
 		variables.languageClient.onNotification('understand/changedAi', handleUnderstandChangedAi);
-		variables.languageClient.onNotification('understand/changedAnnotations', handleUnderstandChangedAnnotations);
+		variables.languageClient.onNotification('understand/annotations/marks', handleUnderstandAnnotationMarks);
+		variables.languageClient.onNotification('understand/annotations/listed', handleUnderstandAnnotationsListed);
 		variables.languageClient.onNotification('understand/changedDatabaseState', handleUnderstandChangedDatabaseState);
-		variables.languageClient.onNotification('understand/checks/listed', handleUnderstandChecksListed);
 		variables.languageClient.onNotification('understand/info', handleUnderstandInfo);
 		variables.languageClient.onNotification('understand/violations/listed', handleUnderstandViolationsListed);
 		variables.languageClient.onNotification('understand/changedReferences', handleUnderstandChangedReferences);
@@ -152,6 +185,7 @@ function getLanguageClientOptions(): lc.LanguageClientOptions
 {
 	return {
 		documentSelector: documentSelector,
+		errorHandler: licenseAwareErrorHandler(),
 		initializationOptions: {
 			uriScheme: vscode.env.uriScheme, // 'vscode'
 			uriAuthority: 'scitools.understand',

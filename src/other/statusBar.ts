@@ -10,6 +10,7 @@ export enum MainState {
 	Connecting,
 	Ready,
 	NoConnection,
+	NoLicense,
 	Progress,
 }
 
@@ -121,6 +122,12 @@ export function changeMainStatus(status: MainState)
 		case MainState.NoConnection:
 			mainStatusBarItem.text = '$(error) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Failed to connect to the Understand language server');
+			setContext(contexts.project, false);
+			break;
+		case MainState.NoLicense:
+			mainStatusBarItem.text = '$(error) Understand';
+			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status,
+				variables.licenseLost || 'The Understand language server has no valid licence');
 			setContext(contexts.project, false);
 			break;
 		case MainState.Progress:
@@ -269,9 +276,6 @@ export function handleUnderstandChangedDatabaseState(params: Db)
 		changeMainStatus(MainState.Ready);
 	else
 		changeMainStatus(MainState.Progress);
-
-	if (params.state === DbState.Resolved)
-		variables.violationDescriptionProvider.handleProjectOpened();
 }
 
 

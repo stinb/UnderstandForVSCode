@@ -1,170 +1,81 @@
 import * as vscode from 'vscode';
+import { basename } from 'path';
 
 import { variables } from '../other/variables';
-import { focusedUniqueName } from '../other/sync';
+import { openNewAnnotationForm } from './annotateLine';
+import { closeFieldEditorFor } from '../other/fieldEditor';
 
 
 /**
- * Created in JSON in the `data-vscode-context` attribute in
- * - `AnnotationsViewProvider.draw`
+ * Add Annotation, from the editor's context menu, a file's context menu in
+ * the explorer or on its tab, or the palette: the field editor opens on a new
+ * annotation. In an editor the server anchors it -- to the entity under the
+ * cursor, else the line, else the file; a file picked in the explorer gets a
+ * file annotation.
  */
-interface AnnotationContext
-{
-	id: string,
-}
-
-
 export async function addAnnotation(args: any, extra: any)
 {
-	const editor = vscode.window.activeTextEditor;
-
-	// Invoked from
-	// - Right-clicking a file in the file explorer
-	// - Right-clicking the file name in an editor tab
 	if (args && typeof args.path === 'string' && extra) {
 		if (args.scheme !== 'file') {
 			vscode.window.showErrorMessage('Expected a file to annotate');
 			return;
 		}
-
-		const targetUri = vscode.Uri.file(args.path);
-
-		// Open the editor and its focus on its annotations
-		if (!editor || editor.document.uri.path !== args.path)
-			await vscode.window.showTextDocument(targetUri).then(focusOnAnnotations);
-
-		variables.languageClient.sendRequest('understand/addAnnotation', {
-			kind: 'file',
-			textDocument: {
-				uri: targetUri.toString(),
-			},
-		});
+		const name = basename(args.path);
+		await openNewAnnotationForm(
+			{ kind: 'file', textDocument: { uri: vscode.Uri.file(args.path).toString() } },
+			name);
 		return;
 	}
 
-	// Invoked from
-	// - Command, hopefully in an editor
-	switch (args) {
-		case 'entity':
-			addEntityAnnotation();
-			break;
-		case 'file':
-			addFileAnnotation();
-			break;
-		case 'line':
-			addLineAnnotation();
-			break;
-		default:
-			if (editor === undefined)
-				return showNoEditorError();
-			await focusOnAnnotations();
-			variables.languageClient.sendRequest('understand/addAnnotation', {
-				kind: 'auto',
-				position: {
-					line: editor.selection.start.line,
-					character: editor.selection.start.character,
-				},
-				textDocument: {
-					uri: editor.document.uri.toString(),
-				},
-			});
-			break;
-	}
-}
-
-
-export async function addEntityAnnotation()
-{
 	const editor = vscode.window.activeTextEditor;
 	if (!editor) {
-		const uniqueName = focusedUniqueName();
-		if (!uniqueName)
-			return showNoEditorError();
-		await focusOnAnnotations();
-		variables.languageClient.sendRequest('understand/addAnnotation', {
-			kind: 'entityFromUniqueName',
-			uniqueName,
-		});
+		vscode.window.showErrorMessage('Expected an editor to annotate');
 		return;
 	}
-
-	await focusOnAnnotations();
-
-	variables.languageClient.sendRequest('understand/addAnnotation', {
-		kind: 'entity',
-		position: {
-			line: editor.selection.start.line,
-			character: editor.selection.start.character,
+	await openNewAnnotationForm(
+		{
+			kind: 'auto',
+			textDocument: { uri: editor.document.uri.toString() },
+			position: {
+				line: editor.selection.start.line,
+				character: editor.selection.start.character,
+			},
 		},
-		textDocument: {
-			uri: editor.document.uri.toString(),
-		},
-	});
+		'New annotation');
 }
 
 
-export async function addLineAnnotation()
+/**
+ * Delete annotations after one question that counts them; the field editor
+ * closes if it was showing one of them. Behind the row menu's Delete (one
+ * id) and the Browser's Delete button (the selection).
+ */
+export async function deleteAnnotations(ids: string[])
 {
-	const editor = vscode.window.activeTextEditor;
-	if (!editor)
-		return showNoEditorError();
-
-	await focusOnAnnotations();
-
-	variables.languageClient.sendRequest('understand/addAnnotation', {
-		kind: 'line',
-		textDocument: {
-			uri: editor.document.uri.toString(),
-		},
-		position: {
-			line: editor.selection.start.line,
-			character: 0,
-		}
-	});
+	const choice = await vscode.window.showWarningMessage(
+		ids.length === 1 ? 'Delete annotation' : `Delete ${ids.length} annotations`, { modal: true }, 'Delete');
+	if (choice !== 'Delete')
+		return;
+	for (const id of ids)
+		await variables.languageClient.sendRequest('understand/deleteAnnotation', { id });
+	closeFieldEditorFor(id => ids.includes(id));
 }
 
 
-export async function addFileAnnotation()
+export function deleteAnnotation(context: { id: string })
 {
-	const editor = vscode.window.activeTextEditor;
-	if (!editor)
-		return showNoEditorError();
-
-	await focusOnAnnotations();
-
-	variables.languageClient.sendRequest('understand/addAnnotation', {
-		kind: 'file',
-		textDocument: {
-			uri: editor.document.uri.toString(),
-		},
-	});
+	return deleteAnnotations([context.id]);
 }
 
 
-export function deleteAnnotation(context: AnnotationContext)
+// The Browser's Delete button is enabled only while a row is selected, so
+// the empty case is for the palette.
+export function deleteSelectedAnnotations()
 {
-	vscode.window.showWarningMessage(
-		'Delete annotation', {modal: true}, 'Delete'
-	).then(choice => {
-		if (choice === 'Delete')
-			variables.languageClient.sendRequest('understand/deleteAnnotation', {id: context.id});
-	});
-}
-
-
-export function startEditingAnnotation(context: AnnotationContext)
-{
-	variables.annotationsViewProvider.edit(context.id);
-}
-
-
-async function focusOnAnnotations()
-{
-	return vscode.commands.executeCommand('understandAnnotations.focus');
-}
-
-
-function showNoEditorError()
-{
-	vscode.window.showErrorMessage('Expected an editor to annotate');
+	const ids = variables.annotationsTreeProvider.selectedIds();
+	if (ids.length === 0) {
+		vscode.window.showInformationMessage('Select an annotation in the Annotation Browser to delete it');
+		return Promise.resolve();
+	}
+	return deleteAnnotations(ids);
 }

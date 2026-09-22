@@ -1,8 +1,25 @@
 import * as vscode from 'vscode';
 
 import { getBooleanFromConfig } from './config';
-import { getViolationDescription } from './textProviders';
 import { getId } from './uriHandler';
+import { variables } from './variables';
+import { CheckInfo, isCheckId } from '../types/check';
+
+
+// The check behind a violation, as the hover reads it: its name, then its
+// description -- the same understand/check the check card is built from. A
+// parse error or warning is reported like a violation but is no check.
+async function checkMarkdown(id: string, token: vscode.CancellationToken): Promise<string>
+{
+	if (!isCheckId(id))
+		return '';
+	try {
+		const check: CheckInfo = await variables.languageClient.sendRequest('understand/check', { id }, token);
+		return `**${check.name}**\n\n${check.description}`;
+	} catch {
+		return '';
+	}
+}
 
 
 /** Show more information when the user hovers the mouse */
@@ -44,7 +61,7 @@ export class UnderstandHoverProvider implements vscode.HoverProvider {
 
 			// Read and display content of detailed description
 			const id = getId(violation.code.target);
-			const string = await getViolationDescription(id, token);
+			const string = await checkMarkdown(id, token);
 			if (string.length === 0)
 				continue;
 			const markdownString = new vscode.MarkdownString(string);

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { variables } from '../other/variables';
 import { changeFileStatus, FileStatus } from './statusBar';
+import { invalidateFileDecorations } from './fileDecorations';
 import { focusedUniqueName } from './sync';
 
 
@@ -32,6 +33,9 @@ export function invalidateFileStatus()
 {
 	cachedStatusUri = '';
 	cachedStatus = undefined;
+	// The explorer and tab decorations read the same status, so they go
+	// stale at the same moments (ext #6).
+	invalidateFileDecorations();
 }
 
 

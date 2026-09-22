@@ -1,16 +1,14 @@
 import { FileSystemWatcher, Uri } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
-import { ViolationDescriptionProvider } from './textProviders';
 import { AiChatProvider } from './aiChatProvider';
 import { AiViewProvider } from '../viewProviders/ai';
-import { AnnotationsViewProvider } from '../viewProviders/annotations';
-import { CheckTreeProvider } from '../treeProviders/checks';
+import { AnnotationTreeProvider } from '../treeProviders/annotations';
 import { InfoTreeProvider } from '../treeProviders/info';
 import { ViolationTreeProvider } from '../treeProviders/violations';
+import { AnnotateCodeLensProvider } from './annotationEditor';
 import { GraphTreeProvider } from '../treeProviders/graphs';
 import { MetricTreeProvider } from '../treeProviders/metrics';
 import { ReferencesTreeProvider } from '../treeProviders/references';
-import { ViolationsViewProvider } from '../viewProviders/violations';
 import { GraphProvider } from '../other/graphProvider';
 
 
@@ -23,9 +21,9 @@ export const variables: Variables = {
 	// @ts-ignore initialized in `activate`
 	aiViewProvider: undefined,
 	// @ts-ignore initialized in `activate`
-	annotationsViewProvider: undefined,
+	annotateCodeLensProvider: undefined,
 	// @ts-ignore initialized in `activate`
-	checkTreeProvider: undefined,
+	annotationsTreeProvider: undefined,
 	// @ts-ignore initialized in `activate`
 	extensionUri: undefined,
 	// @ts-ignore initialized in `activate`
@@ -38,16 +36,17 @@ export const variables: Variables = {
 	infoTreeProvider: undefined,
 	// @ts-ignore TODO audit this
 	languageClient: undefined,
+	// The server's own account of why it stopped serving, when its licence was
+	// lost (understand/licenseLost); empty while the licence holds. Read by
+	// the client's close handler so a licence loss is reported once instead of
+	// restarting the server until VS Code calls it a crash.
+	licenseLost: '',
 	// @ts-ignore initialized in `activate`
 	metricTreeProvider: undefined,
 	// The view to leave alone for now
 	preserveView: '',
 	// @ts-ignore initialized in `activate`
 	referencesTreeProvider: undefined,
-	// @ts-ignore initialized in `activate`
-	violationDescriptionProvider: undefined,
-	// @ts-ignore initialized in `activate`
-	violationTreeProvider: undefined,
 	// @ts-ignore initialized in `activate`
 	violationsListProvider: undefined,
 };
@@ -57,18 +56,17 @@ interface Variables {
 	aiChatProvider: AiChatProvider,
 	aiLicensed: boolean,
 	aiViewProvider: AiViewProvider,
-	annotationsViewProvider: AnnotationsViewProvider,
-	checkTreeProvider: CheckTreeProvider,
+	annotateCodeLensProvider: AnnotateCodeLensProvider,
+	annotationsTreeProvider: AnnotationTreeProvider,
 	extensionUri: Uri,
 	fileSystemWatcher: FileSystemWatcher,
 	graphProvider: GraphProvider,
 	graphTreeProvider: GraphTreeProvider,
 	infoTreeProvider: InfoTreeProvider,
 	languageClient: LanguageClient,
+	licenseLost: string,
 	metricTreeProvider: MetricTreeProvider,
 	preserveView: string,
 	referencesTreeProvider: ReferencesTreeProvider,
-	violationDescriptionProvider: ViolationDescriptionProvider,
-	violationTreeProvider: ViolationsViewProvider,
 	violationsListProvider: ViolationTreeProvider,
 }

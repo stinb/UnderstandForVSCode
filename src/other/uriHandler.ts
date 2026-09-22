@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { URI_SCHEME_VIOLATION_DESCRIPTION } from './textProviders';
+import { showCheck } from '../commands/showCheck';
 
 
 /** Get the part before the second slash */
@@ -19,36 +19,19 @@ export function getId(uri: vscode.Uri): string
 }
 
 
-/** Opens a URI */
+/**
+ * Opens a URI. Every violation the server reports carries
+ * vscode://scitools.understand/violation-descriptions/<checkId> as its code
+ * link, which VS Code shows in the Problems panel and the diagnostic hover;
+ * it opens the check's card.
+ */
 export class UnderstandUriHandler implements vscode.UriHandler
 {
 	handleUri(uri: vscode.Uri): vscode.ProviderResult<void>
 	{
 		switch (getCollection(uri)) {
 			case 'violation-descriptions':
-				violationDescription(getId(uri));
-				break;
+				return showCheck(getId(uri));
 		}
 	}
-}
-
-
-/** Show the detailed description of a check as a rendered markdown preview */
-export async function violationDescription(id: string)
-{
-	// Show markdown
-	const editor = await vscode.window.showTextDocument(vscode.Uri.from({
-		scheme: URI_SCHEME_VIOLATION_DESCRIPTION,
-		path: id,
-	}));
-	await vscode.languages.setTextDocumentLanguage(editor.document, 'markdown');
-
-	// Show markdown preview instead
-	try {
-		await vscode.commands.executeCommand('markdown.showPreview');
-	} catch (error) {
-		return;
-	}
-	await vscode.window.showTextDocument(editor.document);
-	vscode.commands.executeCommand('workbench.action.closeActiveEditor');
 }

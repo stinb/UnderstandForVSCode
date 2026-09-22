@@ -175,3 +175,268 @@ details.thinking > .thinkingBody {
 	padding-left: 0.6em;
 	border-left: 2px solid var(--vscode-panel-border);
 }
+
+/* The structured half of a card: the template's name and its field rows
+   (ext #26), read-only under the header. */
+.template {
+	margin: 0 0 4px 0;
+}
+
+.templateName {
+	font-weight: bold;
+	margin: 0;
+	opacity: 0.85;
+}
+
+.field {
+	margin: 0;
+}
+
+.fieldLabel {
+	opacity: 0.7;
+}
+
+
+/* The card the gutter hover sent the reader to: marked briefly so it can be
+   picked out of a list of cards, then left alone. */
+.annotation.revealed {
+	outline: 2px solid var(--vscode-focusBorder);
+	outline-offset: 1px;
+	animation: revealFade 1.6s ease-out;
+}
+
+@keyframes revealFade {
+	from { background-color: var(--vscode-editor-selectionBackground); }
+	to   { background-color: transparent; }
+}
+
+
+/* Card-style field form (understand.annotations.fieldEditor = "card"): every
+   template field at once, the way Understand's own annotation card shows them.
+   A draft card is a new annotation that does not exist until Save. */
+.annotation.draft {
+	outline: 1px dashed var(--vscode-focusBorder);
+}
+
+/* The same card in its own window (fieldEditor = "popup"): a form column,
+   not a card stretched across an editor group. */
+body.popup > div {
+	max-width: 40rem;
+	margin: 0.75rem auto;
+}
+
+.annotation:has(.form) .template {
+	display: none;
+}
+
+/* The field editor's read-only face: the completed card. A field row or the
+   note is a click into the form, so they read as clickable. */
+.annotation.readonly .field, .annotation.readonly .body {
+	cursor: pointer;
+}
+
+.annotation.readonly .field:hover .fieldLabel {
+	text-decoration: underline;
+}
+
+/* The required star, on the card as on the form. */
+.field .required {
+	color: var(--vscode-errorForeground);
+}
+
+
+/* A check's card: nothing on it edits, so no row invites a click. Each
+   configuration that runs the check is its own block; a choice option lists
+   its choices with the one in use marked. */
+.checkCard .field {
+	cursor: default;
+}
+
+.checkCard .field:hover .fieldLabel {
+	text-decoration: none;
+}
+
+.checkCard .checkConfig {
+	margin-top: 8px;
+	padding-top: 6px;
+	border-top: 1px solid var(--vscode-widget-border, var(--vscode-editorWidget-border));
+}
+
+.checkCard .choice {
+	opacity: 0.6;
+	margin-right: 0.6em;
+}
+
+.checkCard .choice.used {
+	opacity: 1;
+	font-weight: bold;
+}
+
+.checkCard .choice .codicon {
+	font-size: 0.9em;
+	vertical-align: -0.1em;
+	margin-right: 0.2em;
+}
+
+.checkCard .default {
+	opacity: 0.6;
+	margin-left: 0.4em;
+}
+
+.checkCard .checkDescription {
+	margin-top: 10px;
+	padding-top: 8px;
+	border-top: 1px solid var(--vscode-widget-border, var(--vscode-editorWidget-border));
+}
+
+.form {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	margin: 0.25rem 0;
+}
+
+.formTitle {
+	font-weight: bold;
+	margin: 0;
+	opacity: 0.85;
+}
+
+.formLocation {
+	font-size: 0.95em;
+	font-style: italic;
+	margin: 0;
+	opacity: 0.8;
+}
+
+.cardHeader .formLocation {
+	display: block;
+}
+
+.formLocation a {
+	color: inherit;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.formLocation a:hover {
+	text-decoration: underline;
+}
+
+.formField {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+}
+
+.formField > label {
+	font-size: 0.95em;
+	opacity: 0.8;
+}
+
+.formField .required {
+	color: var(--vscode-errorForeground);
+}
+
+.formField.missing > label {
+	color: var(--vscode-errorForeground);
+	opacity: 1;
+}
+
+.formField input[type=text], .formField input[type=number], .formField select,
+.formField textarea, .formBody {
+	background: var(--vscode-input-background);
+	border-radius: 2px;
+	border: 1px solid var(--vscode-input-border, transparent);
+	box-sizing: border-box;
+	color: var(--vscode-input-foreground);
+	font-family: var(--vscode-font-family);
+	font-size: var(--vscode-font-size);
+	padding: 2px 6px;
+	width: 100%;
+}
+
+.formField textarea, .formBody {
+	min-height: 3.2em;
+	resize: vertical;
+}
+
+.formMetadata {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+}
+
+.formMetadata > label {
+	font-size: 0.95em;
+	opacity: 0.8;
+}
+
+.formMetadata > p {
+	font-style: italic;
+	margin: 0;
+	opacity: 0.85;
+	white-space: pre-wrap;
+}
+
+.formButtons .save:disabled {
+	cursor: default;
+	opacity: 0.5;
+}
+
+.formField input:focus, .formField select:focus, .formField textarea:focus,
+.formBody:focus {
+	outline: 1px solid var(--vscode-focusBorder);
+}
+
+.formField .options {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+}
+
+.formField .options label, .formField .check {
+	align-items: center;
+	display: flex;
+	gap: 0.35rem;
+	opacity: 1;
+}
+
+.formField .options input, .formField .check input {
+	width: auto;
+}
+
+.formButtons {
+	display: flex;
+	gap: 0.5rem;
+	margin-top: 0.25rem;
+}
+
+/* Card buttons hide until hover; the form's must always show. */
+.formButtons button {
+	border-radius: 2px;
+	height: auto;
+	opacity: 1;
+	padding: 3px 10px;
+	width: auto;
+}
+
+.formButtons .save {
+	background: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+}
+
+.formButtons .save:hover {
+	background: var(--vscode-button-hoverBackground);
+}
+
+.formButtons .cancel {
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+}
+
+.formNote {
+	color: var(--vscode-errorForeground);
+	font-size: 0.95em;
+	margin: 0;
+}

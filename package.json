@@ -2,7 +2,7 @@
 	"name": "understand",
 	"displayName": "Understand",
 	"description": "The Software Developer's Multi-Tool",
-	"version": "1.2.0",
+	"version": "1.3.0",
 	"publisher": "scitools",
 	"repository": {
 		"type": "git",
@@ -26,13 +26,59 @@
 	"main": "extension.js",
 	"l10n": "./l10n",
 	"activationEvents": [
-		"workspaceContains:**/*.und/id.txt"
+		"workspaceContains:**/*.und/id.txt",
+		"onStartupFinished"
 	],
 	"contributes": {
+		"icons": {
+			"understand-annotation": {
+				"description": "Understand annotation (bubble with ellipsis)",
+				"default": {
+					"fontPath": "./res/understand-icons.ttf",
+					"fontCharacter": "\\E001"
+				}
+			}
+		},
+		"colors": [
+			{
+				"id": "understand.annotationRuler",
+				"description": "Overview ruler mark on a line with an Understand annotation",
+				"defaults": {
+					"dark": "#3794ff",
+					"light": "#3794ff",
+					"highContrast": "#3794ff",
+					"highContrastLight": "#3794ff"
+				}
+			},
+			{
+				"id": "understand.annotationRulerIgnore",
+				"description": "Overview ruler mark on a line with an Understand annotation that ignores a violation",
+				"defaults": {
+					"dark": "editorWarning.foreground",
+					"light": "editorWarning.foreground",
+					"highContrast": "editorWarning.foreground",
+					"highContrastLight": "editorWarning.foreground"
+				}
+			},
+			{
+				"id": "understand.annotationRulerIncomplete",
+				"description": "Overview ruler mark on a line with an Understand annotation that still lacks a required field",
+				"defaults": {
+					"dark": "editorError.foreground",
+					"light": "editorError.foreground",
+					"highContrast": "editorError.foreground",
+					"highContrastLight": "editorError.foreground"
+				}
+			}
+		],
 		"viewsWelcome": [
 			{
 				"view": "understandInfo",
 				"contents": "Click a function, variable, or type name in the editor and its attributes appear here."
+			},
+			{
+				"view": "understandAnnotationBrowser",
+				"contents": "Every annotation in the project — notes and ignored violations — grouped by file, author, template, or date.\nUse Group Annotations By... in this view's title bar to regroup."
 			},
 			{
 				"view": "understandViolationsList",
@@ -46,6 +92,17 @@
 			}
 		],
 		"commands": [
+			{
+				"command": "understand.annotations.groupBy",
+				"title": "Group Annotations By...",
+				"category": "Understand: Annotations",
+				"icon": "$(group-by-ref-type)"
+			},
+			{
+				"command": "understand.ignoreViolationWithDetails",
+				"title": "Ignore Violation with Details...",
+				"category": "Understand: Violations"
+			},
 			{
 				"command": "understand.violations.openCodeCheckConfiguration",
 				"title": "Open CodeCheck Configuration",
@@ -148,31 +205,20 @@
 				"icon": "$(add)"
 			},
 			{
-				"command": "understand.annotations.addEntityAnnotation",
-				"title": "Add Entity Annotation",
-				"category": "Understand: Annotations",
-				"icon": "res/newEntity.svg"
-			},
-			{
-				"command": "understand.annotations.addFileAnnotation",
-				"title": "Add File Annotation",
-				"category": "Understand: Annotations",
-				"icon": "$(new-file)"
-			},
-			{
-				"command": "understand.annotations.addLineAnnotation",
-				"title": "Add Line Annotation",
-				"category": "Understand: Annotations",
-				"icon": "res/newLine.svg"
-			},
-			{
 				"command": "understand.annotations.deleteAnnotation",
 				"title": "Delete",
 				"category": "Understand: Annotations"
 			},
 			{
+				"command": "understand.annotations.deleteSelected",
+				"title": "Delete Selected Annotations",
+				"category": "Understand: Annotations",
+				"icon": "$(diff-removed)",
+				"enablement": "understand.annotationBrowserSelected"
+			},
+			{
 				"command": "understand.annotations.startEditingAnnotation",
-				"title": "Edit",
+				"title": "Edit Text",
 				"category": "Understand: Annotations"
 			},
 			{
@@ -345,6 +391,116 @@
 				"command": "understand.violationsView.goToLocation",
 				"title": "Go to Location",
 				"category": "Understand: Violations View"
+			},
+			{
+				"command": "understand.annotateLine",
+				"title": "Annotate This Line",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.gutter.annotate",
+				"title": "Annotate This Line",
+				"category": "Understand: Annotations"
+			},
+			{
+				"command": "understand.gutter.open",
+				"title": "Open Annotation",
+				"category": "Understand: Annotations"
+			},
+			{
+				"command": "understand.gutter.delete",
+				"title": "Delete Annotation",
+				"category": "Understand: Annotations"
+			},
+			{
+				"command": "understand.annotations.openNextOnLine",
+				"title": "Open Next Annotation on Line",
+				"category": "Understand: Annotations"
+			},
+			{
+				"command": "understand.annotations.open",
+				"title": "Open Annotation",
+				"category": "Understand: Annotations"
+			},
+			{
+				"command": "understand.annotations.editFields",
+				"title": "Edit Fields",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.annotations.retype",
+				"title": "Change Template...",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.annotations.attachMedia",
+				"title": "Attach File...",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.annotations.openMedia",
+				"title": "Open Attachment",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.annotateArchitecture",
+				"title": "Annotate Architecture Node...",
+				"category": "Understand"
+			},
+			{
+				"command": "understand.annotations.openFromBrowser",
+				"title": "Open Annotation",
+				"category": "Understand: Annotations"
+			},
+			{
+				"command": "understand.violations.open",
+				"title": "Open Violation",
+				"category": "Understand: Violations"
+			},
+			{
+				"command": "understand.violations.ignoreInline",
+				"title": "Ignore Violation Inline",
+				"category": "Understand: Violations"
+			},
+			{
+				"command": "understand.violations.ignoreWithAnnotation",
+				"title": "Ignore Violation",
+				"category": "Understand: Violations"
+			},
+			{
+				"command": "understand.annotations.openFieldFromBrowser",
+				"title": "Edit Field",
+				"category": "Understand: Annotations"
+			},
+			{
+				"command": "understand.annotations.showCurrentFile",
+				"title": "Show Only This File's Annotations",
+				"category": "Understand: Annotations",
+				"icon": "$(filter)"
+			},
+			{
+				"command": "understand.annotations.showAllFiles",
+				"title": "Show Every File's Annotations",
+				"category": "Understand: Annotations",
+				"icon": "$(filter-filled)"
+			},
+			{
+				"command": "understand.annotations.showIncomplete",
+				"title": "Show Only Annotations Missing a Required Field",
+				"category": "Understand: Annotations",
+				"icon": "$(warning)"
+			},
+			{
+				"command": "understand.annotations.showComplete",
+				"title": "Show Complete Annotations Too",
+				"category": "Understand: Annotations",
+				"icon": "$(check-all)"
+			},
+			{
+				"command": "understand.checks.show",
+				"title": "Show Check",
+				"category": "Understand: Violations",
+				"icon": "$(book)"
 			}
 		],
 		"configuration": [
@@ -370,15 +526,25 @@
 						"default": true,
 						"description": "Automatically analyze on project open, file save/create/delete"
 					},
-					"understand.annotationsView.enabled": {
+					"understand.annotations.enabled": {
 						"type": "boolean",
 						"default": true,
-						"description": "Show content of the Annotations view"
+						"description": "Show annotations in VS Code: the gutter icons and scrollbar marks, the hover and Annotate lens, the Annotation Browser, and the annotation menu items. Off hides all of them without touching the annotations themselves."
 					},
-					"understand.checksView.enabled": {
+					"understand.annotations.gutterIcons": {
 						"type": "boolean",
 						"default": true,
-						"description": "Show content of the Checks view"
+						"description": "Mark annotated lines with an icon in the gutter and on the scrollbar. Off leaves the annotations, the hover and the Annotation Browser in place."
+					},
+					"understand.annotationBrowser.enabled": {
+						"type": "boolean",
+						"default": true,
+						"description": "Show the Annotation Browser view, every annotation in the project"
+					},
+					"understand.fileDecorations.enabled": {
+						"type": "boolean",
+						"default": true,
+						"description": "Mark each file name with its Understand status: a badge in the explorer, on the editor tab and in Open Editors for a project file that needs analyzing, and a muted colour for a file that is not in the project"
 					},
 					"understand.violationsView.enabled": {
 						"type": "boolean",
@@ -529,6 +695,14 @@
 		"menus": {
 			"commandPalette": [
 				{
+					"command": "understand.ignoreViolationWithDetails",
+					"when": "false"
+				},
+				{
+					"command": "understand.checks.show",
+					"when": "false"
+				},
+				{
 					"command": "understand.ai.generateAiOverview",
 					"when": "understandFile && understandAiLicensed"
 				},
@@ -546,19 +720,7 @@
 				},
 				{
 					"command": "understand.annotations.addAnnotation",
-					"when": "understandFile"
-				},
-				{
-					"command": "understand.annotations.addEntityAnnotation",
-					"when": "false"
-				},
-				{
-					"command": "understand.annotations.addFileAnnotation",
-					"when": "false"
-				},
-				{
-					"command": "understand.annotations.addLineAnnotation",
-					"when": "false"
+					"when": "understandProject && config.understand.annotations.enabled"
 				},
 				{
 					"command": "understand.analysis.stopAnalyzingFiles",
@@ -570,6 +732,26 @@
 				},
 				{
 					"command": "understand.annotations.startEditingAnnotation",
+					"when": "false"
+				},
+				{
+					"command": "understand.annotations.open",
+					"when": "false"
+				},
+				{
+					"command": "understand.gutter.annotate",
+					"when": "false"
+				},
+				{
+					"command": "understand.gutter.open",
+					"when": "false"
+				},
+				{
+					"command": "understand.gutter.delete",
+					"when": "false"
+				},
+				{
+					"command": "understand.annotations.openNextOnLine",
 					"when": "false"
 				},
 				{
@@ -686,16 +868,62 @@
 				{
 					"command": "understand.ai.saveChat",
 					"when": "understandAiLicensed"
+				},
+				{
+					"command": "understand.annotations.openFromBrowser",
+					"when": "false"
+				},
+				{
+					"command": "understand.violations.open",
+					"when": "false"
+				},
+				{
+					"command": "understand.annotations.deleteSelected",
+					"when": "understandProject && config.understand.annotations.enabled"
+				},
+				{
+					"command": "understand.violations.ignoreInline",
+					"when": "false"
+				},
+				{
+					"command": "understand.violations.ignoreWithAnnotation",
+					"when": "false"
+				},
+				{
+					"command": "understand.annotations.openFieldFromBrowser",
+					"when": "false"
 				}
 			],
 			"editor/context": [
 				{
 					"command": "understand.annotations.addAnnotation",
-					"when": "understandFile"
+					"when": "understandProject && config.understand.annotations.enabled"
 				},
 				{
 					"command": "understand.exploreInUnderstand.currentFile",
 					"when": "understandFile"
+				},
+				{
+					"command": "understand.annotateLine",
+					"group": "understand@1",
+					"when": "understandProject && config.understand.annotations.enabled"
+				}
+			],
+			"editor/lineNumber/context": [
+				{
+					"command": "understand.gutter.annotate",
+					"group": "understand@1",
+					"when": "understandProject && config.understand.annotations.enabled"
+				},
+				{
+					"command": "understand.gutter.open",
+					"group": "understand@2",
+					"when": "understandProject && config.understand.annotations.enabled"
+				},
+				{
+					"command": "understand.gutter.delete",
+					"group": "understand@3",
+					"when": "understandProject && config.understand.annotations.enabled"
 				}
 			],
 			"editor/title": [
@@ -728,13 +956,13 @@
 			"editor/title/context": [
 				{
 					"command": "understand.annotations.addAnnotation",
-					"when": "understandFile"
+					"when": "understandProject && config.understand.annotations.enabled"
 				}
 			],
 			"explorer/context": [
 				{
 					"command": "understand.annotations.addAnnotation",
-					"when": "understandProject && !explorerResourceIsFolder"
+					"when": "understandProject && !explorerResourceIsFolder && config.understand.annotations.enabled"
 				},
 				{
 					"command": "understand.violations.excludeFromCodeCheck",
@@ -742,21 +970,6 @@
 				}
 			],
 			"view/title": [
-				{
-					"command": "understand.annotations.addFileAnnotation",
-					"when": "view == understandAnnotations",
-					"group": "navigation@1"
-				},
-				{
-					"command": "understand.annotations.addLineAnnotation",
-					"when": "view == understandAnnotations",
-					"group": "navigation@2"
-				},
-				{
-					"command": "understand.annotations.addEntityAnnotation",
-					"when": "view == understandAnnotations",
-					"group": "navigation@3"
-				},
 				{
 					"command": "understand.metrics.documentation",
 					"when": "view == understandMetrics",
@@ -773,6 +986,16 @@
 					"group": "navigation@3"
 				},
 				{
+					"command": "understand.annotations.groupBy",
+					"when": "view == understandAnnotationBrowser",
+					"group": "navigation@3"
+				},
+				{
+					"command": "understand.annotations.deleteSelected",
+					"when": "view == understandAnnotationBrowser",
+					"group": "navigation@4"
+				},
+				{
 					"command": "understand.violations.groupBy",
 					"when": "view == understandViolationsList",
 					"group": "navigation"
@@ -784,6 +1007,26 @@
 				{
 					"command": "understand.violations.openCodeCheckConfiguration",
 					"when": "view == understandViolationsList"
+				},
+				{
+					"command": "understand.annotations.showCurrentFile",
+					"when": "view == understandAnnotationBrowser && understand.annotationBrowserScope != file",
+					"group": "navigation@1"
+				},
+				{
+					"command": "understand.annotations.showAllFiles",
+					"when": "view == understandAnnotationBrowser && understand.annotationBrowserScope == file",
+					"group": "navigation@1"
+				},
+				{
+					"command": "understand.annotations.showIncomplete",
+					"when": "view == understandAnnotationBrowser && !understand.annotationBrowserIncompleteOnly",
+					"group": "navigation@2"
+				},
+				{
+					"command": "understand.annotations.showComplete",
+					"when": "view == understandAnnotationBrowser && understand.annotationBrowserIncompleteOnly",
+					"group": "navigation@2"
 				}
 			],
 			"webview/context": [
@@ -791,16 +1034,6 @@
 					"command": "understand.ai.regenerateAiOverview",
 					"when": "webviewId == 'understandAi' && webviewSection == 'annotation' && understandAiLicensed",
 					"group": "understand@1"
-				},
-				{
-					"command": "understand.annotations.startEditingAnnotation",
-					"when": "webviewId == 'understandAnnotations' && webviewSection == 'annotation'",
-					"group": "understand@1"
-				},
-				{
-					"command": "understand.annotations.deleteAnnotation",
-					"when": "webviewId == 'understandAnnotations' && webviewSection == 'annotation'",
-					"group": "understand@2"
 				}
 			],
 			"view/item/context": [
@@ -810,7 +1043,7 @@
 				},
 				{
 					"command": "understand.violations.excludeFromCodeCheck",
-					"when": "view == understandViolationsList && viewItem == understandViolation"
+					"when": "view == understandViolationsList && viewItem =~ /^understandViolation(Parse)?$/"
 				},
 				{
 					"command": "understand.violations.excludeFolderFromCodeCheck",
@@ -818,6 +1051,15 @@
 				},
 				{
 					"command": "understand.violations.excludeFolderFromCodeCheck",
+					"when": "view == understandViolationsList && viewItem =~ /^understandViolation(Parse)?$/"
+				},
+				{
+					"command": "understand.checks.show",
+					"when": "view == understandViolationsList && viewItem == understandViolation",
+					"group": "inline"
+				},
+				{
+					"command": "understand.checks.show",
 					"when": "view == understandViolationsList && viewItem == understandViolation"
 				},
 				{
@@ -839,6 +1081,31 @@
 					"command": "understand.referencesView.dismissEntity",
 					"when": "view == understandReferences && viewItem == understandPinnedEntity",
 					"group": "inline@2"
+				},
+				{
+					"command": "understand.annotations.startEditingAnnotation",
+					"group": "understand@1",
+					"when": "view == understandAnnotationBrowser && viewItem == understandAnnotation"
+				},
+				{
+					"command": "understand.annotations.editFields",
+					"group": "understand@1",
+					"when": "view == understandAnnotationBrowser && viewItem == understandAnnotationTemplated"
+				},
+				{
+					"command": "understand.annotations.retype",
+					"group": "understand@2",
+					"when": "view == understandAnnotationBrowser && viewItem =~ /^understandAnnotation/"
+				},
+				{
+					"command": "understand.annotations.attachMedia",
+					"group": "understand@3",
+					"when": "view == understandAnnotationBrowser && viewItem =~ /^understandAnnotation/"
+				},
+				{
+					"command": "understand.annotations.deleteAnnotation",
+					"group": "understand@4",
+					"when": "view == understandAnnotationBrowser && viewItem =~ /^understandAnnotation/"
 				}
 			]
 		},
@@ -861,18 +1128,12 @@
 					"when": "understandAiLicensed"
 				},
 				{
-					"icon": "$(comment)",
-					"id": "understandAnnotations",
-					"name": "Annotations",
-					"type": "webview",
-					"visibility": "collapsed"
-				},
-				{
-					"icon": "$(checklist)",
-					"id": "understandChecks",
-					"name": "Checks",
+					"icon": "$(comment-unresolved)",
+					"id": "understandAnnotationBrowser",
+					"name": "Annotation Browser",
 					"type": "tree",
-					"visibility": "collapsed"
+					"visibility": "collapsed",
+					"when": "config.understand.annotations.enabled && config.understand.annotationBrowser.enabled"
 				},
 				{
 					"icon": "$(type-hierarchy)",
@@ -883,7 +1144,7 @@
 				{
 					"icon": "$(info)",
 					"id": "understandInfo",
-					"name": "Info",
+					"name": "API Info",
 					"type": "tree",
 					"visibility": "collapsed",
 					"when": "config.understand.infoView.enabled"
@@ -899,12 +1160,6 @@
 					"id": "understandReferences",
 					"name": "References",
 					"type": "tree"
-				},
-				{
-					"icon": "$(bug)",
-					"id": "understandViolations",
-					"name": "Explore Violations",
-					"type": "webview"
 				},
 				{
 					"icon": "$(warning)",
@@ -927,7 +1182,7 @@
 		"brace-expansion": "^5.0.9",
 		"markdown-it": "^14.2.0",
 		"form-data": "^4.0.6",
-		"js-yaml": "^4.3.1",
+		"js-yaml": "^4.3.2",
 		"fast-uri": "^3.1.5"
 	},
 	"devDependencies": {
@@ -939,9 +1194,9 @@
 		"typescript": "5.3.3"
 	},
 	"scripts": {
-		"build": "npm install --ignore-scripts && node node_modules/typescript/bin/tsc && node_modules/.bin/esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node --minify && node node_modules/@vscode/vsce/vsce package -o understand.vsix",
+		"build": "npm install --ignore-scripts && node node_modules/typescript/bin/tsc && node_modules/.bin/esbuild ./src/other/templateRules.ts --bundle --outfile=res/views/templateRules.js --format=iife --global-name=understandTemplateRules --minify && node_modules/.bin/esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node --minify && node node_modules/@vscode/vsce/vsce package -o understand.vsix",
 		"clean": "git clean -dfX",
 		"install": "npm run build && code --install-extension understand.vsix",
-		"watch": "npm install --ignore-scripts && node_modules/.bin/esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node --minify --watch"
+		"watch": "npm install --ignore-scripts && node_modules/.bin/esbuild ./src/other/templateRules.ts --bundle --outfile=res/views/templateRules.js --format=iife --global-name=understandTemplateRules --minify && node_modules/.bin/esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node --minify --watch"
 	}
 }
