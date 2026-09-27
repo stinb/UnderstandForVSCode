@@ -59,6 +59,19 @@ export async function deleteAnnotations(ids: string[])
 	for (const id of ids)
 		await variables.languageClient.sendRequest('understand/deleteAnnotation', { id });
 	closeFieldEditorFor(id => ids.includes(id));
+
+	// A delete run from the hover's own link leaves that hover on screen,
+	// still listing the annotation and still offering to delete it: VS Code
+	// does not re-render a hover that is already open, however the marks
+	// beneath it change. The gutter and the Browser are right at once; only
+	// the panel lies, so it is dismissed (ext #26 item 4.3.1, Kate
+	// 2026-09-25).
+	try {
+		await vscode.commands.executeCommand('editor.action.hideHover');
+	} catch {
+		// Older hosts do not have it; the hover then clears on the next
+		// mouse move, which is where this started.
+	}
 }
 
 

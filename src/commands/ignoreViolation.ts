@@ -17,9 +17,32 @@ const kIgnoreCommands = {
 	inline: { command: 'understand.server.violations.ignore', key: 'violationsToRemove' },
 };
 
+// The ignores already under way. The lens goes as soon as one finishes,
+// because the violation it offered is gone, but the round trip is long
+// enough to click through several times, and each of those asked for the
+// quick fixes while the violation was still there and wrote its own comment
+// (ext #26 item 4.6, Kate 2026-09-25).
+const inFlight = new Set<string>();
+
 async function ignoreViaQuickFix(uri: vscode.Uri, where: vscode.Range, id: string, kind: keyof typeof kIgnoreCommands)
 {
 	const wanted = kIgnoreCommands[kind];
+	const key = `${uri.toString()}\n${where.start.line}\n${id}\n${kind}`;
+	if (inFlight.has(key))
+		return;
+	inFlight.add(key);
+	try {
+		await applyIgnore(uri, where, id, wanted);
+	} finally {
+		inFlight.delete(key);
+	}
+}
+
+
+async function applyIgnore(
+	uri: vscode.Uri, where: vscode.Range, id: string,
+	wanted: { command: string, key: string })
+{
 	// Asked for as plain quick fixes: VS Code files the server's
 	// "quickfix.ignore" under "quickfix" and drops an action whose kind does
 	// not match the one requested (the exthost log said so, 2026-09-21).

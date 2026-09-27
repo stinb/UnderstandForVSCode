@@ -1,6 +1,25 @@
 # Change Log
 
 # [Unreleased]
+- Add: `understand.hover` sets the text the hover shows for a kind of entity in place of the declaration Understand writes, keyed by kind filter and written with `{name}`, `{longname}`, `{kind}`, `{type}`, `{parameters}` and `{value}` (#3)
+- Add: a file the checks skip is badged `X` in the Explorer, on its editor tab and in Open Editors, with a tooltip naming the configurations that exclude it
+- Change: an excluded path is matched with either slash, written as a full path as well as a project-relative one, and only where a whole path component ends, so excluding `Searches` no longer takes `Searches_old` with it
+- Change: excluding a path in one CodeCheck configuration leaves alone the violations another configuration found and still reports
+- Change: removing a path from the excluded list queues the files it was hiding, so Analyze Changed Files brings their violations back instead of only Analyze All; a file still covered by an excluded folder stays excluded
+- Fix: the severity a configuration sets for a check reaches the violations a background run stores, so the Violations view shows it and can group by it
+- Change: grouping the Violations view by severity lists the groups worst first, instead of alphabetically, which put Informational above Low and Medium
+- Fix: a violation whose entity is no longer in the database still names that entity, the way the CodeCheck results page does
+- Change: the API Info view carries the rows the API Info report carries, each under the accessor's own name — `kindname` is the short kind name with `kind.longname` beside it, and `file_type`, `library`, `parameters`, `parsetime`, `relname` and `simplename` are new (#47)
+- Fix: the API Info view names the entity the hover names, instead of emptying while the cursor sits in a named card section (#47)
+- Change: an API Info row ends its name with a colon, like the report and the hover (#47)
+- Fix: saving a note no longer clears the Metadata a templated annotation's card shows (#26)
+- Fix: deleting an annotation from its hover dismisses that hover, which used to stay on screen still listing the annotation and still offering to delete it (#26)
+- Fix: the Annotate lens stays while the field editor has the focus, so several annotations on one line can be opened in turn without clicking back into the file first (#26)
+- Fix: clicking Ignore Inline repeatedly no longer writes a comment per click, and the ignore is not offered on a line that already carries it (#26)
+- Fix: typing a new value into a field that takes several answers no longer fails silently (#26)
+- Change: an annotation's time is shown along with its date, the way Understand shows it — the Browser's tooltip, the hover and the field editor's card all read "author — when", and the Browser's Date groups are still one per day (#26)
+- Fix: an attachment in an annotation's hover is a link that opens it, instead of the marker Understand stores it as; a Browser row and the gutter menu read the same attachment as "Image: name" (#26)
+- Change: the note box belongs to a plain note; a templated annotation shows its fields and the Metadata its template stamps, and picking a template on a draft drops a note typed first, saying so (#26)
 - Change: the Checks view is gone; a violation's check opens as a card in the field editor window — from the Violations row's book button or menu, the lightbulb, or the check-id link in the Problems panel and hover — with its description and, per configuration, its severity and the options as set
 - Change: the `understand.checksView.enabled` setting is removed with the view
 - Add: `understand.annotations.gutterIcons` hides the gutter icons and scrollbar marks while keeping the annotations, their hover, the Annotate lens and the Browser; `understand.annotations.enabled` turns the whole annotation surface off, gutter icons included

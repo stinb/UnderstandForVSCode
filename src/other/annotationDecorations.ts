@@ -53,6 +53,7 @@ export type LineAnnotation = {
 	kind?: 'note' | 'ignore',
 	line: number,          // zero-based, as the payload sends it
 	author: string,
+	lastModified?: string,
 	body: string,
 	templateName?: string,
 	fields?: { label: string, value: string }[],
@@ -67,6 +68,8 @@ export type AnnotationMark = {
 	positionUri: string,
 	positionLine: number,
 	author: string,
+	// UTC, as the server sends it; annotationTime() reads it.
+	lastModified?: string,
 	body: string,
 	templateName?: string,
 	fields?: { label: string, value: string }[],
@@ -126,6 +129,7 @@ export function setAnnotations(annotations: AnnotationMark[])
 			kind: annotation.kind,
 			line: annotation.positionLine,
 			author: annotation.author,
+			lastModified: annotation.lastModified,
 			body: annotation.body,
 			templateName: annotation.templateName,
 			fields: annotation.fields,

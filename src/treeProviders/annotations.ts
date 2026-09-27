@@ -13,6 +13,7 @@ import {
 	Uri,
 	window,
 } from 'vscode';
+import { annotationTime, attribution, readableBody } from '../other/annotationMarkdown';
 import { closeFieldEditorFor } from '../other/fieldEditor';
 import { variables } from '../other/variables';
 
@@ -261,17 +262,22 @@ export class AnnotationTreeProvider implements TreeDataProvider<AnnotationNode>
 			bucket.push(annotation);
 		}
 
-		const entries: { name: string, key: string, rows: Annotation[], tooltip?: string }[] = [];
+		const entries: { name: string, key: string, rows: Annotation[],
+		                 newest: string, tooltip?: string }[] = [];
 		buckets.forEach((rows, key) => {
 			entries.push({
 				name: this.groupBy === 'file' ? basename(key) : key,
 				key,
 				rows,
+				// A date group is named the way the reader writes a date,
+				// which does not sort; its rows carry the timestamp that does.
+				newest: rows.reduce(
+					(most, row) => row.lastModified > most ? row.lastModified : most, ''),
 				tooltip: this.groupBy === 'file' ? key : undefined,
 			});
 		});
 		entries.sort((a, b) => this.groupBy === 'date'
-			? b.name.localeCompare(a.name) // newest first
+			? b.newest.localeCompare(a.newest) // newest first
 			: a.name.localeCompare(b.name));
 		const groups = entries.map(e => {
 			const group = new AnnotationGroupItem(e.name, e.rows, this.groupBy, e.key);
@@ -299,7 +305,9 @@ export class AnnotationTreeProvider implements TreeDataProvider<AnnotationNode>
 			case 'template':
 				return annotation.templateName || 'Freeform';
 			case 'date':
-				return annotation.lastModified || '(no date)';
+				// The reader's own day, the way Understand's Date tree groups
+				// by one; the timestamp itself orders the groups.
+				return annotationTime(annotation.lastModified, 'day') || '(no date)';
 			default:
 				return annotation.positionUri
 					? decodeURIComponent(Uri.parse(annotation.positionUri).fsPath)
@@ -414,6 +422,8 @@ export class AnnotationItem extends TreeItem
 	positionCharacter?: number;
 	metadata?: string;
 	note?: string;
+	author?: string;
+	lastModified?: string;
 	// The record as rendered for display, which the row expands to show.
 	fields?: { label: string, value: string }[];
 	// The group the row was built under, for the tree to reach it by.
@@ -434,6 +444,8 @@ export class AnnotationItem extends TreeItem
 		this.body = annotation.body;
 		this.metadata = annotation.metadata;
 		this.note = annotation.note;
+		this.author = annotation.author;
+		this.lastModified = annotation.lastModified;
 		this.templateId = annotation.templateId;
 		this.templateName = annotation.templateName;
 		this.fieldValues = annotation.fieldValues;
@@ -487,9 +499,9 @@ export class AnnotationItem extends TreeItem
 		const fieldLines = (annotation.fields ?? [])
 			.map(f => `${f.label}: ${f.value}`).join('\n');
 		this.tooltip = [
-			annotation.body,
+			readableBody(annotation.body ?? ''),
 			fieldLines,
-			`${annotation.author} — ${annotation.lastModified}`,
+			attribution(annotation.author, annotation.lastModified),
 		].filter(Boolean).join('\n\n');
 
 		// A single click goes to the annotation in the editor and opens it for
@@ -564,7 +576,7 @@ export class AnnotationRowDecorations implements FileDecorationProvider
 export function annotationSummary(body: string | undefined,
                                   fields?: { label: string, value: string }[]): string
 {
-	return firstLine(body ?? '')
+	return firstLine(readableBody(body ?? ''))
 		|| (fields ?? []).map(f => `${f.label}=${f.value}`).join(', ')
 		|| '(empty)';
 }

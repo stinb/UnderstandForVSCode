@@ -313,6 +313,13 @@ body.popup > div {
 	display: block;
 }
 
+/* Who last changed the annotation and when, under the place. */
+.formModified {
+	font-size: 0.95em;
+	margin: 0;
+	opacity: 0.7;
+}
+
 .formLocation a {
 	color: inherit;
 	cursor: pointer;

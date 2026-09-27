@@ -713,7 +713,8 @@ function newValueInput(field, values, onChange, row)
 			if (!field.options.includes(text))
 				field.options.push(text);
 			if (field.multiSelect)
-				values[field.key] = [...heldValues(field, values).filter(v => v !== text), text];
+				values[field.key] = [...templateRules.heldValues(field, values)
+					.filter(v => v !== text), text];
 			else
 				values[field.key] = text;
 		}
@@ -827,6 +828,25 @@ function locationLine(message)
 }
 
 
+/**
+ * The card header's second line: who last changed the annotation and when,
+ * the way Understand's card header reads it. The extension reads the date
+ * for a person, as it does every other value on the form; a draft has
+ * nothing to show yet (ext #26 item 3.3).
+ * @param {any} message
+ * @returns {HTMLParagraphElement | null}
+ */
+function modifiedLine(message)
+{
+	if (!message.modified)
+		return null;
+	const p = document.createElement('p');
+	p.className = 'formModified';
+	p.textContent = message.modified;
+	return p;
+}
+
+
 /** A draft's place, from the anchor its Create will use. */
 function locationOfAnchor(anchor)
 {
@@ -911,6 +931,9 @@ function renderCard(message)
 	const where = locationLine(message);
 	if (where)
 		header.append(where);
+	const modified = modifiedLine(message);
+	if (modified)
+		header.append(modified);
 	card.append(header);
 
 	if (template) {
@@ -1175,9 +1198,15 @@ function renderForm(message)
 	/** @param {{[key: string]: string | string[]}} fields @param {string | null} body */
 	const canonical = (fields, body) =>
 		JSON.stringify([Object.keys(fields).sort().map(key => [key, fields[key]]), body]);
-	const held = canonical(filled(message.values || {}), message.body === undefined ? null : message.body);
+	const heldFields = canonical(filled(message.values || {}), null);
+	const heldWithBody = canonical(filled(message.values || {}),
+		message.body === undefined ? null : message.body);
+	// Without a note box the note cannot have changed, so comparing it
+	// would report every templated annotation as edited the moment it opens.
 	const changed = () => message.mode === 'new'
-		|| canonical(filled(values), bodyUi ? bodyUi.value : null) !== held;
+		|| (bodyUi
+			? canonical(filled(values), bodyUi.value) !== heldWithBody
+			: canonical(filled(values), null) !== heldFields);
 	const updateSave = () => {
 		save.disabled = !changed();
 		save.title = save.disabled ? 'Nothing has changed' : '';
@@ -1194,6 +1223,9 @@ function renderForm(message)
 	const where = locationLine(message);
 	if (where)
 		formUi.append(where);
+	const modified = modifiedLine(message);
+	if (modified)
+		formUi.append(modified);
 
 	// A draft picks its template here, on the form, the way Understand's card
 	// does: the templates offered for the place, then "Note (no template)".
@@ -1229,7 +1261,13 @@ function renderForm(message)
 			renderForm(Object.assign({}, message, {
 				template: picked,
 				values: carried,
-				body: bodyUi ? bodyUi.value : message.body,
+				// A templated annotation's text is the Metadata its template
+				// stamps, and nothing here edits that. So a note typed while
+				// the draft was a plain note goes when a template is picked,
+				// rather than riding along where it can be neither seen nor
+				// removed -- the trap #5188 closed for retyping.
+				body: picked ? undefined : (bodyUi ? bodyUi.value : message.body),
+				droppedNote: picked && bodyUi && bodyUi.value ? bodyUi.value : undefined,
 				metadata: picked ? (message.metadataByTemplate || {})[picked.id] : undefined,
 			}));
 		};
@@ -1248,13 +1286,16 @@ function renderForm(message)
 	if (stamp)
 		formUi.append(stamp);
 
-	// The note box: a draft always has one, and an edit has one when the
-	// caller hands the text over -- which is how a freeform annotation's text
-	// is edited here.
-	if (message.mode === 'new' || message.body !== undefined) {
+	// The note box belongs to a freeform annotation, whose note is the whole
+	// of it. A templated one is its fields, and its text is the Metadata the
+	// template stamps, which nobody edits here -- so offering a box beside
+	// fields the template does define only invited the question of what it
+	// was for (ext #26 item 3.4, Rob 2026-09-25). A draft on "Note (no
+	// template)" gets one, and picking a template re-renders without it.
+	if (!template && (message.mode === 'new' || message.body !== undefined)) {
 		bodyUi = document.createElement('textarea');
 		bodyUi.className = 'formBody';
-		bodyUi.placeholder = template ? 'Note (optional)' : 'Note';
+		bodyUi.placeholder = 'Note';
 		bodyUi.value = message.body || '';
 		formUi.append(bodyUi);
 	}
@@ -1262,6 +1303,14 @@ function renderForm(message)
 	const note = document.createElement('p');
 	note.className = 'formNote notDisplayed';
 	formUi.append(note);
+
+	// Say so when picking a template has just dropped a typed note, rather
+	// than letting the text vanish without a word.
+	if (message.droppedNote) {
+		note.textContent = 'The note was removed: this template stamps its own'
+			+ ' text, and a note cannot be kept alongside it.';
+		note.classList.remove('notDisplayed');
+	}
 
 	const buttons = document.createElement('div');
 	buttons.className = 'formButtons';

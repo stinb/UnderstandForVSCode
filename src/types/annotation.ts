@@ -91,6 +91,10 @@ export type FormMessage = {
 	metadata?: string,
 	// An existing annotation's place, for the line under the template name.
 	location?: FormLocation,
+	// Who last changed it and when, already read for a person the way every
+	// other value the form shows is: "author — when", as Understand's card
+	// header reads it. A draft has neither yet.
+	modified?: string,
 	// A draft only: the templates offered for the place, for the Template
 	// droplist at the top of the form (template is the one selected), and
 	// the Metadata each would stamp, by template id.

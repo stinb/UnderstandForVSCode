@@ -94,7 +94,11 @@ export function openFieldEditor(message: PanelMessage)
 					// was sent, which the save names; its Metadata follows.
 					const template = shown.mode === 'new' && shown.templates
 						? shown.templates.find(t => t.id === received.templateId) : shown.template;
-					const metadata = template && shown.metadataByTemplate?.[template.id];
+					// An edit carries no metadataByTemplate -- its stamp came
+					// with the annotation -- so it keeps the one it was
+					// showing. Saving a note must not drop it (ext #26 2.7).
+					const metadata = (template && shown.metadataByTemplate?.[template.id])
+						?? shown.metadata;
 					const { metadata: _shown, ...rest } = shown;
 					open.message = { ...rest, template, ...(metadata ? { metadata } : {}),
 						values: received.fields, body: received.body, readOnly: saved.ok };

@@ -56,8 +56,18 @@ export class AnnotateCodeLensProvider implements vscode.CodeLensProvider
 	{
 		if (!annotationsEnabled())
 			return [];
-		const editor = vscode.window.activeTextEditor;
-		if (!editor || editor.document.uri.toString() !== document.uri.toString())
+		// The lens sits on the cursor's line, but the file need not hold the
+		// focus. Opening an annotation moves the focus to the field editor
+		// window, and asking for the ACTIVE editor took the lens away the
+		// moment it was used, so opening several on one line meant clicking
+		// back into the file between each (ext #26 item 2.3). A visible
+		// editor keeps its selection, so the line is still the right one.
+		const active = vscode.window.activeTextEditor;
+		const editor = active?.document.uri.toString() === document.uri.toString()
+			? active
+			: vscode.window.visibleTextEditors.find(
+				e => e.document.uri.toString() === document.uri.toString());
+		if (!editor)
 			return [];
 
 		// Only a file Understand has an entity for can carry an annotation:

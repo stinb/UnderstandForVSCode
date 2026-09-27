@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 
+import { attribution } from '../other/annotationMarkdown';
 import { variables } from '../other/variables';
 import { openFieldEditor } from '../other/fieldEditor';
 import { AnnotationTemplate, Card, FormLocation, FormMessage } from '../types/annotation';
@@ -30,6 +31,8 @@ type Annotated = {
 	body?: string,
 	metadata?: string,
 	note?: string,
+	author?: string,
+	lastModified?: string,
 	positionUri?: string,
 	positionLine?: number,
 	positionCharacter?: number,
@@ -58,6 +61,8 @@ async function resolve(annotation: Annotated): Promise<Annotated | undefined>
 			body: card.body,
 			metadata: card.metadata,
 			note: card.note,
+			author: card.author,
+			lastModified: card.lastModified,
 			positionUri: card.positionUri,
 			positionLine: card.positionLine,
 			positionCharacter: card.positionCharacter,
@@ -119,6 +124,9 @@ export async function editAnnotationFields(annotated: Annotated | undefined, opt
 	const location = locationOf(annotation);
 	if (location)
 		form.location = location;
+	const modified = attribution(annotation.author, annotation.lastModified, 'card');
+	if (modified)
+		form.modified = modified;
 	// A Browser row's field children know their label, not the template's
 	// key; the template says which is which.
 	const focused = template?.fields.find(f => f.label === options.focusLabel);

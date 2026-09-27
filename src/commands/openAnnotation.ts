@@ -14,6 +14,8 @@ type BrowserRow = {
 	body?: string,
 	metadata?: string,
 	note?: string,
+	author?: string,
+	lastModified?: string,
 	positionUri?: string,
 	positionLine?: number,
 	positionCharacter?: number,
