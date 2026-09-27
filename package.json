@@ -526,6 +526,15 @@
 						"default": true,
 						"description": "Automatically analyze on project open, file save/create/delete"
 					},
+					"understand.hover": {
+						"type": "object",
+						"default": {},
+						"additionalProperties": {
+							"type": "string"
+						},
+						"markdownDescription": "Text to show in the hover for each kind of entity, in place of the declaration Understand writes. Each key is a kind filter, spelled the way kind filters are everywhere else: `Function` matches every language, `Python Function` narrows to one, a comma separates alternatives and `~` excludes. Where more than one key matches, the narrowest one wins, so `Python Function` beats `Function`; a kind no key matches keeps the built-in declaration. The text may use `{name}`, `{longname}`, `{kind}`, `{type}`, `{parameters}` and `{value}`; a placeholder the entity has nothing for comes out empty. The result is shown as code in the file's language, so it is coloured as code even when it is not.",
+						"scope": "window"
+					},
 					"understand.annotations.enabled": {
 						"type": "boolean",
 						"default": true,
