@@ -114,7 +114,13 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 				tooltip: this.groupBy === 'file' ? key : undefined,
 			});
 		});
-		entries.sort((a, b) => a.name.localeCompare(b.name));
+		// File, check and entity names read best alphabetically. Severity
+		// names do not: alphabetical puts Informational second, above Low
+		// and Medium. The levels do not overlap, so any row in a group
+		// ranks the whole group, worst first.
+		entries.sort((a, b) => this.groupBy === 'severity'
+			? b.rows[0].violation.severity - a.rows[0].violation.severity
+			: a.name.localeCompare(b.name));
 		const groups = entries.map(e => {
 			const group = new GroupItem(e.name, e.rows, this.groupBy);
 			if (e.tooltip) {
