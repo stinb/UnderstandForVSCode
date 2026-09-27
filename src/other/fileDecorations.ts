@@ -29,6 +29,21 @@ function decorationFor(status: FileStatus): vscode.FileDecoration | undefined
 		};
 	}
 
+	// An excluded file is checked by nothing, so a stale badge on it would
+	// ask for an analysis that cannot change what it reports. This is also
+	// the only place outside the excluded-path list that says so at all
+	// (sti #3508 item 8).
+	const excludedFrom = status.excludedFrom ?? [];
+	if (excludedFrom.length) {
+		return {
+			badge: 'X',
+			color: new vscode.ThemeColor('list.deemphasizedForeground'),
+			tooltip: `Excluded from CodeCheck in ${excludedFrom.join(', ')}`,
+			// so a collapsed folder shows that its contents are skipped
+			propagate: true,
+		};
+	}
+
 	switch (status.analysis) {
 		case 'analyzed':
 			return undefined;

@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { variables } from '../other/variables';
 import { databasePath } from '../other/statusBar';
 import { executeCommand } from './helpers';
+import { invalidateFileDecorations } from '../other/fileDecorations';
 
 
 /** Go to a location in a file (from the violations view) */
@@ -106,7 +107,6 @@ async function listConfigFiles(): Promise<vscode.Uri[] | null>
 type ConfigFile = {
 	uri: vscode.Uri,
 	json: { name?: string, excludes?: string[] },
-	indent: string,
 };
 
 
@@ -114,9 +114,7 @@ async function loadConfig(uri: vscode.Uri): Promise<ConfigFile | null>
 {
 	try {
 		const text = new TextDecoder().decode(await vscode.workspace.fs.readFile(uri));
-		// Keep the file's own indentation so the edit diffs cleanly
-		const indent = /\n(\s+)"/.exec(text)?.[1] ?? '    ';
-		return { uri, json: JSON.parse(text), indent };
+		return { uri, json: JSON.parse(text) };
 	} catch {
 		vscode.window.showErrorMessage(`Could not read ${uri.fsPath}`);
 		return null;
@@ -150,14 +148,23 @@ async function pickConfig(): Promise<ConfigFile | null>
 }
 
 
-async function saveConfig(config: ConfigFile)
+/** A CodeCheck configuration saved by hand takes effect like one the UI
+ * wrote: a path excluded there is skipped by later runs and never
+ * re-checked, so its already-stored violations have to go now or they
+ * linger forever (sti #3508 item 1.6). */
+export function onConfigurationSaved(document: vscode.TextDocument)
 {
-	const text = JSON.stringify(config.json, null, config.indent) + '\n';
-	await vscode.workspace.fs.writeFile(config.uri, new TextEncoder().encode(text));
-	// Excluded files are skipped by later runs and never re-checked, so
-	// their already-stored violations must be dropped here or they would
-	// linger forever.
+	const path = databasePath();
+	if (!path || !document.uri.path.endsWith('.json'))
+		return;
+	// Compared without case: a Windows path reaches us with the drive
+	// letter in either case, which is the trap behind und-issues#724.
+	const dir = vscode.Uri.file(path + '/codecheck/configs').path.toLowerCase();
+	if (!document.uri.path.toLowerCase().startsWith(dir + '/'))
+		return;
+
 	executeCommand('understand.server.violations.pruneExcluded');
+	invalidateFileDecorations();
 }
 
 
@@ -206,10 +213,11 @@ async function excludePath(fsPath: string)
 	const config = await pickConfig();
 	if (!config)
 		return;
-	executeCommand('understand.server.violations.exclude', [{
+	await executeCommand('understand.server.violations.exclude', [{
 		config: config.json.name,
 		path: fsPath,
 	}]);
+	invalidateFileDecorations();
 	const name = fsPath.replace(/\\/g, '/').split('/').pop();
 	vscode.window.showInformationMessage(
 		`Excluded "${name}" from ${config.json.name} — its stored violations are removed, and new runs skip it`);
@@ -293,24 +301,32 @@ export async function editExcludedPaths()
 		});
 		if (!prefix)
 			return;
-		executeCommand('understand.server.violations.exclude', [{
+		await executeCommand('understand.server.violations.exclude', [{
 			config: config.json.name,
 			prefix: prefix.trim(),
 		}]);
+		invalidateFileDecorations();
 		vscode.window.showInformationMessage(
 			`Excluded "${prefix.trim()}" from ${config.json.name}`);
 		return;
 	}
 
+	// The server owns the removal, the way it owns adding: it knows which
+	// files the entry was hiding, and queues those for a re-check so the
+	// next analysis puts their violations back. Their content has not
+	// changed, so nothing else would ever look at them again.
 	const prefix = picked.replace('$(trash) ', '');
-	config.json.excludes = excludes.filter(entry => entry !== prefix);
-	await saveConfig(config);
-	// The path's violations only come back when its files are re-analyzed
-	// -- a plain save never touches unchanged files, so offer the run.
-	const analyze = 'Analyze All Files';
-	const answer = await vscode.window.showInformationMessage(
-		`"${prefix}" is no longer excluded from ${config.json.name} — analyze to check it again`,
+	const answer = await executeCommand('understand.server.violations.unexclude',
+		[{ config: config.json.name, prefix: prefix }]);
+	invalidateFileDecorations();
+
+	const freed: string[] = answer?.files ?? [];
+	const analyze = 'Analyze Changed Files';
+	const chosen = await vscode.window.showInformationMessage(
+		freed.length
+			? `"${prefix}" is no longer excluded from ${config.json.name} — ${freed.length} file(s) are queued to be checked again`
+			: `"${prefix}" is no longer excluded from ${config.json.name}`,
 		analyze);
-	if (answer === analyze)
-		executeCommand('understand.server.analysis.analyzeAllFiles');
+	if (chosen === analyze)
+		executeCommand('understand.server.analysis.analyzeChangedFiles');
 }

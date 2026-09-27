@@ -59,6 +59,8 @@ export interface FileStatus {
 	inProject: boolean,
 	analysis: 'analyzed' | 'stale' | 'none',
 	resolved: boolean,
+	/** Configurations whose checks skip this file, empty for most files */
+	excludedFrom?: string[],
 }
 
 

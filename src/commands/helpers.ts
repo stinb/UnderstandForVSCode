@@ -27,10 +27,10 @@ export function executeAtPosition(command: string)
 }
 
 
-/** Execute a server-defined command */
-export function executeCommand(command: string, args: LSPAny[] = [])
+/** Execute a server-defined command, answering whatever it returns */
+export function executeCommand(command: string, args: LSPAny[] = []): Promise<LSPAny>
 {
-	variables.languageClient.sendRequest('workspace/executeCommand', {
+	return variables.languageClient.sendRequest('workspace/executeCommand', {
 		command: command,
 		arguments: args,
 	});

@@ -165,9 +165,10 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.window.onDidChangeTextEditorSelection(onDidChangeTextEditorSelection),
 
 		// A save can make the file's analysis stale: refresh the status bar
-		vscode.workspace.onDidSaveTextDocument(() => {
+		vscode.workspace.onDidSaveTextDocument((document) => {
 			invalidateFileStatus();
 			actuallyChangedTextEditorSelection();
+			violations.onConfigurationSaved(document);
 		}),
 
 		// The file status on the file name itself: explorer, editor tab and
