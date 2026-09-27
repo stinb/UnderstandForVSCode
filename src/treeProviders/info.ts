@@ -67,11 +67,15 @@ class AttributeItem extends TreeItem
 {
 	constructor(attribute: Attribute)
 	{
-		super(attribute.name);
+		// The colon belongs in the label, so a row reads the way the API
+		// Info report and the hover already do (ext #47).
+		super(`${attribute.name}:`);
 		this.contextValue = 'understandInfoAttribute';
 		this.description = attribute.value;
-		// Long values (uniquename) elide in the row; the tooltip has it all.
-		this.tooltip = `${attribute.name}: ${attribute.value}`;
+		// Long values (uniquename) elide in the row; the tooltip has it all,
+		// and the note where the value needs one to be read correctly.
+		this.tooltip = `${attribute.name}: ${attribute.value}`
+			+ (attribute.note ? `\n\n${attribute.note}` : '');
 	}
 }
 
@@ -85,4 +89,6 @@ type Params = {
 type Attribute = {
 	name: string,
 	value: string,
+	/** Shown under the value in the tooltip, for a value that needs it */
+	note?: string,
 };
