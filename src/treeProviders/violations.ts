@@ -2,7 +2,9 @@ import {
 	Command,
 	commands,
 	EventEmitter,
+	MarkdownString,
 	Range,
+	ThemeColor,
 	ThemeIcon,
 	TreeDataProvider,
 	TreeItem,
@@ -14,6 +16,7 @@ import {
 import { variables } from '../other/variables';
 import { textEditorColumn } from '../other/textEditorColumn';
 import { isCheckId } from '../types/check';
+import { escapeMarkdown } from '../other/annotationMarkdown';
 
 
 // The Violations view (sti #4719): every violation in the project, grouped
@@ -51,7 +54,11 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 			// Rows materialize when the group expands: at the 20k cap,
 			// building every row up front on each update or regroup was
 			// most of the work for groups nobody opens.
-			return element.rows.map(
+			//
+			// Ordered the way the Problems panel orders a file's problems --
+			// worst first, then down the file -- rather than the order the
+			// server stored them in, which is by check id.
+			return orderedRows(element.rows).map(
 				row => new ViolationItem(row.file, row.violation, element.groupBy));
 		// A violation's other locations, expanded on demand the same way.
 		if (element instanceof ViolationItem)
@@ -202,15 +209,49 @@ function severityName(severity: number): string
 
 function severityIcon(severity: number): ThemeIcon
 {
-	if (severity >= 75)
-		return new ThemeIcon('error');
-	if (severity >= 25)
-		return new ThemeIcon('warning');
-	return new ThemeIcon('info');
+	// The thresholds the diagnostics use (userver helpers/json.cpp), so one
+	// severity reads the same here and in the Problems panel. Low used to
+	// take the warning icon here and the information icon there.
+	//
+	// The colours are the Problems panel's own tokens rather than a colour
+	// picked to look like them, so the two match in every theme, including
+	// one that recolours problems.
+	const error = new ThemeIcon('error', new ThemeColor('problemsErrorIcon.foreground'));
+	const warning = new ThemeIcon('warning', new ThemeColor('problemsWarningIcon.foreground'));
+	const info = new ThemeIcon('info', new ThemeColor('problemsInfoIcon.foreground'));
+
+	if (severity >= 75)   // High, Urgent
+		return error;
+	if (severity >= 50)   // Medium
+		return warning;
+	if (severity >= 0)    // Low, Informational
+		return info;
+	// No severity at all is a warning in both places, which is what every
+	// violation was before severities were mapped.
+	return warning;
 }
 
 
 type Row = { file: File, violation: Violation };
+
+
+/**
+ * A group's rows in the Problems panel's order: worst severity first, then
+ * down the file, then across the line. Sorted on a copy, so the payload the
+ * provider holds is left as it arrived.
+ */
+function orderedRows(rows: Row[]): Row[]
+{
+	return [...rows].sort((a, b) => {
+		const severity = b.violation.severity - a.violation.severity;
+		if (severity !== 0)
+			return severity;
+		const line = a.violation.range.start.line - b.violation.range.start.line;
+		if (line !== 0)
+			return line;
+		return a.violation.range.start.character - b.violation.range.start.character;
+	});
+}
 
 
 export class GroupItem extends TreeItem
@@ -262,16 +303,34 @@ export class ViolationItem extends TreeItem
 
 		// The row says what its group cannot: grouped by file the check and
 		// entity ride in the description, grouped by check the file does.
+		// The place reads the way the Problems panel writes it, down to the
+		// column, so a row can be matched to its problem at a glance.
 		const line = violation.range.start.line + 1;
+		const column = violation.range.start.character + 1;
+		const at = `[Ln ${line}, Col ${column}]`;
 		const where = groupBy === 'file'
-			? `${violation.id}${violation.entity ? ' · ' + violation.entity : ''} · ${line}`
-			: `${basename(file.path)}:${line}${violation.entity ? ' · ' + violation.entity : ''}`;
+			? `${violation.id}${violation.entity ? ' · ' + violation.entity : ''} ${at}`
+			: `${basename(file.path)} ${at}${violation.entity ? ' · ' + violation.entity : ''}`;
 		this.description = where;
-		this.tooltip = `${violation.id} — ${severityName(violation.severity)}\n`
-			+ `${file.path}:${line}`
-			+ (violation.entity ? `\nEntity: ${violation.entity}` : '')
-			+ (notes.length ? `\n${notes.length} other location`
-				+ (notes.length === 1 ? '' : 's') : '');
+
+		// Markdown, so the check id is the link the Problems panel gives it:
+		// there it is the codeDescription href, here the same card opened by
+		// command. A tree row's description cannot hold a link, only its
+		// tooltip can.
+		const tooltip = new MarkdownString(undefined, true);
+		tooltip.isTrusted = true;
+		tooltip.appendMarkdown(isCheckId(violation.id)
+			? `[${escapeMarkdown(violation.id)}](command:understand.checks.show?${
+				encodeURIComponent(JSON.stringify(violation.id))})`
+			: `**${escapeMarkdown(violation.id)}**`);
+		tooltip.appendMarkdown(` — ${severityName(violation.severity)}\n\n`);
+		tooltip.appendMarkdown(`${escapeMarkdown(file.path)} ${at}`);
+		if (violation.entity)
+			tooltip.appendMarkdown(`\n\nEntity: ${escapeMarkdown(violation.entity)}`);
+		if (notes.length)
+			tooltip.appendMarkdown(`\n\n${notes.length} other location`
+				+ (notes.length === 1 ? '' : 's'));
+		this.tooltip = tooltip;
 
 		this.command = openCommand(file.uri, violation.range);
 	}
