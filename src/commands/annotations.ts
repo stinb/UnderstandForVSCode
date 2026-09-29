@@ -87,7 +87,7 @@ export function deleteSelectedAnnotations()
 {
 	const ids = variables.annotationsTreeProvider.selectedIds();
 	if (ids.length === 0) {
-		vscode.window.showInformationMessage('Select an annotation in the Annotation Browser to delete it');
+		vscode.window.showInformationMessage('Select an annotation in the Annotations view to delete it');
 		return Promise.resolve();
 	}
 	return deleteAnnotations(ids);

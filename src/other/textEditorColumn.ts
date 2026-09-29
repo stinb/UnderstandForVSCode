@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
  * Deliberately not the active column. The field editor is a webview panel
  * beside the text, and while it has the focus the active column is its own:
  * opening the file there buries the card behind the file (Rob 2026-09-16 for
- * the Annotation Browser, 2026-09-21 for the Violations view after a check
+ * the Annotations view, 2026-09-21 for the Violations view after a check
  * card). A webview panel is not a text editor, so the text editor columns
  * are the ones the card is not in. The file's own column wins if it already
  * has one, and the leftmost text editor otherwise.

@@ -147,7 +147,7 @@ export function setAnnotations(annotations: AnnotationMark[])
 /**
  * The server's feed for the editor -- understand/annotations/marks: the
  * file-anchored annotations with what the hover shows. Sent whatever the
- * Annotation Browser setting says, so the gutter never depends on a view.
+ * Annotations view setting says, so the gutter never depends on a view.
  */
 export function handleUnderstandAnnotationMarks(params: { annotations: AnnotationMark[] })
 {

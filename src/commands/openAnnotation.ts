@@ -24,7 +24,7 @@ type BrowserRow = {
 
 
 /**
- * Open one annotation, by id: its row selected in the Annotation Browser and
+ * Open one annotation, by id: its row selected in the Annotations view and
  * its card in the field editor -- what a click on the row does. The hover's
  * Open link runs this; the CodeLens and the gutter menu come through here
  * once they have chosen the line's annotation. A selection the extension
@@ -41,7 +41,7 @@ export async function openAnnotation(id?: string)
 
 
 /**
- * A single click on an Annotation Browser row.
+ * A single click on an Annotations view row.
  *
  * Every row goes to its file and line first. The Browser can list a whole
  * project's annotations, so the code an annotation is attached to is the

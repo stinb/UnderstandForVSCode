@@ -18,7 +18,7 @@ import { closeFieldEditorFor } from '../other/fieldEditor';
 import { variables } from '../other/variables';
 
 
-// The Annotation Browser (ext #26): every user annotation in the project —
+// The Annotations view (ext #26): every user annotation in the project —
 // notes and CodeCheck ignores — grouped by file by default and re-groupable
 // by author, template, or date from the same pushed payload. It is the one
 // list of annotations in VS Code; a row opens in the field editor window.
@@ -135,7 +135,7 @@ export class AnnotationTreeProvider implements TreeDataProvider<AnnotationNode>
 					{ select: true, focus: true });
 			} catch {
 				// The view cannot be brought up: its setting has it hidden.
-				window.showInformationMessage('Turn on the Annotation Browser '
+				window.showInformationMessage('Turn on the Annotations view '
 					+ '(understand.annotationBrowser.enabled) to show annotations there.');
 			}
 			return;

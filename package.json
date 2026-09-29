@@ -538,17 +538,17 @@
 					"understand.annotations.enabled": {
 						"type": "boolean",
 						"default": true,
-						"description": "Show annotations in VS Code: the gutter icons and scrollbar marks, the hover and Annotate lens, the Annotation Browser, and the annotation menu items. Off hides all of them without touching the annotations themselves."
+						"description": "Show annotations in VS Code: the gutter icons and scrollbar marks, the hover and Annotate lens, the Annotations view, and the annotation menu items. Off hides all of them without touching the annotations themselves."
 					},
 					"understand.annotations.gutterIcons": {
 						"type": "boolean",
 						"default": true,
-						"description": "Mark annotated lines with an icon in the gutter and on the scrollbar. Off leaves the annotations, the hover and the Annotation Browser in place."
+						"description": "Mark annotated lines with an icon in the gutter and on the scrollbar. Off leaves the annotations, the hover and the Annotations view in place."
 					},
 					"understand.annotationBrowser.enabled": {
 						"type": "boolean",
 						"default": true,
-						"description": "Show the Annotation Browser view, every annotation in the project"
+						"description": "Show the Annotations view, every annotation in the project"
 					},
 					"understand.fileDecorations.enabled": {
 						"type": "boolean",
@@ -1139,7 +1139,7 @@
 				{
 					"icon": "$(comment-unresolved)",
 					"id": "understandAnnotationBrowser",
-					"name": "Annotation Browser",
+					"name": "Annotations",
 					"type": "tree",
 					"visibility": "collapsed",
 					"when": "config.understand.annotations.enabled && config.understand.annotationBrowser.enabled"
