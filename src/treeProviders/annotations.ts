@@ -15,6 +15,7 @@ import {
 } from 'vscode';
 import { annotationTime, attribution, readableBody } from '../other/annotationMarkdown';
 import { closeFieldEditorFor } from '../other/fieldEditor';
+import { pathOf } from '../other/filePath';
 import { variables } from '../other/variables';
 
 
@@ -372,17 +373,6 @@ export function annotationsShowComplete()
 	variables.annotationsTreeProvider.setIncompleteOnly(false);
 }
 
-
-// A file's identity for comparing a row against the active editor. VS Code
-// hands out a Windows drive letter in either case, so the comparison folds
-// case there and is exact everywhere else.
-function pathOf(uri: string | undefined): string
-{
-	if (!uri)
-		return '';
-	const path = decodeURIComponent(Uri.parse(uri).fsPath);
-	return process.platform === 'win32' ? path.toLowerCase() : path;
-}
 
 
 export class AnnotationGroupItem extends TreeItem

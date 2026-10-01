@@ -14,6 +14,7 @@ import {
 	window,
 } from 'vscode';
 import { variables } from '../other/variables';
+import { pathOf } from '../other/filePath';
 import { textEditorColumn } from '../other/textEditorColumn';
 import { isCheckId } from '../types/check';
 import { escapeMarkdown } from '../other/annotationMarkdown';
@@ -25,6 +26,12 @@ import { escapeMarkdown } from '../other/annotationMarkdown';
 // check's own severity and the entity the violation is on.
 export type GroupBy = 'file' | 'check' | 'severity' | 'entity';
 
+// Which violations the view lists: every one in the project, or only those
+// in the file in the active editor, the same switch the Annotations view
+// has (Rob 2026-10-01).
+export type ViolationScope = 'all' | 'file';
+const kScopeContext = 'understand.violationsListScope';
+
 
 export class ViolationTreeProvider implements TreeDataProvider<Node>
 {
@@ -32,6 +39,8 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 	private total = 0;
 	private truncated = false;
 	private groupBy: GroupBy = 'file';
+	private scope: ViolationScope = 'all';
+	private currentFile = '';
 	private emitter = new EventEmitter<void>();
 	private view: TreeView<Node> | undefined;
 
@@ -78,10 +87,7 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 		this.files = params.files;
 		this.total = params.total;
 		this.truncated = params.truncated;
-		if (this.view)
-			this.view.badge = this.total
-				? { value: this.total, tooltip: `${this.total} violations` }
-				: undefined;
+		this.refreshBadge();
 		this.emitter.fire();
 	}
 
@@ -93,13 +99,70 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 	}
 
 
+	setScope(scope: ViolationScope)
+	{
+		this.scope = scope;
+		commands.executeCommand('setContext', kScopeContext, scope);
+		this.refreshBadge();
+		this.emitter.fire();
+	}
+
+
+	/**
+	 * The file in front of the reader changed. Remembered, because while a
+	 * check card in the field editor window has the focus VS Code reports no
+	 * active text editor at all, and the file scope would otherwise go empty
+	 * right after a row click. Only a file-scoped view redraws.
+	 */
+	activeFileChanged()
+	{
+		const uri = window.activeTextEditor?.document.uri;
+		if (uri && uri.scheme === 'file')
+			this.currentFile = pathOf(uri.toString());
+		if (this.scope !== 'file')
+			return;
+		this.refreshBadge();
+		this.emitter.fire();
+	}
+
+
+	// Every file, or only the current one. The current file is the active
+	// text editor's, or the last one shown when no text editor has the
+	// focus. An editor showing something that is not a file -- a diff,
+	// output, settings -- has nothing to list rather than falling back to
+	// the whole project.
+	private visibleFiles(): File[]
+	{
+		if (this.scope !== 'file')
+			return this.files;
+		const editor = window.activeTextEditor;
+		const active = !editor ? this.currentFile
+			: editor.document.uri.scheme === 'file' ? pathOf(editor.document.uri.toString()) : '';
+		return active ? this.files.filter(f => pathOf(f.uri) === active) : [];
+	}
+
+
+	// The count badge on the view header -- the same pill the Explore
+	// Violations webview renders in HTML. The project's total, or the
+	// current file's count while the view is scoped to it.
+	private refreshBadge()
+	{
+		if (!this.view)
+			return;
+		const value = this.scope === 'file'
+			? this.visibleFiles().reduce((n, f) => n + f.violations.length, 0)
+			: this.total;
+		this.view.badge = value ? { value, tooltip: `${value} violations` } : undefined;
+	}
+
+
 	// One flat pass over the pushed payload, bucketed by the current
 	// grouping. Rebuilt on demand: regrouping is a client-side toggle and
 	// must not wait on the server.
 	private groups(): GroupItem[]
 	{
 		const buckets = new Map<string, Row[]>();
-		for (const file of this.files) {
+		for (const file of this.visibleFiles()) {
 			for (const violation of file.violations) {
 				const key = this.keyOf(file, violation);
 				let bucket = buckets.get(key);
@@ -140,7 +203,7 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 			return group;
 		});
 
-		if (this.truncated) {
+		if (this.truncated && this.scope === 'all') {
 			const notice = new GroupItem(
 				`Showing a subset — ${this.total} violations in the project`, []);
 			notice.collapsibleState = TreeItemCollapsibleState.None;
@@ -187,6 +250,18 @@ export async function violationsGroupBy()
 		{ placeHolder: 'Group violations by' });
 	if (picked)
 		variables.violationsListProvider.setGroupBy(picked.value);
+}
+
+
+export function violationsShowAllFiles()
+{
+	variables.violationsListProvider.setScope('all');
+}
+
+
+export function violationsShowCurrentFile()
+{
+	variables.violationsListProvider.setScope('file');
 }
 
 
