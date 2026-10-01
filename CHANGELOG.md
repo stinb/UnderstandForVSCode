@@ -1,6 +1,13 @@
 # Change Log
 
 # [Unreleased]
+
+# [1.3.0] - 2026 Sep 29
+- Change: removing an excluded path says that the next analysis brings the queued files' violations back, since removing the exclusion alone cannot
+- Change: Edit CodeCheck Excluded Paths refuses a typed path that could never match — a doubled separator, or nothing under it in the project — and says why
+- Change: excluding a path that is already excluded says that nothing changed
+- Add: Show CodeCheck Configuration... in the Violations view's title bar and the palette picks one of the project's configurations and opens it as a card in the field editor window — how it runs, the paths it excludes, and every check it runs with the severity it sets; a check row opens that check's card, and a check card's "Runs in" line opens the configuration's
+- Add: the Violations view's title bar has the same filter button as the Annotations view: show only the current file's violations, or every file's; the count badge follows it
 - Add: `understand.hover` sets the text the hover shows for a kind of entity in place of the declaration Understand writes, keyed by kind filter and written with `{name}`, `{longname}`, `{kind}`, `{type}`, `{parameters}` and `{value}` (#3)
 - Add: a file the checks skip is badged `X` in the Explorer, on its editor tab and in Open Editors, with a tooltip naming the configurations that exclude it
 - Change: an excluded path is matched with either slash, written as a full path as well as a project-relative one, and only where a whole path component ends, so excluding `Searches` no longer takes `Searches_old` with it
@@ -20,8 +27,7 @@
 - Change: an annotation's time is shown along with its date, the way Understand shows it — the Browser's tooltip, the hover and the field editor's card all read "author — when", and the Browser's Date groups are still one per day (#26)
 - Fix: an attachment in an annotation's hover is a link that opens it, instead of the marker Understand stores it as; a Browser row and the gutter menu read the same attachment as "Image: name" (#26)
 - Change: the note box belongs to a plain note; a templated annotation shows its fields and the Metadata its template stamps, and picking a template on a draft drops a note typed first, saying so (#26)
-- Change: the Checks view is gone; a violation's check opens as a card in the field editor window — from the Violations row's book button or menu, the lightbulb, or the check-id link in the Problems panel and hover — with its description and, per configuration, its severity and the options as set
-- Change: the `understand.checksView.enabled` setting is removed with the view
+- Add: a violation's check opens as a card in the field editor window — from the Violations row's book button or menu, the lightbulb, or the check-id link in the Problems panel and hover — with its description and, per configuration, its severity and the options as set (#39)
 - Add: `understand.annotations.gutterIcons` hides the gutter icons and scrollbar marks while keeping the annotations, their hover, the Annotate lens and the Browser; `understand.annotations.enabled` turns the whole annotation surface off, gutter icons included
 - Add: a new annotation's form shows the Metadata its template will stamp, labelled "Metadata (updated and added on Create)" and expanded for the line it is anchored to
 - Change: Create keeps the field editor open and moves it to the new annotation's card, the way Save does; a refused Create leaves the draft up with what was typed
@@ -36,11 +42,8 @@
 - Change: a template's Metadata is read-only always: it is stamped at the head of every annotation created from VS Code, note or no note; the card and the form show it in a block of its own above the note, and Save sends the note alone, so an edit can never change or drop the stamp
 - Add: an ignored violation's annotation reads yellow — its Browser row and icon, its gutter icon and its scrollbar mark (`understand.annotationRulerIgnore`); a missing required field still reads red
 - Change: the quick fixes are named the same way: "Ignore <check>" stores an annotation with a template (formerly "Ignore <check> with Details..."), "Ignore <check> Inline" writes the UndCC_Line comment (formerly "Ignore <check>")
-
-# [1.1.7] - 2026 Aug 26
 - Add: license code setting for containers and other environments, with optional deregister on exit (#27)
 - Add: file status on the status bar — in project, analyzed, or needs analysis (#6)
-- Add: Checks view listing the configured CodeCheck configs and their checks; click a check for its detailed description (#39)
 - Fix: AI Overview spacing, button tooltips, spinner stuck after a failed generation, and a misleading "manually disabled" error when the AI provider is unreachable
 
 # [1.1.6] - 2026 Jun 5
