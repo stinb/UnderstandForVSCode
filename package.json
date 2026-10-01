@@ -82,7 +82,7 @@
 			},
 			{
 				"view": "understandViolationsList",
-				"contents": "Every violation the background CodeChecks found in the project, grouped by file, check, severity, or entity.\nAnalyze the project to fill it, and use Group Violations By... in this view's title bar to regroup."
+				"contents": "Every violation the background CodeChecks found in the project, grouped by file, check, severity, or entity.\nAnalyze the project to fill it, use Group Violations By... in this view's title bar to regroup, and the filter button to show only the current file's."
 			}
 		],
 		"jsonValidation": [
@@ -129,6 +129,18 @@
 				"title": "Group Violations By...",
 				"category": "Understand: Violations",
 				"icon": "$(group-by-ref-type)"
+			},
+			{
+				"command": "understand.violations.showCurrentFile",
+				"title": "Show Only This File's Violations",
+				"category": "Understand: Violations",
+				"icon": "$(filter)"
+			},
+			{
+				"command": "understand.violations.showAllFiles",
+				"title": "Show Every File's Violations",
+				"category": "Understand: Violations",
+				"icon": "$(filter-filled)"
 			},
 			{
 				"command": "understand.ai.editProviderSettings",
@@ -501,6 +513,12 @@
 				"title": "Show Check",
 				"category": "Understand: Violations",
 				"icon": "$(book)"
+			},
+			{
+				"command": "understand.checks.showConfiguration",
+				"title": "Show CodeCheck Configuration...",
+				"category": "Understand: Violations",
+				"icon": "$(checklist)"
 			}
 		],
 		"configuration": [
@@ -1005,12 +1023,26 @@
 					"group": "navigation@4"
 				},
 				{
+					"command": "understand.violations.showCurrentFile",
+					"when": "view == understandViolationsList && understand.violationsListScope != file",
+					"group": "navigation@1"
+				},
+				{
+					"command": "understand.violations.showAllFiles",
+					"when": "view == understandViolationsList && understand.violationsListScope == file",
+					"group": "navigation@1"
+				},
+				{
 					"command": "understand.violations.groupBy",
 					"when": "view == understandViolationsList",
-					"group": "navigation"
+					"group": "navigation@2"
 				},
 				{
 					"command": "understand.violations.editExcludedPaths",
+					"when": "view == understandViolationsList"
+				},
+				{
+					"command": "understand.checks.showConfiguration",
 					"when": "view == understandViolationsList"
 				},
 				{

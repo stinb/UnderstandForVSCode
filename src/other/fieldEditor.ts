@@ -4,7 +4,7 @@ import { openAnnotation, showLocation } from '../commands/openAnnotation';
 import { escapeHtml } from './html';
 import { variables } from './variables';
 import { AnnotationMessageFromSandbox, AnnotationTemplate, FormAnchor, FormMessage, FormSaveMessage } from '../types/annotation';
-import { CheckMessage } from '../types/check';
+import { CheckMessage, ConfigurationMessage } from '../types/check';
 
 
 /**
@@ -15,11 +15,13 @@ import { CheckMessage } from '../types/check';
  * calls for, and the window then shows the annotation's card -- the one just
  * made, or the one saved; Cancel, Escape and closing the tab close it. The
  * same window shows a check card (a violation's check, read-only) when
- * handed a check message.
+ * handed a check message, or a configuration card when handed a
+ * configuration message.
  */
 
-// What the window shows: an annotation's form or card, or a check card.
-export type PanelMessage = FormMessage | CheckMessage;
+// What the window shows: an annotation's form or card, a check card, or a
+// configuration card.
+export type PanelMessage = FormMessage | CheckMessage | ConfigurationMessage;
 
 // The window, and the form it is on: the webview is answered with the form it
 // is showing now rather than the one the window opened with, and the two are
@@ -112,6 +114,15 @@ export function openFieldEditor(message: PanelMessage)
 			case 'open':
 				// The file name on the card's location line.
 				showLocation(received.uri, received.line, received.character);
+				break;
+			case 'showCheck':
+				// A check row on a configuration card.
+				vscode.commands.executeCommand('understand.checks.show',
+					{ checkId: received.id, fromConfiguration: received.from });
+				break;
+			case 'showConfiguration':
+				// A "Runs in" title on a check card.
+				vscode.commands.executeCommand('understand.checks.showConfiguration', received.name);
 				break;
 			case 'error':
 				vscode.window.showErrorMessage(received.body);

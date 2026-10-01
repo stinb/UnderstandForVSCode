@@ -289,6 +289,35 @@ body.popup > div {
 	border-top: 1px solid var(--vscode-widget-border, var(--vscode-editorWidget-border));
 }
 
+/* A link from one read-only card to another: a check's configuration, a
+   configuration's check. */
+.checkCard .cardLink {
+	color: var(--vscode-textLink-foreground);
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.checkCard .cardLink:hover,
+.checkCard .cardLink:focus {
+	text-decoration: underline;
+}
+
+.configCard .checkRow .checkDetail {
+	opacity: 0.7;
+	font-size: 0.92em;
+}
+
+/* The way back from a check card to the configuration card it was opened from. */
+.checkCard .cardBack {
+	margin: 0 0 4px;
+	font-size: 0.92em;
+}
+
+.checkCard .cardBack .codicon {
+	font-size: 0.9em;
+	vertical-align: -0.1em;
+}
+
 .form {
 	display: flex;
 	flex-direction: column;

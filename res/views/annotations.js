@@ -423,6 +423,9 @@ function handleMessageEvent(event)
 		case 'check':
 			renderCheckCard(message);
 			break;
+		case 'configuration':
+			renderConfigurationCard(message);
+			break;
 		case 'edit': {
 			if (!message.id)
 				break;
@@ -1083,6 +1086,18 @@ function renderCheckCard(message)
 	card.className = 'annotation readonly checkCard';
 	card.tabIndex = 0;
 
+	// Opened from a configuration's card: the way back sits above the name,
+	// where the reader lands, rather than only in the "Runs in" block below.
+	if (message.from) {
+		const back = document.createElement('p');
+		back.className = 'cardBack';
+		const arrow = document.createElement('span');
+		arrow.className = 'codicon codicon-arrow-left';
+		back.append(arrow, ' ', cardLink(message.from, () =>
+			vscode.postMessage({ method: 'showConfiguration', name: message.from })));
+		card.append(back);
+	}
+
 	const header = document.createElement('div');
 	header.className = 'cardHeader';
 	const p = document.createElement('p');
@@ -1104,9 +1119,13 @@ function renderCheckCard(message)
 	for (const config of configs) {
 		const section = document.createElement('div');
 		section.className = 'template checkConfig';
+		// The configuration's name is the way to its card.
 		const title = document.createElement('p');
 		title.className = 'templateName';
-		title.textContent = `Runs in ${config.name}${config.automatic ? ' (in the background)' : ''}`;
+		title.append('Runs in ', cardLink(config.name, () =>
+			vscode.postMessage({ method: 'showConfiguration', name: config.name })));
+		if (config.automatic)
+			title.append(' (in the background)');
 		section.append(title);
 		section.append(cardRow('Severity', severityText(config.severity)));
 		for (const option of config.options || [])
@@ -1125,6 +1144,96 @@ function renderCheckCard(message)
 	if (check.description)
 		appendMarkdown(body, check.description, true);
 	card.append(body);
+
+	const list = document.body.querySelector('div');
+	(list || document.body).prepend(card);
+	card.focus();
+}
+
+
+/**
+ * A link on a read-only card, to another card: a configuration from a
+ * check, a check from a configuration. Reached by keyboard like a button.
+ * @param {string} text
+ * @param {() => void} go
+ */
+function cardLink(text, go)
+{
+	const link = document.createElement('a');
+	link.className = 'cardLink';
+	link.href = '#';
+	link.textContent = text;
+	link.onclick = event => { event.preventDefault(); go(); };
+	return link;
+}
+
+
+/**
+ * A configuration's card: the read-only face of a CodeCheck configuration,
+ * in the field editor window (Rob 2026-10-01). The name, then how it runs
+ * and what it skips, then one row per check it runs -- the name as a link
+ * to the check's card, the id, the severity this configuration gives it, and
+ * how many of its options the configuration has changed from the check's
+ * defaults. Nothing here edits anything: the configuration is Understand's.
+ * @param {any} message
+ */
+function renderConfigurationCard(message)
+{
+	clearForms();
+	const configuration = message.configuration;
+
+	const card = document.createElement('div');
+	card.className = 'annotation readonly checkCard configCard';
+	card.tabIndex = 0;
+
+	const header = document.createElement('div');
+	header.className = 'cardHeader';
+	const p = document.createElement('p');
+	const b = document.createElement('b');
+	b.textContent = configuration.name;
+	p.append(b);
+	header.append(p);
+	card.append(header);
+
+	const about = document.createElement('div');
+	about.className = 'template';
+	about.append(cardRow('Runs', configuration.automatic ? 'In the background' : 'On demand'));
+	const excludes = configuration.excludes || [];
+	if (excludes.length)
+		about.append(cardRow('Excludes', excludes.join(', ')));
+	card.append(about);
+
+	const checks = (configuration.checks || []).slice()
+		.sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+	const section = document.createElement('div');
+	section.className = 'template checkConfig';
+	const title = document.createElement('p');
+	title.className = 'templateName';
+	title.textContent = `${checks.length} ${checks.length === 1 ? 'check' : 'checks'}`;
+	section.append(title);
+	for (const check of checks) {
+		const options = check.options || [];
+		const changed = options.filter(o => JSON.stringify(o.value) !== JSON.stringify(o.default)).length;
+		const detail = document.createElement('span');
+		detail.className = 'checkDetail';
+		const parts = [check.id, severityText(check.severity)];
+		if (changed)
+			parts.push(`${changed} ${changed === 1 ? 'option' : 'options'} set`);
+		detail.textContent = parts.join(' · ');
+		const row = document.createElement('p');
+		row.className = 'field checkRow';
+		row.append(cardLink(check.name, () => vscode.postMessage(
+				{ method: 'showCheck', id: check.id, from: configuration.name })),
+			' ', detail);
+		section.append(row);
+	}
+	if (!checks.length) {
+		const none = document.createElement('p');
+		none.className = 'field';
+		none.textContent = 'No checks';
+		section.append(none);
+	}
+	card.append(section);
 
 	const list = document.body.querySelector('div');
 	(list || document.body).prepend(card);

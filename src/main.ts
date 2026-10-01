@@ -29,7 +29,8 @@ import { AnnotationTreeProvider, AnnotationRowDecorations, annotationsGroupBy, a
 import { ignoreViolationWithDetails } from './commands/ignoreTemplates';
 import { ignoreInline, ignoreWithAnnotation } from './commands/ignoreViolation';
 import { InfoTreeProvider } from './treeProviders/info';
-import { ViolationTreeProvider, openViolation, violationsGroupBy } from './treeProviders/violations';
+import { ViolationTreeProvider, openViolation, violationsGroupBy, violationsShowAllFiles, violationsShowCurrentFile } from './treeProviders/violations';
+import { showConfiguration } from './commands/showConfiguration';
 import { GraphProvider } from './other/graphProvider';
 import { GraphTreeProvider } from './treeProviders/graphs';
 import { MetricTreeProvider } from './treeProviders/metrics';
@@ -88,6 +89,9 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.annotations.openFieldFromBrowser', openFieldFromBrowser),
 		vscode.commands.registerCommand('understand.ignoreViolationWithDetails', ignoreViolationWithDetails),
 		vscode.commands.registerCommand('understand.violations.groupBy', violationsGroupBy),
+		vscode.commands.registerCommand('understand.checks.showConfiguration', showConfiguration),
+		vscode.commands.registerCommand('understand.violations.showAllFiles', violationsShowAllFiles),
+		vscode.commands.registerCommand('understand.violations.showCurrentFile', violationsShowCurrentFile),
 		vscode.commands.registerCommand('understand.violations.openCodeCheckConfiguration', violations.openCodeCheckConfiguration),
 		vscode.commands.registerCommand('understand.violations.excludeFromCodeCheck', violations.excludeFromCodeCheck),
 		vscode.commands.registerCommand('understand.violations.excludeFolderFromCodeCheck', violations.excludeFolderFromCodeCheck),
@@ -220,6 +224,7 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.window.onDidChangeActiveTextEditor(() => {
 			variables.annotateCodeLensProvider.refresh();
 			variables.annotationsTreeProvider.activeFileChanged();
+			variables.violationsListProvider.activeFileChanged();
 		}),
 		// The annotation switches (understand.annotations.enabled, .gutterIcons)
 		// take effect at once: marks redrawn, the lens re-asked.

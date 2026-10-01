@@ -1,3 +1,4 @@
+import { ShowCheckMessage, ShowConfigurationMessage } from './check';
 export type FieldValues = { [key: string]: string | string[] };
 
 // A template as the server describes it: the fields the field editor renders
@@ -223,5 +224,5 @@ export type StartedEditingMessage = {
 	method: 'startedEditing',
 };
 
-export type AnnotationMessageFromSandbox = DeleteMessage | ErrorMessage | FinishedEditingMessage | FormCancelMessage | FormSaveMessage | GenerateManyMessage | OpenMediaMessage | OpenMessage | ReadyMessage | RegenerateMessage | StartChatMessage | StartedEditingMessage;
+export type AnnotationMessageFromSandbox = DeleteMessage | ErrorMessage | FinishedEditingMessage | FormCancelMessage | FormSaveMessage | GenerateManyMessage | OpenMediaMessage | OpenMessage | ReadyMessage | RegenerateMessage | ShowCheckMessage | ShowConfigurationMessage | StartChatMessage | StartedEditingMessage;
 export type AnnotationMessageToSandbox = AiClearMessage | AiErrorMessage | AiTextMessage | AiTextEndMessage | DrawAiMessage | EditMessage | FormMessage | RevealMessage;

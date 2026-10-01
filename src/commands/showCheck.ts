@@ -15,11 +15,13 @@ import { CheckInfo, isCheckId } from '../types/check';
  * One command, `understand.checks.show`, behind every way in: the Violations
  * row's inline button and menu item hand over the row, the lightbulb and the
  * check-id links VS Code puts in the Problems panel and the diagnostic hover
- * hand over the id.
+ * hand over the id, and a configuration card's check row hands over the id
+ * with the configuration's name, so the card can offer a way back.
  */
-export async function showCheck(arg?: string | { checkId?: string })
+export async function showCheck(arg?: string | { checkId?: string, fromConfiguration?: string })
 {
 	const id = typeof arg === 'string' ? arg : arg?.checkId;
+	const from = typeof arg === 'object' ? arg?.fromConfiguration : undefined;
 	if (!id) {
 		vscode.window.showErrorMessage('Select a violation to show its check');
 		return;
@@ -36,7 +38,7 @@ export async function showCheck(arg?: string | { checkId?: string })
 			? error.message : `Failed to load the check ${id}`);
 		return;
 	}
-	openFieldEditor({ method: 'check', title: check.name, check });
+	openFieldEditor({ method: 'check', title: check.name, check, ...(from ? { from } : {}) });
 }
 
 
