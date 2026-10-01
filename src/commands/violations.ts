@@ -213,12 +213,17 @@ async function excludePath(fsPath: string)
 	const config = await pickConfig();
 	if (!config)
 		return;
-	await executeCommand('understand.server.violations.exclude', [{
+	const answer = await executeCommand('understand.server.violations.exclude', [{
 		config: config.json.name,
 		path: fsPath,
 	}]);
 	invalidateFileDecorations();
 	const name = fsPath.replace(/\\/g, '/').split('/').pop();
+	if (answer?.alreadyExcluded) {
+		vscode.window.showInformationMessage(
+			`"${name}" was already excluded from ${config.json.name} — nothing changed`);
+		return;
+	}
 	vscode.window.showInformationMessage(
 		`Excluded "${name}" from ${config.json.name} — its stored violations are removed, and new runs skip it`);
 }
@@ -301,13 +306,24 @@ export async function editExcludedPaths()
 		});
 		if (!prefix)
 			return;
-		await executeCommand('understand.server.violations.exclude', [{
-			config: config.json.name,
-			prefix: prefix.trim(),
-		}]);
+		// The server refuses a prefix that could never match -- a doubled
+		// separator, or nothing under it in the project -- and says why;
+		// it also says when the entry was already there (sti #3508 7.1, 9).
+		let answer;
+		try {
+			answer = await executeCommand('understand.server.violations.exclude', [{
+				config: config.json.name,
+				prefix: prefix.trim(),
+			}]);
+		} catch (error) {
+			vscode.window.showWarningMessage(error instanceof Error
+				? error.message : `"${prefix.trim()}" could not be excluded`);
+			return;
+		}
 		invalidateFileDecorations();
-		vscode.window.showInformationMessage(
-			`Excluded "${prefix.trim()}" from ${config.json.name}`);
+		vscode.window.showInformationMessage(answer?.alreadyExcluded
+			? `"${prefix.trim()}" was already excluded from ${config.json.name} — nothing changed`
+			: `Excluded "${prefix.trim()}" from ${config.json.name}`);
 		return;
 	}
 
@@ -322,9 +338,11 @@ export async function editExcludedPaths()
 
 	const freed: string[] = answer?.files ?? [];
 	const analyze = 'Analyze Changed Files';
+	// Removing an exclusion cannot restore violations by itself: the files
+	// are unchanged on disk, so only an analysis re-checks them (sti #3508 1.6).
 	const chosen = await vscode.window.showInformationMessage(
 		freed.length
-			? `"${prefix}" is no longer excluded from ${config.json.name} — ${freed.length} file(s) are queued to be checked again`
+			? `"${prefix}" is no longer excluded from ${config.json.name} — ${freed.length} file(s) are queued; the next analysis brings their violations back`
 			: `"${prefix}" is no longer excluded from ${config.json.name}`,
 		analyze);
 	if (chosen === analyze)
