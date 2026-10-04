@@ -221,7 +221,7 @@ async function excludePath(fsPath: string)
 	const name = fsPath.replace(/\\/g, '/').split('/').pop();
 	if (answer?.alreadyExcluded) {
 		vscode.window.showInformationMessage(
-			`"${name}" was already excluded from ${config.json.name} — nothing changed`);
+			`"${name}" was already excluded from ${config.json.name}${coveredBy(answer, name ?? '')} — nothing changed`);
 		return;
 	}
 	vscode.window.showInformationMessage(
@@ -282,6 +282,16 @@ export async function excludeFolderFromCodeCheck(resource?: vscode.Uri | { fileP
 
 /** Palette command: list, add, and remove excluded path prefixes without
  * opening the JSON (sti #3508). */
+/** " by <entry>" when the server named the stored entry that already covers
+ * the path and it is not the path itself: a folder over a file, or the same
+ * file in another spelling. */
+function coveredBy(answer: { prefix?: string } | undefined, asked: string): string
+{
+	const entry = answer?.prefix;
+	return entry && entry !== asked ? ` by "${entry}"` : '';
+}
+
+
 export async function editExcludedPaths()
 {
 	const config = await pickConfig();
@@ -322,7 +332,7 @@ export async function editExcludedPaths()
 		}
 		invalidateFileDecorations();
 		vscode.window.showInformationMessage(answer?.alreadyExcluded
-			? `"${prefix.trim()}" was already excluded from ${config.json.name} — nothing changed`
+			? `"${prefix.trim()}" was already excluded from ${config.json.name}${coveredBy(answer, prefix.trim())} — nothing changed`
 			: `Excluded "${prefix.trim()}" from ${config.json.name}`);
 		return;
 	}
@@ -337,13 +347,20 @@ export async function editExcludedPaths()
 	invalidateFileDecorations();
 
 	const freed: string[] = answer?.files ?? [];
+	if (!freed.length) {
+		// Nothing to analyze: either the entry hid no file, or another entry
+		// still covers everything it did and the files stay excluded.
+		const keptBy: string | undefined = answer?.keptBy;
+		vscode.window.showInformationMessage(keptBy
+			? `Removed "${prefix}" from ${config.json.name}, but "${keptBy}" still excludes the same files — nothing changes until that entry is removed too`
+			: `"${prefix}" is no longer excluded from ${config.json.name}`);
+		return;
+	}
 	const analyze = 'Analyze Changed Files';
 	// Removing an exclusion cannot restore violations by itself: the files
 	// are unchanged on disk, so only an analysis re-checks them (sti #3508 1.6).
 	const chosen = await vscode.window.showInformationMessage(
-		freed.length
-			? `"${prefix}" is no longer excluded from ${config.json.name} — ${freed.length} file(s) are queued; the next analysis brings their violations back`
-			: `"${prefix}" is no longer excluded from ${config.json.name}`,
+		`"${prefix}" is no longer excluded from ${config.json.name} — ${freed.length} file(s) are queued; the next analysis brings their violations back`,
 		analyze);
 	if (chosen === analyze)
 		executeCommand('understand.server.analysis.analyzeChangedFiles');

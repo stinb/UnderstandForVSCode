@@ -3,6 +3,8 @@
 # [Unreleased]
 
 # [1.3.0] - 2026 Sep 29
+- Fix: an inspection synced with Understand's eye button counts in the Violations view on the next analysis, including a result run after the project opened, without reopening (sti #3508)
+- Change: excluding a path that another entry already covers says so and names that entry, and removing an entry while another still covers its files says the files stay excluded instead of offering an analysis (sti #3508)
 - Change: removing an excluded path says that the next analysis brings the queued files' violations back, since removing the exclusion alone cannot
 - Change: Edit CodeCheck Excluded Paths refuses a typed path that could never match — a doubled separator, or nothing under it in the project — and says why
 - Change: excluding a path that is already excluded says that nothing changed
