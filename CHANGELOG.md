@@ -3,6 +3,7 @@
 # [Unreleased]
 
 # [1.3.0] - 2026 Sep 29
+- Add: Synced Inspections... in the Violations view's menu and the palette picks which CodeCheck results the view shows, apart from the ones Understand's eye button syncs; each row says what Understand's eye does, the view's header counts the results that differ, and Follow Understand clears the difference
 - Fix: an inspection synced with Understand's eye button counts in the Violations view on the next analysis, including a result run after the project opened, without reopening (sti #3508)
 - Change: excluding a path that another entry already covers says so and names that entry, and removing an entry while another still covers its files says the files stay excluded instead of offering an analysis (sti #3508)
 - Change: removing an excluded path says that the next analysis brings the queued files' violations back, since removing the exclusion alone cannot

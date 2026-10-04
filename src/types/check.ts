@@ -58,6 +58,20 @@ export type ConfigurationSummary = {
 	excludes: string[],
 };
 
+// One CodeCheck result, as understand/inspections lists it: a project
+// result's file name or an outside file's path, and whether Understand's
+// eye button has it synced into the project inspection.
+export type InspectionSummary = {
+	id: string,
+	name: string,
+	configuration: string,
+	start: string,
+	violations: number,
+	errors: number,
+	aborted: boolean,
+	synced: boolean,
+};
+
 // One check as a configuration runs it, as understand/configuration lists it.
 export type ConfigurationCheck = {
 	id: string,
