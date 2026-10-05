@@ -230,7 +230,7 @@
 				"command": "understand.annotations.deleteSelected",
 				"title": "Delete Selected Annotations",
 				"category": "Understand: Annotations",
-				"icon": "$(diff-removed)",
+				"icon": "$(trash)",
 				"enablement": "understand.annotationBrowserSelected"
 			},
 			{
