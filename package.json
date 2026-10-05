@@ -521,7 +521,7 @@
 			},
 			{
 				"command": "understand.checks.showConfiguration",
-				"title": "Show CodeCheck Configuration...",
+				"title": "Show CodeCheck Configuration Checks",
 				"category": "Understand: Violations",
 				"icon": "$(checklist)"
 			}

@@ -9,7 +9,7 @@
 - Change: removing an excluded path says that the next analysis brings the queued files' violations back, since removing the exclusion alone cannot
 - Change: Edit CodeCheck Excluded Paths refuses a typed path that could never match — a doubled separator, or nothing under it in the project — and says why
 - Change: excluding a path that is already excluded says that nothing changed
-- Add: Show CodeCheck Configuration... in the Violations view's title bar and the palette picks one of the project's configurations and opens it as a card in the field editor window — how it runs, the paths it excludes, and every check it runs with the severity it sets; a check row opens that check's card, and a check card's "Runs in" line opens the configuration's
+- Add: Show CodeCheck Configuration Checks in the Violations view's title bar and the palette picks one of the project's configurations and opens it as a card in the field editor window — how it runs, the paths it excludes, and every check it runs with the severity it sets; a check row opens that check's card, and a check card's "Runs in" line opens the configuration's
 - Add: the Violations view's title bar has the same filter button as the Annotations view: show only the current file's violations, or every file's; the count badge follows it
 - Add: `understand.hover` sets the text the hover shows for a kind of entity in place of the declaration Understand writes, keyed by kind filter and written with `{name}`, `{longname}`, `{kind}`, `{type}`, `{parameters}` and `{value}` (#3)
 - Add: a file the checks skip is badged `X` in the Explorer, on its editor tab and in Open Editors, with a tooltip naming the configurations that exclude it
