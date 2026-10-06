@@ -4,7 +4,6 @@ import {
 	EventEmitter,
 	MarkdownString,
 	Range,
-	ThemeColor,
 	ThemeIcon,
 	TreeDataProvider,
 	TreeItem,
@@ -296,31 +295,6 @@ function severityName(severity: number): string
 }
 
 
-function severityIcon(severity: number): ThemeIcon
-{
-	// The thresholds the diagnostics use (userver helpers/json.cpp), so one
-	// severity reads the same here and in the Problems panel. Low used to
-	// take the warning icon here and the information icon there.
-	//
-	// The colours are the Problems panel's own tokens rather than a colour
-	// picked to look like them, so the two match in every theme, including
-	// one that recolours problems.
-	const error = new ThemeIcon('error', new ThemeColor('problemsErrorIcon.foreground'));
-	const warning = new ThemeIcon('warning', new ThemeColor('problemsWarningIcon.foreground'));
-	const info = new ThemeIcon('info', new ThemeColor('problemsInfoIcon.foreground'));
-
-	if (severity >= 75)   // High, Urgent
-		return error;
-	if (severity >= 50)   // Medium
-		return warning;
-	if (severity >= 0)    // Low, Informational
-		return info;
-	// No severity at all is a warning in both places, which is what every
-	// violation was before severities were mapped.
-	return warning;
-}
-
-
 type Row = { file: File, violation: Violation };
 
 
@@ -388,7 +362,6 @@ export class ViolationItem extends TreeItem
 		// A parse error or warning is listed like a violation but has no check
 		// behind it, so its row offers no Show Check.
 		this.contextValue = isCheckId(violation.id) ? 'understandViolation' : 'understandViolationParse';
-		this.iconPath = severityIcon(violation.severity);
 
 		// The row says what its group cannot: grouped by file the check and
 		// entity ride in the description, grouped by check the file does.
