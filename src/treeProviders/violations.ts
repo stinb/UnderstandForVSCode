@@ -11,7 +11,6 @@ import {
 	TreeView,
 	Uri,
 	window,
-	workspace,
 } from 'vscode';
 import { variables } from '../other/variables';
 import { pathOf } from '../other/filePath';
@@ -52,19 +51,6 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 	attach(view: TreeView<Node>)
 	{
 		this.view = view;
-	}
-
-
-	// How many results the view shows differently from Understand's synced
-	// set (the Synced Inspections picker), said in the header so a count
-	// that differs from Understand's is never a surprise.
-	refreshOverrideNote()
-	{
-		const overrides = workspace.getConfiguration('understand.violationsView')
-			.get<Record<string, boolean>>('syncedInspections') ?? {};
-		const count = Object.keys(overrides).length;
-		if (this.view)
-			this.view.description = count ? `${count} overridden` : undefined;
 	}
 
 

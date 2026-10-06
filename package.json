@@ -119,11 +119,6 @@
 				"category": "Understand: Violations"
 			},
 			{
-				"command": "understand.violations.syncedInspections",
-				"title": "Synced Inspections...",
-				"category": "Understand: Violations"
-			},
-			{
 				"command": "understand.violations.groupBy",
 				"title": "Group Violations By...",
 				"category": "Understand: Violations",
@@ -576,14 +571,6 @@
 						"type": "boolean",
 						"default": true,
 						"description": "Show content of the Violations view"
-					},
-					"understand.violationsView.syncedInspections": {
-						"type": "object",
-						"additionalProperties": {
-							"type": "boolean"
-						},
-						"default": {},
-						"markdownDescription": "CodeCheck results the Violations view shows in addition to (`true`) or instead of (`false`) the ones Understand's eye button syncs, by result name. Set from **Understand: Violations: Synced Inspections...**; empty means the view follows Understand."
 					},
 					"understand.files.watch": {
 						"type": "string",
@@ -1046,10 +1033,6 @@
 				},
 				{
 					"command": "understand.violations.editExcludedPaths",
-					"when": "view == understandViolationsList"
-				},
-				{
-					"command": "understand.violations.syncedInspections",
 					"when": "view == understandViolationsList"
 				},
 				{

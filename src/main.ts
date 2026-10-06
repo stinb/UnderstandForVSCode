@@ -31,7 +31,6 @@ import { ignoreInline, ignoreWithAnnotation } from './commands/ignoreViolation';
 import { InfoTreeProvider } from './treeProviders/info';
 import { ViolationTreeProvider, openViolation, violationsGroupBy, violationsShowAllFiles, violationsShowCurrentFile } from './treeProviders/violations';
 import { showConfiguration } from './commands/showConfiguration';
-import { syncedInspections } from './commands/syncedInspections';
 import { GraphProvider } from './other/graphProvider';
 import { GraphTreeProvider } from './treeProviders/graphs';
 import { MetricTreeProvider } from './treeProviders/metrics';
@@ -96,7 +95,6 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.violations.excludeFromCodeCheck', violations.excludeFromCodeCheck),
 		vscode.commands.registerCommand('understand.violations.excludeFolderFromCodeCheck', violations.excludeFolderFromCodeCheck),
 		vscode.commands.registerCommand('understand.violations.editExcludedPaths', violations.editExcludedPaths),
-		vscode.commands.registerCommand('understand.violations.syncedInspections', syncedInspections),
 		vscode.commands.registerCommand('understand.analysis.analyzeCurrentFile', analysis.analyzeCurrentFile),
 		vscode.commands.registerCommand('understand.analysis.stopAnalyzingFiles', analysis.stopAnalyzingFiles),
 
@@ -190,7 +188,6 @@ export async function activate(context: vscode.ExtensionContext)
 		(() => {
 			const view = vscode.window.createTreeView('understandViolationsList', { treeDataProvider: variables.violationsListProvider });
 			variables.violationsListProvider.attach(view);
-			variables.violationsListProvider.refreshOverrideNote();
 			return view;
 		})(),
 		(() => {
@@ -235,8 +232,6 @@ export async function activate(context: vscode.ExtensionContext)
 				refreshAnnotationDecorations();
 				variables.annotateCodeLensProvider.refresh();
 			}
-			if (event.affectsConfiguration('understand.violationsView.syncedInspections'))
-				variables.violationsListProvider.refreshOverrideNote();
 		}),
 		vscode.commands.registerCommand('understand.annotateLine', annotateLine),
 		// The gutter's right-click menu: the line comes with the click.
