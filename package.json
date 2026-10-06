@@ -104,12 +104,6 @@
 				"category": "Understand: Violations"
 			},
 			{
-				"command": "understand.violations.openCodeCheckConfiguration",
-				"title": "Open CodeCheck Configuration",
-				"category": "Understand: Violations",
-				"icon": "$(gear)"
-			},
-			{
 				"command": "understand.violations.excludeFromCodeCheck",
 				"title": "Exclude from CodeCheck",
 				"category": "Understand: Violations"
@@ -1060,10 +1054,6 @@
 				},
 				{
 					"command": "understand.checks.showConfiguration",
-					"when": "view == understandViolationsList"
-				},
-				{
-					"command": "understand.violations.openCodeCheckConfiguration",
 					"when": "view == understandViolationsList"
 				},
 				{

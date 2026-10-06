@@ -168,26 +168,6 @@ export function onConfigurationSaved(document: vscode.TextDocument)
 }
 
 
-/** Open a CodeCheck configuration JSON in the editor -- the power-user way
- * to edit "excludes" and the rest (sti #3508). A schema contribution gives
- * completions and hover docs; a saved change takes effect on the next
- * analysis because the engine re-reads configurations from disk. */
-export async function openCodeCheckConfiguration()
-{
-	const files = await listConfigFiles();
-	if (!files)
-		return;
-	const picked = files.length === 1 ? files[0] : await (async () => {
-		const name = await vscode.window.showQuickPick(
-			files.map(f => f.path.split('/').pop() || ''),
-			{ placeHolder: 'CodeCheck configuration to open' });
-		return files.find(f => f.path.endsWith('/' + name));
-	})();
-	if (picked)
-		vscode.window.showTextDocument(picked);
-}
-
-
 /** Explorer context menu: exclude the clicked file or folder from
  * CodeCheck -- adds its project-relative prefix to the configuration's
  * excludes without the user touching JSON (sti #3508). */

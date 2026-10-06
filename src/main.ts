@@ -93,7 +93,6 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.checks.showConfiguration', showConfiguration),
 		vscode.commands.registerCommand('understand.violations.showAllFiles', violationsShowAllFiles),
 		vscode.commands.registerCommand('understand.violations.showCurrentFile', violationsShowCurrentFile),
-		vscode.commands.registerCommand('understand.violations.openCodeCheckConfiguration', violations.openCodeCheckConfiguration),
 		vscode.commands.registerCommand('understand.violations.excludeFromCodeCheck', violations.excludeFromCodeCheck),
 		vscode.commands.registerCommand('understand.violations.excludeFolderFromCodeCheck', violations.excludeFolderFromCodeCheck),
 		vscode.commands.registerCommand('understand.violations.editExcludedPaths', violations.editExcludedPaths),

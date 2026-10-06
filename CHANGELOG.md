@@ -3,6 +3,7 @@
 # [Unreleased]
 
 # [1.3.0] - 2026 Sep 29
+- Change: Open CodeCheck Configuration is gone; Show CodeCheck Configuration Checks shows a configuration, and its JSON can still be opened from the project's `codecheck\configs` folder with schema completions
 - Change: a Violations view row carries no severity icon; its severity is in the row's tooltip, and Group Violations By... → Severity groups by it
 - Add: Synced Inspections... in the Violations view's menu and the palette picks which CodeCheck results the view shows, apart from the ones Understand's eye button syncs; each row says what Understand's eye does, the view's header counts the results that differ, and Follow Understand clears the difference
 - Fix: an inspection synced with Understand's eye button counts in the Violations view on the next analysis, including a result run after the project opened, without reopening (sti #3508)
