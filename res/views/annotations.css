@@ -307,6 +307,148 @@ body.popup > div {
 	font-size: 0.92em;
 }
 
+/* A configuration's card fills the window, width and height, and its
+   check list scrolls inside it, so both scrollbars stay in view rather than
+   below the last row. One line per check: a line wider than the window
+   scrolls the list sideways. The row's hover has it all too. */
+body.popup > div:has(> .configCard) {
+	max-width: none;
+	margin: 0.75rem 0.5rem;
+	height: calc(100vh - 1.5rem);
+	display: flex;
+	flex-direction: column;
+}
+
+.configCard {
+	flex: 1;
+	min-height: 0;
+}
+
+.configCard .checkConfig {
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+}
+
+.configCard .checkRow {
+	white-space: nowrap;
+}
+
+/* Find: the editor's find widget, drawn in the window (Ctrl+F). */
+/* As wide as the editor's, or the window less a margin when that is
+   narrower; the text box takes what the buttons leave. */
+.findBar {
+	position: fixed;
+	top: 0;
+	right: 1rem;
+	width: min(30rem, calc(100vw - 2rem));
+	box-sizing: border-box;
+	z-index: 20;
+	align-items: center;
+	gap: 2px;
+	padding: 4px 6px;
+	background: var(--vscode-editorWidget-background);
+	color: var(--vscode-editorWidget-foreground);
+	border: 1px solid var(--vscode-editorWidget-border, transparent);
+	box-shadow: 0 0 8px 2px var(--vscode-widget-shadow);
+}
+
+/* Shown only while open: display: flex would beat the hidden attribute. */
+.findBar:not([hidden]) {
+	display: flex;
+}
+
+.findField {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	gap: 1px;
+	background: var(--vscode-input-background);
+	border: 1px solid var(--vscode-input-border, transparent);
+	padding: 0 2px 0 4px;
+}
+
+.findField:focus-within {
+	border-color: var(--vscode-focusBorder);
+}
+
+.findField.invalid {
+	border-color: var(--vscode-inputValidation-errorBorder);
+}
+
+.findInput {
+	flex: 1 1 auto;
+	width: 0;
+	min-width: 2rem;
+	background: transparent;
+	color: var(--vscode-input-foreground);
+	border: none;
+	outline: none;
+	padding: 3px 0;
+	font: inherit;
+}
+
+/* Card buttons stay hidden until hover; these always show. */
+.findBar button {
+	opacity: 1;
+	flex: none;
+}
+
+.findToggle, .findAction {
+	background: none;
+	border: 1px solid transparent;
+	border-radius: 3px;
+	color: var(--vscode-icon-foreground);
+	cursor: pointer;
+	padding: 2px;
+}
+
+.findToggle:hover, .findAction:hover {
+	background: var(--vscode-toolbar-hoverBackground);
+}
+
+.findToggle.on {
+	background: var(--vscode-inputOption-activeBackground);
+	border-color: var(--vscode-inputOption-activeBorder);
+	color: var(--vscode-inputOption-activeForeground);
+}
+
+.findCount {
+	min-width: 5.5em;
+	padding: 0 6px;
+	font-size: 0.92em;
+	white-space: nowrap;
+}
+
+.findCount.none {
+	color: var(--vscode-errorForeground);
+}
+
+mark.findMatch {
+	background: var(--vscode-editor-findMatchHighlightBackground);
+	color: inherit;
+}
+
+mark.findMatch.current {
+	background: var(--vscode-editor-findMatchBackground);
+	outline: 1px solid var(--vscode-editor-findMatchBorder, transparent);
+}
+
+/* A row's full text after a pause over it, in the editor hover's colours. */
+.hoverTip {
+	position: fixed;
+	z-index: 30;
+	max-width: calc(100vw - 8px);
+	padding: 3px 8px;
+	background: var(--vscode-editorHoverWidget-background);
+	color: var(--vscode-editorHoverWidget-foreground);
+	border: 1px solid var(--vscode-editorHoverWidget-border);
+	box-shadow: 0 2px 8px var(--vscode-widget-shadow);
+	pointer-events: none;
+	overflow-wrap: anywhere;
+}
+
 /* The way back from a check card to the configuration card it was opened from. */
 .checkCard .cardBack {
 	margin: 0 0 4px;

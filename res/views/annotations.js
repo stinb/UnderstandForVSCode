@@ -1216,12 +1216,18 @@ function renderConfigurationCard(message)
 		const changed = options.filter(o => JSON.stringify(o.value) !== JSON.stringify(o.default)).length;
 		const detail = document.createElement('span');
 		detail.className = 'checkDetail';
-		const parts = [check.id, severityText(check.severity)];
+		// A check with no severity says nothing about it rather than
+		// "No severity" on every such row.
+		const parts = [check.id];
+		if (check.severity >= 0)
+			parts.push(severityText(check.severity));
 		if (changed)
 			parts.push(`${changed} ${changed === 1 ? 'option' : 'options'} set`);
 		detail.textContent = parts.join(' · ');
 		const row = document.createElement('p');
 		row.className = 'field checkRow';
+		// One line per check; the hover carries the whole row.
+		row.dataset.tip = `${check.name} ${detail.textContent}`;
 		row.append(cardLink(check.name, () => vscode.postMessage(
 				{ method: 'showCheck', id: check.id, from: configuration.name })),
 			' ', detail);
@@ -1531,10 +1537,311 @@ function renderForm(message)
 }
 
 
+// ---------------------------------------------------------------------------
+// Find (Ctrl+F) and hovers in the field editor window (Rob 2026-10-05).
+//
+// Both are drawn by the window itself. VS Code's webview find widget has no
+// match count or match-case, whole-word and regex toggles, and an extension
+// cannot add them; and the browser's own title tooltip, drawn as a native
+// window, shows blank for a moment or a row behind in a long list. Only the
+// field editor window (body.popup) gets them: the AI view shares this script.
+// ---------------------------------------------------------------------------
+
+// More than this many matches are counted but not all highlighted, so a
+// one-letter search over hundreds of rows stays quick.
+const kFindLimit = 2000;
+
+
+function setUpFind()
+{
+	if (!document.body.classList.contains('popup'))
+		return;
+
+	const options = { matchCase: false, wholeWord: false, regex: false };
+	/** @type {HTMLElement[]} */
+	let matches = [];
+	let index = -1;
+	let total = 0;
+
+	const bar = document.createElement('div');
+	bar.className = 'findBar';
+	bar.hidden = true;
+
+	const field = document.createElement('div');
+	field.className = 'findField';
+	const input = document.createElement('input');
+	input.type = 'text';
+	input.className = 'findInput';
+	input.placeholder = 'Find';
+	input.setAttribute('aria-label', 'Find');
+	field.append(input);
+
+	const count = document.createElement('span');
+	count.className = 'findCount';
+
+	/**
+	 * @param {string} className
+	 * @param {string} icon
+	 * @param {string} label
+	 * @param {(button: HTMLButtonElement) => void} act
+	 */
+	const button = (className, icon, label, act) => {
+		const b = document.createElement('button');
+		b.className = `${className} codicon codicon-${icon}`;
+		b.title = label;
+		b.setAttribute('aria-label', label);
+		b.onclick = () => { act(b); input.focus(); };
+		return b;
+	};
+	/**
+	 * @param {'matchCase' | 'wholeWord' | 'regex'} key
+	 * @param {string} icon
+	 * @param {string} label
+	 */
+	const toggle = (key, icon, label) => {
+		const b = button('findToggle', icon, label, self => {
+			options[key] = !options[key];
+			self.classList.toggle('on', options[key]);
+			self.setAttribute('aria-pressed', String(options[key]));
+			search(true);
+		});
+		b.setAttribute('aria-pressed', 'false');
+		return b;
+	};
+	field.append(toggle('matchCase', 'case-sensitive', 'Match Case'),
+		toggle('wholeWord', 'whole-word', 'Match Whole Word'),
+		toggle('regex', 'regex', 'Use Regular Expression'));
+	bar.append(field, count,
+		button('findAction', 'arrow-up', 'Previous Match (Shift+Enter)', () => step(-1)),
+		button('findAction', 'arrow-down', 'Next Match (Enter)', () => step(1)),
+		button('findAction', 'close', 'Close (Escape)', close));
+	document.body.append(bar);
+
+	/** @returns {RegExp | null} null when the pattern does not compile */
+	const pattern = () => {
+		let source = options.regex ? input.value : input.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+		if (options.wholeWord)
+			source = `\\b(?:${source})\\b`;
+		try {
+			return new RegExp(source, options.matchCase ? 'g' : 'gi');
+		} catch {
+			return null;
+		}
+	};
+
+	const unmark = () => {
+		/** @type {Set<Node>} */
+		const parents = new Set();
+		for (const mark of document.querySelectorAll('mark.findMatch')) {
+			const parent = mark.parentNode;
+			if (!parent)
+				continue;
+			parent.replaceChild(document.createTextNode(mark.textContent || ''), mark);
+			parents.add(parent);
+		}
+		for (const parent of parents)
+			parent.normalize();
+		matches = [];
+	};
+
+	const show = () => {
+		for (const mark of matches)
+			mark.classList.remove('current');
+		const mark = matches[index];
+		mark.classList.add('current');
+		mark.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+		count.textContent = `${index + 1} of ${total}`;
+	};
+
+	/** @param {boolean} fromStart start at the first match rather than near the last one */
+	const search = fromStart => {
+		const previous = index;
+		unmark();
+		index = -1;
+		total = 0;
+
+		const regex = input.value ? pattern() : null;
+		field.classList.toggle('invalid', !!input.value && !regex);
+		if (!regex) {
+			count.textContent = input.value ? 'Invalid' : '';
+			count.classList.toggle('none', !!input.value);
+			return;
+		}
+
+		// The cards' text, not the bar's, the hover's, or what is typed in a field.
+		const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+			acceptNode(node) {
+				const parent = node.parentElement;
+				if (!parent || !node.nodeValue || !node.nodeValue.trim()
+					|| parent.closest('.findBar, .hoverTip, script, style, textarea, select, option'))
+					return NodeFilter.FILTER_REJECT;
+				return NodeFilter.FILTER_ACCEPT;
+			},
+		});
+		/** @type {Text[]} */
+		const nodes = [];
+		while (walker.nextNode())
+			nodes.push(/** @type {Text} */ (walker.currentNode));
+
+		for (const node of nodes) {
+			const value = node.nodeValue || '';
+			/** @type {[number, number][]} */
+			const spans = [];
+			regex.lastIndex = 0;
+			let match;
+			while ((match = regex.exec(value)) !== null) {
+				if (!match[0].length) {
+					regex.lastIndex++;
+					continue;
+				}
+				if (++total <= kFindLimit)
+					spans.push([match.index, match.index + match[0].length]);
+			}
+			// Wrap from the end so the earlier offsets stay right.
+			/** @type {HTMLElement[]} */
+			const marks = [];
+			for (let i = spans.length - 1; i >= 0; i--) {
+				const [start, end] = spans[i];
+				const tail = node.splitText(start);
+				tail.splitText(end - start);
+				const mark = document.createElement('mark');
+				mark.className = 'findMatch';
+				mark.textContent = tail.nodeValue;
+				tail.parentNode?.replaceChild(mark, tail);
+				marks.unshift(mark);
+			}
+			matches.push(...marks);
+		}
+
+		count.classList.toggle('none', !matches.length);
+		if (!matches.length) {
+			count.textContent = 'No results';
+			return;
+		}
+		index = fromStart || previous < 0 ? 0 : Math.min(previous, matches.length - 1);
+		show();
+	};
+
+	/** @param {number} by */
+	const step = by => {
+		if (!matches.length)
+			return;
+		index = (index + by + matches.length) % matches.length;
+		show();
+	};
+
+	const open = () => {
+		bar.hidden = false;
+		const selected = String(window.getSelection() || '').trim();
+		if (selected && !selected.includes('\n'))
+			input.value = selected;
+		input.focus();
+		input.select();
+		search(true);
+	};
+
+	function close()
+	{
+		bar.hidden = true;
+		unmark();
+		index = -1;
+		const card = document.querySelector('.annotation');
+		if (card instanceof HTMLElement)
+			card.focus();
+	}
+
+	// The window's own click and key handlers are for the cards.
+	bar.addEventListener('click', event => event.stopPropagation());
+	bar.addEventListener('keydown', event => {
+		event.stopPropagation();
+		if (event.key === 'Enter') {
+			event.preventDefault();
+			step(event.shiftKey ? -1 : 1);
+		} else if (event.key === 'Escape') {
+			event.preventDefault();
+			close();
+		}
+	});
+	input.addEventListener('input', () => search(true));
+
+	document.addEventListener('keydown', event => {
+		if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'f') {
+			event.preventDefault();
+			open();
+		} else if (event.key === 'F3' && !bar.hidden) {
+			event.preventDefault();
+			step(event.shiftKey ? -1 : 1);
+		}
+	}, true);
+
+	// A card drawn while the bar is open is searched too.
+	window.addEventListener('message', () => {
+		if (!bar.hidden)
+			setTimeout(() => search(false), 0);
+	});
+}
+
+
+// A row's full text, shown after a short pause over it. Rows opt in with
+// data-tip.
+function setUpHoverTips()
+{
+	if (!document.body.classList.contains('popup'))
+		return;
+	const tip = document.createElement('div');
+	tip.className = 'hoverTip';
+	tip.hidden = true;
+	tip.setAttribute('role', 'tooltip');
+	document.body.append(tip);
+
+	/** @type {Element | null} */
+	let over = null;
+	let timer = 0;
+	let x = 0;
+	let y = 0;
+
+	const hide = () => {
+		clearTimeout(timer);
+		tip.hidden = true;
+	};
+	const show = () => {
+		if (!(over instanceof HTMLElement) || !over.dataset.tip)
+			return;
+		tip.textContent = over.dataset.tip;
+		tip.hidden = false;
+		// Below and right of the pointer, kept inside the window.
+		const width = tip.offsetWidth;
+		const height = tip.offsetHeight;
+		const left = Math.max(4, Math.min(x + 12, window.innerWidth - width - 4));
+		const top = y + 18 + height <= window.innerHeight ? y + 18 : Math.max(4, y - height - 8);
+		tip.style.left = `${left}px`;
+		tip.style.top = `${top}px`;
+	};
+
+	document.addEventListener('mousemove', event => {
+		x = event.clientX;
+		y = event.clientY;
+		const row = event.target instanceof Element ? event.target.closest('[data-tip]') : null;
+		if (row === over)
+			return;
+		over = row;
+		hide();
+		if (row)
+			timer = setTimeout(show, 500);
+	});
+	document.addEventListener('mouseleave', () => { over = null; hide(); });
+	document.addEventListener('scroll', hide, true);
+	document.addEventListener('keydown', hide, true);
+	document.addEventListener('mousedown', hide, true);
+}
+
+
 function main()
 {
 	document.body.onclick = handleClick;
 	document.body.onkeydown = handleKeyDown;
+	setUpFind();
+	setUpHoverTips();
 
 	window.addEventListener('message', handleMessageEvent);
 

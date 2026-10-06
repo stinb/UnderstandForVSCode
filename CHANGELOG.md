@@ -4,6 +4,7 @@
 
 # [1.3.0] - 2026 Sep 29
 - Change: Open CodeCheck Configuration is gone; Show CodeCheck Configuration Checks shows a configuration, and its JSON can still be opened from the project's `codecheck\configs` folder with schema completions
+- Change: a configuration's card fills the window and keeps each check on one line, in a list that scrolls both ways inside it, shows a row's whole text when the pointer rests on it, and leaves out the severity of a check that has none instead of saying "No severity"; Ctrl+F opens a find bar like the editor's in the field editor window, with a match count, Match Case, Match Whole Word and regular expressions
 - Change: a Violations view row carries no severity icon; its severity is in the row's tooltip, and Group Violations By... → Severity groups by it
 - Change: the Violations view and the Problems panel show the background CodeCheck configurations' violations only; an inspection synced in Understand with the eye button, or an imported SARIF file, stays in Understand (sti #3508)
 - Change: excluding a path that another entry already covers says so and names that entry, and removing an entry while another still covers its files says the files stay excluded instead of offering an analysis (sti #3508)
