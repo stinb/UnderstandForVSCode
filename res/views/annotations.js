@@ -1418,7 +1418,11 @@ function renderForm(message)
 		message.body === undefined ? null : message.body);
 	// Without a note box the note cannot have changed, so comparing it
 	// would report every templated annotation as edited the moment it opens.
-	const changed = () => message.mode === 'new'
+	// An edit on another template than the annotation has is a change even
+	// with nothing typed: Save retypes it.
+	const retyped = message.mode === 'edit' && message.heldTemplateId !== undefined
+		&& (template ? template.id : '') !== message.heldTemplateId;
+	const changed = () => message.mode === 'new' || retyped
 		|| (bodyUi
 			? canonical(filled(values), bodyUi.value) !== heldWithBody
 			: canonical(filled(values), null) !== heldFields);
@@ -1442,12 +1446,13 @@ function renderForm(message)
 	if (modified)
 		formUi.append(modified);
 
-	// A draft picks its template here, on the form, the way Understand's card
+	// The template is picked here, on the form, the way Understand's card
 	// does: the templates offered for the place, then "Note (no template)".
 	// A change re-renders the form on the picked template, carrying the
 	// values whose fields it also has and the note as typed; the save names
-	// the template, so nothing is told the extension (Rob 2026-09-21).
-	if (message.mode === 'new' && message.templates && message.templates.length) {
+	// the template, so nothing is told the extension (Rob 2026-09-21). On an
+	// existing annotation the save retypes it first (ext #26 3.2).
+	if (message.templates && message.templates.length) {
 		const row = document.createElement('div');
 		row.className = 'formField formTemplate';
 		const label = document.createElement('label');
@@ -1474,6 +1479,8 @@ function renderForm(message)
 					carried[key] = value;
 			}
 			renderForm(Object.assign({}, message, {
+				// What Cancel goes back to on an existing annotation.
+				original: message.original || message,
 				template: picked,
 				values: carried,
 				// A templated annotation's text is the Metadata its template
@@ -1597,6 +1604,7 @@ function renderForm(message)
 			fields,
 			body: bodyUi ? bodyUi.value : undefined,
 			anchor: message.anchor,
+			heldTemplateId: message.heldTemplateId,
 		});
 		// The form stays, disabled, until the extension answers: the card of
 		// the annotation made or saved, or this form again when the server
@@ -1611,7 +1619,8 @@ function renderForm(message)
 		// An existing annotation goes back to its card, unchanged; there is
 		// nothing to tell the extension.
 		if (message.mode === 'edit' && message.id) {
-			showRecord(Object.assign({}, message, { readOnly: true, focusKey: undefined }));
+			showRecord(Object.assign({}, message.original || message,
+				{ readOnly: true, focusKey: undefined }));
 			return;
 		}
 		vscode.postMessage({ method: 'formCancel' });

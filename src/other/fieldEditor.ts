@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { annotationForm } from '../commands/editAnnotationFields';
+import { annotationForm, confirmRetype } from '../commands/editAnnotationFields';
 import { openAnnotation, showLocation } from '../commands/openAnnotation';
 import { escapeHtml } from './html';
 import { variables } from './variables';
@@ -81,9 +81,10 @@ export function openFieldEditor(message: PanelMessage)
 				// The window stays on the annotation. Once the server has taken
 				// it, Create and Save both show the card as the server now has
 				// it, the way Open shows it: the Metadata stamped (Rob
-				// 2026-09-21) and the time it was changed (ext #26 3.3). A
-				// refusal brings the form back with what was typed. All of it
-				// unless another annotation has taken the window meanwhile.
+				// 2026-09-21), the time it was changed (ext #26 3.3), the
+				// template it was retyped to. A refusal brings the form back
+				// with what was typed. All of it unless another annotation has
+				// taken the window meanwhile.
 				const shown = open?.panel === created && open.message.method === 'form'
 					? open.message : undefined;
 				saveForm(received).then(saved => {
@@ -104,18 +105,19 @@ export function openFieldEditor(message: PanelMessage)
 						});
 						return;
 					}
-					// A draft's template is whatever its droplist was on when it
-					// was sent, which the save names; its Metadata follows.
-					const template = shown.mode === 'new' && shown.templates
+					// The template is whatever the droplist was on when the save
+					// was sent, which the save names; its Metadata follows, and
+					// a form without a droplist keeps the template and stamp it
+					// was showing (ext #26 2.7).
+					const template = shown.templates
 						? shown.templates.find(t => t.id === received.templateId) : shown.template;
-					// An edit carries no metadataByTemplate -- its stamp came
-					// with the annotation -- so it keeps the one it was
-					// showing. Saving a note must not drop it (ext #26 2.7).
+					const sameTemplate = template?.id === shown.template?.id;
 					const metadata = (template && shown.metadataByTemplate?.[template.id])
-						?? shown.metadata;
+						?? (sameTemplate ? shown.metadata : undefined);
 					const { metadata: _shown, ...rest } = shown;
 					open.message = { ...rest, template, ...(metadata ? { metadata } : {}),
-						values: received.fields, body: received.body, readOnly: false };
+						values: received.fields, body: received.body, readOnly: false,
+						...(shown.mode === 'edit' && !sameTemplate ? { original: shown.original ?? shown } : {}) };
 					webview.postMessage(open.message);
 				});
 				break;
@@ -234,8 +236,8 @@ type SaveOutcome = { ok: boolean, id?: string };
  * in the shape of the request that creates it: addAnnotation for a line,
  * file, entity or architecture node; the server's ignoreAnnotation command
  * for a violation. An existing annotation is updated by id -- its fields when
- * it has a template, its note when it is freeform. Says whether the server
- * took it.
+ * it has a template, its note when it is freeform -- after a retype when the
+ * form picked another template. Says whether the server took it.
  */
 async function saveForm(message: FormSaveMessage): Promise<SaveOutcome>
 {
@@ -268,7 +270,20 @@ async function saveForm(message: FormSaveMessage): Promise<SaveOutcome>
 				});
 			}
 			return { ok: true, id: made?.id };
-		} else if (message.templateId) {
+		}
+		// A different template picked on the form retypes the annotation
+		// first, after the question the Retype command asks; then the save is
+		// made on the new template. Declining leaves the form as it was.
+		if (message.heldTemplateId !== undefined
+			&& (message.templateId ?? '') !== message.heldTemplateId) {
+			if (!await confirmRetype(message.id ?? '', message.templateId ?? ''))
+				return { ok: false };
+			await variables.languageClient.sendRequest('understand/retypeAnnotation', {
+				id: message.id,
+				templateId: message.templateId ?? '',
+			});
+		}
+		if (message.templateId) {
 			// The note goes along only when the form had it: a body that is
 			// absent is one that was never offered, not one that was cleared.
 			// It goes as the note: the server keeps the Metadata stamp above it.

@@ -146,7 +146,66 @@ export async function annotationForm(annotated: Annotated, options: EditorOption
 	const focused = template?.fields.find(f => f.label === options.focusLabel);
 	if (focused)
 		form.focusKey = focused.key;
+	// The Template droplist a draft has, so Edit can change the template the
+	// way Understand's card can (ext #26 3.2). The current template is offered
+	// even when the place no longer offers it, so the droplist can show it.
+	const templates = await templatesFor(annotation.id);
+	const current = template;
+	if (current && !templates.some(t => t.id === current.id))
+		templates.unshift(current);
+	if (templates.length)
+		form.templates = templates;
+	form.heldTemplateId = template?.id ?? '';
+	if (template && annotation.metadata)
+		form.metadataByTemplate = { [template.id]: annotation.metadata };
 	return form;
+}
+
+
+// The templates that apply where an annotation sits; none when the server
+// cannot say, which leaves freeform.
+async function templatesFor(id: string): Promise<AnnotationTemplate[]>
+{
+	try {
+		const result: { templates: AnnotationTemplate[] } =
+			await variables.languageClient.sendRequest('understand/ignoreTemplates', {
+				kind: 'annotation',
+				id,
+			});
+		return result.templates ?? [];
+	} catch {
+		return [];
+	}
+}
+
+
+/**
+ * Ask before an annotation changes template. The server reports what would
+ * be lost before anything is written, so the warning names the fields rather
+ * than saying that something, somewhere, will go -- the question Understand's
+ * picker asks. True when nothing is lost or the change is confirmed.
+ */
+export async function confirmRetype(id: string, templateId: string): Promise<boolean>
+{
+	const preview: { dropped: string[], note?: boolean } =
+		await variables.languageClient.sendRequest('understand/retypeAnnotation', {
+			id,
+			templateId,
+			preview: true,
+		});
+	// A freeform note's text does not fit a template and is discarded with
+	// the fields (#5188).
+	const lost: string[] = [];
+	if (preview.dropped.length)
+		lost.push(`what was entered in: ${preview.dropped.join(', ')}`);
+	if (preview.note)
+		lost.push('the note text');
+	if (!lost.length)
+		return true;
+	const answer = await vscode.window.showWarningMessage(
+		`Changing template discards ${lost.join(', and ')}.`,
+		{ modal: true }, 'Change Template');
+	return answer === 'Change Template';
 }
 
 
@@ -168,11 +227,7 @@ function locationOf(annotation: Annotated): FormLocation | undefined
 }
 
 
-/**
- * Change which template an annotation uses. The server reports what would be
- * lost before anything is written, so the warning names the fields rather
- * than saying that something, somewhere, will go.
- */
+/** Change which template an annotation uses, picked from a list. */
 export async function retypeAnnotation(annotation: Annotated | undefined)
 {
 	if (!annotation || !annotation.id) {
@@ -185,18 +240,8 @@ export async function retypeAnnotation(annotation: Annotated | undefined)
 	if (!atn)
 		return;
 
-	let templates: AnnotationTemplate[] = [];
-	try {
-		const result: { templates: AnnotationTemplate[] } =
-			await variables.languageClient.sendRequest('understand/ignoreTemplates', {
-				kind: 'annotation',
-				// The templates that apply where this annotation sits.
-				id: atn.id,
-			});
-		templates = result.templates ?? [];
-	} catch {
-		// Fall through: freeform is still a destination.
-	}
+	// Freeform is a destination even when no template applies.
+	const templates = await templatesFor(atn.id);
 
 	const picked = await vscode.window.showQuickPick(
 		[
@@ -210,29 +255,9 @@ export async function retypeAnnotation(annotation: Annotated | undefined)
 	if (picked === undefined)
 		return;
 
-	// Ask before writing: the same question Understand's picker asks.
 	try {
-		const preview: { dropped: string[], note?: boolean } =
-			await variables.languageClient.sendRequest('understand/retypeAnnotation', {
-				id: atn.id,
-				templateId: picked.id,
-				preview: true,
-			});
-		// A freeform note's text does not fit a template and is discarded
-		// with the fields (#5188) -- the same warning Understand's picker gives.
-		const lost: string[] = [];
-		if (preview.dropped.length)
-			lost.push(`what was entered in: ${preview.dropped.join(', ')}`);
-		if (preview.note)
-			lost.push('the note text');
-		if (lost.length) {
-			const answer = await vscode.window.showWarningMessage(
-				`Changing template discards ${lost.join(', and ')}.`,
-				{ modal: true }, 'Change Template');
-			if (answer !== 'Change Template')
-				return;
-		}
-
+		if (!await confirmRetype(atn.id, picked.id))
+			return;
 		await variables.languageClient.sendRequest('understand/retypeAnnotation', {
 			id: atn.id,
 			templateId: picked.id,

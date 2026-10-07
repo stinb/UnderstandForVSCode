@@ -96,11 +96,18 @@ export type FormMessage = {
 	// other value the form shows is: "author — when", as Understand's card
 	// header reads it. A draft has neither yet.
 	modified?: string,
-	// A draft only: the templates offered for the place, for the Template
-	// droplist at the top of the form (template is the one selected), and
-	// the Metadata each would stamp, by template id.
+	// The templates offered for the place, for the Template droplist at the
+	// top of the form (template is the one selected), and the Metadata each
+	// would stamp, by template id: every template's on a draft, the current
+	// one's on an edit.
 	templates?: AnnotationTemplate[],
 	metadataByTemplate?: { [templateId: string]: string },
+	// An edit only: the template the annotation has now, '' for freeform. A
+	// Save on a different one retypes the annotation first.
+	heldTemplateId?: string,
+	// An edit only, once the form is on another template than the annotation
+	// has: the annotation as it is, which Cancel goes back to.
+	original?: FormMessage,
 };
 
 // Where an annotation sits: the file and position it is anchored to, and the
@@ -121,6 +128,7 @@ export type FormSaveMessage = {
 	fields: FieldValues,
 	body?: string,
 	anchor?: FormAnchor,
+	heldTemplateId?: string,
 };
 
 export type FormCancelMessage = {
