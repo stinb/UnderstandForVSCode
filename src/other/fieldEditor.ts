@@ -108,6 +108,11 @@ export function openFieldEditor(message: PanelMessage)
 				});
 				break;
 			}
+			case 'openMedia':
+				// An attachment on the card, opened as the hover's link opens it.
+				vscode.commands.executeCommand('understand.annotations.openMedia',
+					received.mediaId, received.name);
+				break;
 			case 'formCancel':
 				close();
 				break;

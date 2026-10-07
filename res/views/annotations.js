@@ -885,9 +885,109 @@ function metadataBlock(message)
 	const label = document.createElement('label');
 	label.textContent = message.mode === 'new' ? 'Metadata (updated and added on Create)' : 'Metadata';
 	const text = document.createElement('p');
-	text.textContent = message.metadata;
+	appendWithMedia(text, message.metadata);
 	block.append(label, text);
 	return block;
+}
+
+
+// An attachment inside a body, stored as `<:|:>kind|:|id|:|name<:/:>`: an
+// image or a file carries the api id of the stored file and its name, a link
+// its URL where the id would be. The hover reads the same marker
+// (src/other/annotationMarkdown.ts); the card shows it the same way, as a
+// link that opens it rather than as the stored text (ext #26 4.3.2).
+const kMediaMarker = /<:\|:>(.+?)<:\/:>/g;
+
+/**
+ * The link for one marker's payload, or null when it is not one.
+ * @param {string} payload
+ * @returns {HTMLElement | string | null}
+ */
+function mediaNode(payload)
+{
+	const parts = payload.split('|:|');
+	if (parts.length < 2)
+		return null;
+	const [kind, id] = parts;
+	const name = parts[2] ?? id;
+	const a = document.createElement('a');
+	// A click opens the attachment, not the form the card's body opens.
+	a.onclick = (event) => event.stopPropagation();
+	if (kind === 'link') {
+		// Only the two schemes a browser would follow are linked; the webview
+		// hands those to the system browser.
+		if (!/^https?:\/\//i.test(id))
+			return `Link: ${id}`;
+		a.href = id;
+		a.textContent = id;
+		return a;
+	}
+	// No href: hovering one would show the webview page's own address. A
+	// role and a tab stop keep it a link to the keyboard and a screen reader.
+	a.setAttribute('role', 'link');
+	a.tabIndex = 0;
+	a.className = 'attachment';
+	a.title = 'Open the attachment';
+	a.dataset.mediaId = id;
+	a.dataset.mediaName = name;
+	const icon = document.createElement('span');
+	icon.className = `codicon codicon-${kind === 'img' ? 'file-media' : 'file'}`;
+	a.append(icon, ` ${name}`);
+	a.onclick = (event) => {
+		event.preventDefault();
+		event.stopPropagation();
+		vscode.postMessage({ method: 'openMedia', mediaId: id, name });
+	};
+	a.onkeydown = (event) => {
+		if (event.key === 'Enter')
+			a.click();
+	};
+	return a;
+}
+
+/**
+ * Plain text with each attachment marker as its link.
+ * @param {HTMLElement} parent
+ * @param {string} text
+ */
+function appendWithMedia(parent, text)
+{
+	let pos = 0;
+	for (const match of text.matchAll(kMediaMarker)) {
+		parent.append(text.slice(pos, match.index), mediaNode(match[1]) ?? match[0]);
+		pos = (match.index ?? 0) + match[0].length;
+	}
+	parent.append(text.slice(pos));
+}
+
+/**
+ * A note as markdown with each attachment marker as its link. The markers
+ * stand in as private-use characters while markdown-it renders, then become
+ * links in the text they landed in.
+ * @param {HTMLElement} parent
+ * @param {string} text
+ */
+function appendMarkdownWithMedia(parent, text)
+{
+	/** @type {string[]} */
+	const payloads = [];
+	appendMarkdown(parent, text.replace(kMediaMarker, (_whole, payload) =>
+		`\uE000${payloads.push(payload) - 1}\uE001`));
+	if (!payloads.length)
+		return;
+	const walker = document.createTreeWalker(parent, NodeFilter.SHOW_TEXT);
+	/** @type {Text[]} */
+	const texts = [];
+	for (let node = walker.nextNode(); node; node = walker.nextNode())
+		texts.push(/** @type {Text} */ (node));
+	for (const node of texts) {
+		const pieces = (node.nodeValue || '').split(/\uE000(\d+)\uE001/);
+		if (pieces.length === 1)
+			continue;
+		// split keeps the captured index at every odd position.
+		node.replaceWith(...pieces.map((piece, i) => i % 2
+			? mediaNode(payloads[Number(piece)]) ?? `<:|:>${payloads[Number(piece)]}<:/:>` : piece));
+	}
 }
 
 
@@ -977,7 +1077,7 @@ function renderCard(message)
 	const body = document.createElement('div');
 	body.className = 'body';
 	if (message.body)
-		appendMarkdown(body, message.body);
+		appendMarkdownWithMedia(body, message.body);
 	body.onclick = () => edit('body');
 	card.append(body);
 

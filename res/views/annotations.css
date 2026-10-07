@@ -47,6 +47,12 @@ a:focus {
 	outline: none;
 }
 
+/* An attachment on a card: a link with no href (annotations.js mediaNode). */
+a.attachment {
+	color: var(--vscode-textLink-foreground);
+	cursor: pointer;
+}
+
 .annotation:focus, button:focus-visible, a:focus-visible, code:focus {
 	outline: var(--outline) solid var(--vscode-focusBorder);
 }
