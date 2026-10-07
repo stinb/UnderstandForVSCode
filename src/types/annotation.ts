@@ -69,8 +69,8 @@ export type FormAnchor =
 // An existing annotation has two faces, like Understand's card: readOnly is
 // the completed card -- title, the fields that hold a value, the note -- and
 // the form is a click away; the form saves back into the card. The switch is
-// the webview's own; the extension re-posts the message read-only once a
-// Save has been taken, or as the form again when the server refused it.
+// the webview's own; the extension shows the card as the server has it once
+// a Save has been taken, or the form again when the server refused it.
 // focusKey names the field a click on the card asked for.
 //
 // No template is a freeform annotation, and the form is then its note alone.

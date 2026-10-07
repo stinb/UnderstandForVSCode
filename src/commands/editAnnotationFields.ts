@@ -88,9 +88,23 @@ export async function editAnnotationFields(annotated: Annotated | undefined, opt
 		vscode.window.showErrorMessage('Select an annotation to edit');
 		return;
 	}
+	const form = await annotationForm(annotated, options);
+	if (form)
+		openFieldEditor(form);
+}
+
+
+/**
+ * An annotation's form message as the server has it now, without opening
+ * the window: the field editor uses it to show the card again after a Save,
+ * once it has checked that nothing else took the window meanwhile.
+ */
+export async function annotationForm(annotated: Annotated, options: EditorOptions = {})
+	: Promise<FormMessage | undefined>
+{
 	const annotation = await resolve(annotated);
 	if (!annotation)
-		return;
+		return undefined;
 
 	// A freeform annotation has no template, and its note is the one thing
 	// to edit. It takes the same form, with no field rows.
@@ -100,7 +114,7 @@ export async function editAnnotationFields(annotated: Annotated | undefined, opt
 		if (!template) {
 			vscode.window.showErrorMessage(
 				`The template for this annotation is no longer in the project.`);
-			return;
+			return undefined;
 		}
 	}
 
@@ -132,7 +146,7 @@ export async function editAnnotationFields(annotated: Annotated | undefined, opt
 	const focused = template?.fields.find(f => f.label === options.focusLabel);
 	if (focused)
 		form.focusKey = focused.key;
-	openFieldEditor(form);
+	return form;
 }
 
 

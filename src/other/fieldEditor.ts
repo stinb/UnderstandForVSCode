@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 
+import { annotationForm } from '../commands/editAnnotationFields';
 import { openAnnotation, showLocation } from '../commands/openAnnotation';
 import { escapeHtml } from './html';
 import { variables } from './variables';
@@ -77,19 +78,30 @@ export function openFieldEditor(message: PanelMessage)
 					webview.postMessage(open.message);
 				break;
 			case 'formSave': {
-				// The window stays on the annotation. Create moves it to the
-				// card of the one just made, the way Open shows it -- with the
-				// Metadata now stamped (Rob 2026-09-21); Save brings the card
-				// back read-only with what was saved once the server has taken
-				// it. A refusal brings the form back with what was typed. All
-				// of it unless another annotation has taken the window meanwhile.
+				// The window stays on the annotation. Once the server has taken
+				// it, Create and Save both show the card as the server now has
+				// it, the way Open shows it: the Metadata stamped (Rob
+				// 2026-09-21) and the time it was changed (ext #26 3.3). A
+				// refusal brings the form back with what was typed. All of it
+				// unless another annotation has taken the window meanwhile.
 				const shown = open?.panel === created && open.message.method === 'form'
 					? open.message : undefined;
 				saveForm(received).then(saved => {
 					if (!shown || open?.panel !== created || open.message !== shown)
 						return;
-					if (received.mode === 'new' && saved.ok) {
+					if (saved.ok && received.mode === 'new') {
 						openAnnotation(saved.id);
+						return;
+					}
+					if (saved.ok) {
+						// Read again, then shown only if the window is still on
+						// it: a row clicked while the read was out wins.
+						annotationForm({ id: received.id ?? '' }, { readOnly: true }).then(card => {
+							if (card && open?.panel === created && open.message === shown) {
+								open.message = card;
+								webview.postMessage(card);
+							}
+						});
 						return;
 					}
 					// A draft's template is whatever its droplist was on when it
@@ -103,7 +115,7 @@ export function openFieldEditor(message: PanelMessage)
 						?? shown.metadata;
 					const { metadata: _shown, ...rest } = shown;
 					open.message = { ...rest, template, ...(metadata ? { metadata } : {}),
-						values: received.fields, body: received.body, readOnly: saved.ok };
+						values: received.fields, body: received.body, readOnly: false };
 					webview.postMessage(open.message);
 				});
 				break;
