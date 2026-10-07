@@ -120,7 +120,7 @@ function mediaLink(media: Media): string
 	}
 	const icon = media.kind === 'img' ? '$(file-media)' : '$(file)';
 	return link(`${icon} ${escapeMarkdown(media.name)}`,
-		'understand.annotations.openMedia', [media.id, media.name]);
+		'understand.annotations.openMedia', [media.id, media.name], 'Open the attachment');
 }
 
 
@@ -156,9 +156,12 @@ export function renderAnnotation(annotation: LineAnnotation): string
 }
 
 
-function link(label: string, command: string, args: unknown[]): string
+// The title is the link's tooltip; without one the hover shows the command
+// URI, its arguments percent-encoded.
+function link(label: string, command: string, args: unknown[], title: string): string
 {
-	return `[${label}](command:${command}?${encodeURIComponent(JSON.stringify(args))})`;
+	const target = `command:${command}?${encodeURIComponent(JSON.stringify(args))}`;
+	return `[${label}](${target} "${title.replace(/["\\]/g, '\\$&')}")`;
 }
 
 
@@ -169,12 +172,17 @@ function actions(annotation: LineAnnotation): string
 {
 	const id = [{ id: annotation.id }];
 	const parts = [
-		link('$(go-to-file) Open', 'understand.annotations.open', [annotation.id]),
+		link('$(go-to-file) Open', 'understand.annotations.open', [annotation.id],
+			'Open the annotation'),
 	];
-	if (annotation.templateName)
-		parts.push(link('$(replace) Retype', 'understand.annotations.retype', id));
-	parts.push(link('$(file-media) Attach', 'understand.annotations.attachMedia', id));
-	parts.push(link('$(trash) Delete', 'understand.annotations.deleteAnnotation', id));
+	if (annotation.templateName) {
+		parts.push(link('$(replace) Retype', 'understand.annotations.retype', id,
+			'Change the template'));
+	}
+	parts.push(link('$(file-media) Attach', 'understand.annotations.attachMedia', id,
+		'Attach a file to the annotation'));
+	parts.push(link('$(trash) Delete', 'understand.annotations.deleteAnnotation', id,
+		'Delete the annotation'));
 	return parts.join(' &nbsp;&middot;&nbsp; ');
 }
 
@@ -202,7 +210,8 @@ export function annotationHover(uri: vscode.Uri, line: number,
 	});
 
 	markdown.appendMarkdown('\n\n---\n\n'
-		+ link('$(add) Add Annotation', 'understand.annotateLine', [uri, line]));
+		+ link('$(add) Add Annotation', 'understand.annotateLine', [uri, line],
+			'Add an annotation on this line'));
 
 	return markdown;
 }
