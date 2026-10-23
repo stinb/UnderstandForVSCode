@@ -30,6 +30,7 @@ export type GroupBy = 'file' | 'check' | 'severity' | 'entity';
 // has (Rob 2026-10-01).
 export type ViolationScope = 'all' | 'file';
 const kScopeContext = 'understand.violationsListScope';
+const kListedContext = 'understand.violationsListed';
 
 
 export class ViolationTreeProvider implements TreeDataProvider<Node>
@@ -86,6 +87,9 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 		this.files = params.files;
 		this.total = params.total;
 		this.truncated = params.truncated;
+		// An empty list says "no violations" only once the server has
+		// listed them (the view's welcome text in package.json)
+		commands.executeCommand('setContext', kListedContext, true);
 		this.refreshBadge();
 		this.emitter.fire();
 	}

@@ -12,6 +12,9 @@ export const contexts = {
 	// Whether the licence grants AI. Starts false so no AI UI is live
 	// before the server tells us (und-issues#709).
 	aiLicensed: 'understandAiLicensed',
+	// Whether the licence grants GUI Access, which the graphs that are not
+	// an entity's need (architectures, project graphs, the treemap)
+	guiLicensed: 'understandGuiLicensed',
 };
 
 

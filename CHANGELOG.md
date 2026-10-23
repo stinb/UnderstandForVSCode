@@ -1,6 +1,23 @@
 # Change Log
 
 # [Unreleased]
+- Add: drag a graph to pan it, with the hand cursor; the mouse wheel zooms out to 25% as well as in (stinb/und-issues#711)
+- Change: source text in a graph is colored as in Understand's editor — comments green, and keywords, strings, numbers and preprocessor lines in VS Code's own theme colors; the server marks each run by kind and the view colors it for the light and dark themes (stinb/und-issues#711)
+- Add: a graph tab has the graph window's controls in a toolbar — the graph's variants, a zoom menu with Fit Width, Fit Height and Fit Page, Find, Undo and Redo, Restore Defaults, Show All Hidden Nodes, Clear All Highlighted Edges, Save and Load Graph State, Copy Image To Clipboard, a Mini-Map, the Legend, and Sync to the current selection (stinb/und-issues#711)
+- Add: click selects a node and Ctrl+click adds to the selection; a right-click offers the node actions Understand's graph window has — Hide, Show and Highlight Edges In and Out, Highlight Path, Show Children, Aggregate Child Edges and the rest — and the whole-graph ones; Delete hides the selection
+- Add: the Legend panel shows the graph's styles as Understand's legend does, and a right-click on an entry changes its shape, colors, arrow heads and line style, switches, creates, renames, removes, restores, exports and imports themes, and toggles the global styles; themes are shared with Understand
+- Add: the Graphs view lists the Project Graphs, each Architecture's graphs, the Saved Graphs (with Remove), and the Metrics Treemap, which draws the project's files, classes or functions sized and colored by metrics with an architecture to group by
+- Add: `understand.graphs.reuseTab` opens graphs in the active graph tab, as the graph window's Reuse checkbox does
+- Add: a node's edge indicators (the triangles after its name) show and hide its edges, and a double-click on a node or cluster does what Understand's "On node/cluster doubleclick" preference says
+- Add: graphs show Understand's tooltips; an edge glows under the pointer; a right-click on an edge lists the references it stands for; the node menu has the node's entity (Go To Definition, View Information, AI Overview, Find References, its graphs); a UML diagram's member names select their entities
+- Add: graphic filters in the Classic variants, Add Node Style, Add Edge Style and Add Metric Color Scale in the legend, the Relationship variant's second entity, Compare variants against the project's comparison database, Peek, Favorites (shared with Understand, and listed in the Graphs view), Copy API Command, Increase and Decrease Level, a custom zoom, Select All Results in find, Export To File as Visio, DOT and PlantUML, and Print (through the browser)
+- Change: a graph opens with the options Understand last used for it, its theme among them, and an option changed in VS Code is remembered for both
+- Add: in the Architecture graph, drag entities and architectures onto an architecture to move them there (Ctrl copies), as in Understand
+- Add: a slow layout shows "Calculating ideal graph layout" with Cancel; graph tabs come back after a window reload; the wheel follows Understand's wheel-zoom preference; the legend and the peek move by their headers and the mini-map with Ctrl+drag, and keep their places
+- Add: the peek shows the clicked entity's information and AI overview in the graph; the node menu also offers Annotate, Explore in Understand, Generate AI Overview, Show Metrics, Copy Name and Copy Full Name; Print asks for the scale and page orientation
+- Add: the node menu also offers Go To Declaration, Find in Files, Add to Architecture, Remove from Architecture, and Add to or Remove from Favorites for the node's entity or architecture, all shared with Understand; the node menu also has Show Comments and Show Annotations for each node; the legend menu saves the legend as an image (PNG, JPG, SVG, Visio or DOT)
+- Fix: a graph added to Favorites in VS Code now opens from Understand's Favorites too
+- Add: `understand.graphs.textColors` colors the source text in graph labels as Understand's editor theme does, instead of VS Code's theme
 
 # [1.3.0] - 2026 Sep 29
 - Change: Open CodeCheck Configuration is gone; Show CodeCheck Configuration Checks shows a configuration, and its JSON can still be opened from the project's `codecheck\configs` folder with schema completions

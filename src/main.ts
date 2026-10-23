@@ -31,12 +31,14 @@ import { ignoreInline, ignoreWithAnnotation } from './commands/ignoreViolation';
 import { InfoTreeProvider } from './treeProviders/info';
 import { ViolationTreeProvider, openViolation, violationsGroupBy, violationsShowAllFiles, violationsShowCurrentFile } from './treeProviders/violations';
 import { showConfiguration } from './commands/showConfiguration';
-import { GraphProvider } from './other/graphProvider';
+import { GraphProvider, RestoreState } from './other/graphProvider';
+import { TreemapProvider } from './other/treemapProvider';
 import { GraphTreeProvider } from './treeProviders/graphs';
 import { MetricTreeProvider } from './treeProviders/metrics';
 import { ReferencesTreeProvider } from './treeProviders/references';
 import { watchFiles } from './other/fileSystem';
 import { actuallyChangedTextEditorSelection, invalidateFileStatus, onDidChangeTextEditorSelection } from './other/context';
+import { followEntity } from './other/entityHeaders';
 import { fileDecorationProvider } from './other/fileDecorations';
 
 
@@ -49,6 +51,7 @@ export async function activate(context: vscode.ExtensionContext)
 	variables.graphTreeProvider = new GraphTreeProvider();
 	variables.infoTreeProvider = new InfoTreeProvider();
 	variables.graphProvider = new GraphProvider();
+	variables.treemapProvider = new TreemapProvider();
 	variables.metricTreeProvider = new MetricTreeProvider();
 	variables.referencesTreeProvider = new ReferencesTreeProvider();
 	variables.violationsListProvider = new ViolationTreeProvider();
@@ -111,9 +114,19 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.exploreInUnderstand.newProject', exploreInUnderstand.newProject),
 
 		// Commands: Graphs
+		vscode.commands.registerCommand('understand.graphs.copyImage', graphs.copyImage),
+		vscode.commands.registerCommand('understand.graphs.findPrevious', graphs.findPrevious),
+		vscode.commands.registerCommand('understand.graphs.loadState', graphs.loadState),
 		vscode.commands.registerCommand('understand.graphs.options', graphs.options),
+		vscode.commands.registerCommand('understand.graphs.redo', graphs.redo),
+		vscode.commands.registerCommand('understand.graphs.removeSaved', graphs.removeSaved),
 		vscode.commands.registerCommand('understand.graphs.save', graphs.save),
+		vscode.commands.registerCommand('understand.graphs.saveState', graphs.saveState),
+		vscode.commands.registerCommand('understand.graphs.treemap', graphs.treemap),
+		vscode.commands.registerCommand('understand.graphs.undo', graphs.undo),
 		vscode.commands.registerCommand('understand.graphs.view', graphs.view),
+		vscode.commands.registerCommand('understand.graphs.zoomIn', graphs.zoomIn),
+		vscode.commands.registerCommand('understand.graphs.zoomOut', graphs.zoomOut),
 
 		// Commands: Metrics
 		vscode.commands.registerCommand('understand.metrics.copyApiName', metrics.copyApiName),
@@ -196,10 +209,17 @@ export async function activate(context: vscode.ExtensionContext)
 			variables.annotationsTreeProvider.attach(view);
 			return view;
 		})(),
-		vscode.window.registerTreeDataProvider('understandGraphs', variables.graphTreeProvider),
-		vscode.window.registerTreeDataProvider('understandInfo', variables.infoTreeProvider),
-		vscode.window.registerTreeDataProvider('understandMetrics', variables.metricTreeProvider),
-		vscode.window.registerTreeDataProvider('understandReferences', variables.referencesTreeProvider),
+		// The views that follow the entity name it in their headers
+		...([
+			['understandGraphs', variables.graphTreeProvider],
+			['understandInfo', variables.infoTreeProvider],
+			['understandMetrics', variables.metricTreeProvider],
+			['understandReferences', variables.referencesTreeProvider],
+		] as [string, vscode.TreeDataProvider<unknown>][]).map(([id, treeDataProvider]) => {
+			const view = vscode.window.createTreeView(id, { treeDataProvider });
+			followEntity(view);
+			return view;
+		}),
 	);
 
 	// The editor's own annotation affordances: an icon in the gutter of a
@@ -232,6 +252,13 @@ export async function activate(context: vscode.ExtensionContext)
 				refreshAnnotationDecorations();
 				variables.annotateCodeLensProvider.refresh();
 			}
+		}),
+		// Graph tabs come back after a reload, as Understand reopens its graph
+		// windows with the session
+		vscode.window.registerWebviewPanelSerializer('understandGraph', {
+			async deserializeWebviewPanel(panel: vscode.WebviewPanel, state: unknown) {
+				variables.graphProvider.restore(panel, (state as { graph?: RestoreState } | undefined)?.graph);
+			},
 		}),
 		vscode.commands.registerCommand('understand.annotateLine', annotateLine),
 		// The gutter's right-click menu: the line comes with the click.

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import { escapeHtml } from '../other/html';
+import { followEntity } from '../other/entityHeaders';
 import { variables } from '../other/variables';
 import { executeCommand } from '../commands/helpers';
 import {
@@ -88,6 +89,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 		this.uriStyle = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'views', 'annotations.css')).toString();
 		this.uriStyleIcons = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(variables.extensionUri, 'res', 'codicon.css')).toString();
 		this.view = webviewView;
+		followEntity(webviewView);
 		this.drawFirst(this.view.webview);
 	}
 

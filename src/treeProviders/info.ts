@@ -1,37 +1,33 @@
 import {
 	EventEmitter,
-	ThemeIcon,
 	TreeDataProvider,
 	TreeItem,
-	TreeItemCollapsibleState,
 } from 'vscode';
 import { variables } from '../other/variables';
+import { changeEntityStatus } from '../other/statusBar';
+import { nameEntityInHeaders } from '../other/entityHeaders';
 
 
 // The Info view (ext #47): the current entity the way a Python API script
 // reads it -- ent.id, ent.kindname, ent.uniquename, and the rest -- pushed
 // by understand/info whenever the synced entity changes. References
-// deliberately live in the References view, not here.
-export class InfoTreeProvider implements TreeDataProvider<EntItem | AttributeItem>
+// deliberately live in the References view, not here. The view's header
+// names the entity, so its rows are the attributes alone (Rob, 2026-10-20).
+export class InfoTreeProvider implements TreeDataProvider<AttributeItem>
 {
-	private entityName = '';
 	private attributes: Attribute[] = [];
 	private emitter = new EventEmitter<void>();
 
 	onDidChangeTreeData = this.emitter.event;
 
 
-	getChildren(element: EntItem | AttributeItem | undefined): (EntItem | AttributeItem)[]
+	getChildren(element: AttributeItem | undefined): AttributeItem[]
 	{
-		if (element === undefined)
-			return this.entityName ? [new EntItem(this.entityName)] : [];
-		if (element instanceof EntItem)
-			return this.attributes.map(a => new AttributeItem(a));
-		return [];
+		return element === undefined ? this.attributes.map(a => new AttributeItem(a)) : [];
 	}
 
 
-	getTreeItem(element: EntItem | AttributeItem): TreeItem
+	getTreeItem(element: AttributeItem): TreeItem
 	{
 		return element;
 	}
@@ -39,7 +35,6 @@ export class InfoTreeProvider implements TreeDataProvider<EntItem | AttributeIte
 
 	update(params: Params)
 	{
-		this.entityName = params.entityName;
 		this.attributes = params.attributes;
 		this.emitter.fire();
 	}
@@ -49,17 +44,8 @@ export class InfoTreeProvider implements TreeDataProvider<EntItem | AttributeIte
 export function handleUnderstandInfo(params: Params)
 {
 	variables.infoTreeProvider.update(params);
-}
-
-
-class EntItem extends TreeItem
-{
-	constructor(name: string)
-	{
-		super(name, TreeItemCollapsibleState.Expanded);
-		this.contextValue = 'understandInfoEntity';
-		this.iconPath = new ThemeIcon('symbol-object');
-	}
+	nameEntityInHeaders(params.entityName);
+	changeEntityStatus(params.entityName);
 }
 
 
