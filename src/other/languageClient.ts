@@ -130,15 +130,17 @@ export async function startLsp()
 		// GUI Access gates the graphs that are not an entity's; a server that
 		// does not say has no such limit.
 		const init = variables.languageClient.initializeResult as
-			{ understand?: { aiLicensed?: boolean, guiLicensed?: boolean } } | undefined;
+			{ understand?: { aiLicensed?: boolean, guiLicensed?: boolean, apiLicensed?: boolean } } | undefined;
 		variables.aiLicensed = init?.understand?.aiLicensed === true;
 		setContext(contexts.aiLicensed, variables.aiLicensed);
 		setGuiLicensed(init?.understand?.guiLicensed !== false);
+		setContext(contexts.apiLicensed, init?.understand?.apiLicensed === true);
 		variables.languageClient.onNotification('understand/changedLicenseFeatures',
-			(params: { aiLicensed?: boolean, guiLicensed?: boolean }) => {
+			(params: { aiLicensed?: boolean, guiLicensed?: boolean, apiLicensed?: boolean }) => {
 				variables.aiLicensed = params.aiLicensed === true;
 				setContext(contexts.aiLicensed, variables.aiLicensed);
 				setGuiLicensed(params.guiLicensed !== false);
+				setContext(contexts.apiLicensed, params.apiLicensed === true);
 			});
 
 		variables.languageClient.onNotification('understand/licenseLost', handleUnderstandLicenseLost);

@@ -1336,7 +1336,7 @@
 					"name": "API Info",
 					"type": "tree",
 					"visibility": "collapsed",
-					"when": "config.understand.infoView.enabled"
+					"when": "config.understand.infoView.enabled && understandApiLicensed"
 				},
 				{
 					"icon": "$(pulse)",

@@ -15,6 +15,9 @@ export const contexts = {
 	// Whether the licence grants GUI Access, which the graphs that are not
 	// an entity's need (architectures, project graphs, the treemap)
 	guiLicensed: 'understandGuiLicensed',
+	// Whether the licence grants the API, which the API Info view needs.
+	// Starts false so the view stays hidden until the server says.
+	apiLicensed: 'understandApiLicensed',
 };
 
 
