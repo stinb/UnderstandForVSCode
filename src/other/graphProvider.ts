@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import { escapeHtml } from './html';
 import { variables } from './variables';
 import {
-	ArchMembership, FavoriteGraph, FilterAction, GraphFilters, GraphInfo, GraphKey, GraphMessageFromSandbox, GraphMessageToSandbox,
+	FavoriteGraph, FilterAction, GraphFilters, GraphInfo, GraphKey, GraphMessageFromSandbox, GraphMessageToSandbox,
 	LegendAction, LegendEntry, ParamsDrew, ParamsEdgeRefs, ParamsInfo, ParamsOptionRanges, ParamsOptions, ParamsSelection, RelationCandidate,
 	SavedGraph, StateAction, StyleKinds, TargetCommand, GraphLocation, PeekSource, SavedView,
 } from '../types/graph';
@@ -906,28 +906,12 @@ class Graph
 			case 'print':
 				await printGraph(message.svg, this.title());
 				break;
-			case 'drop':
-				this.send('action', { action: 'drop', ids: message.ids, target: message.target, copy: message.copy });
-				break;
 			case 'textFocus':
 				vscode.commands.executeCommand('setContext', 'understandGraphTextFocus', message.on);
 				break;
 			case 'notice':
 				vscode.window.showInformationMessage(message.text);
 				break;
-			case 'droppedFiles': {
-				// Explorer drops file uris; the server takes the paths
-				const paths = message.uris.flatMap(u => {
-					try {
-						return [vscode.Uri.parse(u).fsPath];
-					} catch {
-						return [];
-					}
-				});
-				if (paths.length)
-					this.send('action', { action: 'dropFiles', target: message.target, paths });
-				break;
-			}
 		}
 	}
 
@@ -997,12 +981,6 @@ class Graph
 					: `Removed ${message.text ?? ''} from ${change.list ? `Favorites: ${change.list}` : 'Favorites'}`, 3000);
 				return;
 			}
-			case 'addToArch':
-				await this.addToArchitecture(message.uniqueName, message.text ?? '');
-				return;
-			case 'removeFromArch':
-				await this.removeFromArchitecture(message.uniqueName, message.text ?? '');
-				return;
 		}
 		variables.languageClient.sendNotification('understand/sync', { uniqueName: message.uniqueName });
 		const view = { info: 'understandInfo', ai: 'understandAi', references: 'understandReferences', metrics: 'understandMetrics' }[message.command];
@@ -1089,68 +1067,6 @@ class Graph
 		// Unless something typed meanwhile has already been answered
 		if (mine === asked)
 			show(first);
-	}
-
-
-	/** The GUI's Add to Architecture popup: an existing architecture, or a
-	 * new name such as Security/Critical */
-	private async addToArchitecture(uniqueName: string, name: string)
-	{
-		const listed = await request<ArchMembership>('arch', { action: 'list', uniqueName });
-		if (!listed)
-			return;
-		if (listed.error) {
-			vscode.window.showErrorMessage(listed.error);
-			return;
-		}
-		const picker = vscode.window.createQuickPick();
-		picker.title = `Add ${name} to architecture`;
-		picker.placeholder = 'Pick an architecture, or type a new name (e.g. Security/Critical)';
-		const existing = listed.available
-			.filter(arch => !listed.containing.includes(arch))
-			.map(arch => ({ label: arch }));
-		picker.items = existing;
-		picker.onDidChangeValue(value => {
-			const typed = value.trim();
-			picker.items = typed && !listed.available.includes(typed)
-				? [{ label: typed, description: 'new' }, ...existing]
-				: existing;
-		});
-		const picked = await new Promise<string | undefined>(resolve => {
-			picker.onDidAccept(() => resolve(picker.selectedItems[0]?.label ?? (picker.value.trim() || undefined)));
-			picker.onDidHide(() => resolve(undefined));
-			picker.show();
-		});
-		picker.dispose();
-		if (!picked)
-			return;
-		const added = await request<ArchMembership>('arch', { action: 'add', uniqueName, arch: picked });
-		if (added?.error)
-			vscode.window.showErrorMessage(added.error);
-		else if (added)
-			vscode.window.setStatusBarMessage(`Added ${name} to ${picked}`, 3000);
-	}
-
-
-	/** The GUI's Remove from Architecture menu: the architectures that hold
-	 * the entity, other than automatic ones */
-	private async removeFromArchitecture(uniqueName: string, name: string)
-	{
-		const listed = await request<ArchMembership>('arch', { action: 'list', uniqueName });
-		if (!listed)
-			return;
-		if (listed.error || !listed.containing.length) {
-			vscode.window.showInformationMessage(listed.error ?? `No architecture that can be edited holds ${name}`);
-			return;
-		}
-		const picked = await vscode.window.showQuickPick(listed.containing, { title: `Remove ${name} from architecture` });
-		if (!picked)
-			return;
-		const removed = await request<ArchMembership>('arch', { action: 'remove', uniqueName, arch: picked });
-		if (removed?.error)
-			vscode.window.showErrorMessage(removed.error);
-		else if (removed)
-			vscode.window.setStatusBarMessage(`Removed ${name} from ${picked}`, 3000);
 	}
 
 

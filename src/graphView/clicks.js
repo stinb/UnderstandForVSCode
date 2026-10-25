@@ -1,8 +1,8 @@
 // @ts-check
-// Clicks on the graph: selecting, visiting, previewing, renaming in place and toggling node options
+// Clicks on the graph: selecting, visiting, previewing and toggling node options
 
 import { vscode, info, selected, selectedEdges } from './state.js';
-import { focusOnGraph, cssEscape, goToLocUrl, nodeElement } from './util.js';
+import { goToLocUrl, nodeElement } from './util.js';
 import { nodeIdOf, labelOwnerOf, applySelection, replaceSelection, toggle, selectNode } from './selection.js';
 import { suppressNextClick, consumeDragClick } from './drags.js';
 import { peekOn, peekNodeId, showPeek, hidePeek } from './peek.js';
@@ -179,74 +179,6 @@ export function onClickEdge(e)
 
 
 /**
- * The GUI's rename in place of an architecture node, in a graph that takes
- * drops: a click on the label of the architecture node that is selected
- * edits its name. Enter, Escape and leaving the field all end the edit and
- * keep the name, as in the GUI; '/' and '\' are not typed.
- * @param {MouseEvent} e
- * @returns {boolean} the click began a rename
- */
-function startRename(e)
-{
-	if (!info || !info.draggableTags || e.detail > 1 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)
-		return false;
-	if (selected.size !== 1)
-		return false;
-	const id = Array.from(selected)[0];
-	const container = document.getElementById('graphContainer');
-	const node = container?.querySelector(`[data-id="${cssEscape(id)}"][href^="arch:"]`);
-	const url = URL.parse(node?.getAttribute('href') || '');
-	if (!node || !url)
-		return false;
-	const label = Array.from(container?.querySelectorAll(`text[data-owner="${cssEscape(id)}"]`) || []).find(text => {
-		const box = text.getBoundingClientRect();
-		return e.clientX >= box.left && e.clientX <= box.right && e.clientY >= box.top && e.clientY <= box.bottom;
-	});
-	const main = document.getElementById('main');
-	if (!label || !main)
-		return false;
-	e.stopPropagation();
-	e.preventDefault();
-
-	const name = decodeURIComponent(url.pathname).replace(/^.*\//, '');
-	const box = label.getBoundingClientRect();
-	const area = main.getBoundingClientRect();
-	const input = document.createElement('input');
-	input.id = 'renameArch';
-	input.value = name;
-	input.style.left = `${box.left - area.left + main.scrollLeft}px`;
-	input.style.top = `${box.top - area.top + main.scrollTop}px`;
-	input.style.minWidth = `${Math.max(80, box.width)}px`;
-	input.dataset.vscodeContext = '{"preventDefaultContextMenuItems":false}';
-	main.appendChild(input);
-	input.focus();
-	input.select();
-	let done = false;
-	const finish = () => {
-		if (done)
-			return;
-		done = true;
-		const value = input.value.trim();
-		input.remove();
-		focusOnGraph();
-		if (value && value !== name)
-			vscode.postMessage({ method: 'action', action: 'renameArch', ids: [id], name: value });
-	};
-	input.onkeydown = (ev) => {
-		ev.stopPropagation();
-		if (ev.key === '/' || ev.key === '\\')
-			ev.preventDefault();
-		else if (ev.key === 'Enter' || ev.key === 'Escape') {
-			ev.preventDefault();
-			finish();
-		}
-	};
-	input.onblur = finish;
-	return true;
-}
-
-
-/**
  * Go to a node's place, as the GUI's visit: a location node's own place,
  * the server's answer for the rest (an entity's definition, a reference's
  * place); an edge visits its tail
@@ -284,11 +216,6 @@ export function onClickCapture(e)
 			return;
 		}
 	}
-
-	// Clicking an architecture node's label that is already selected edits
-	// its name, as in the GUI's Architecture graph
-	if (startRename(e))
-		return;
 
 	// An entity a label names (a member in a UML class diagram, say) is
 	// selected by a click, as in Understand, instead of its node

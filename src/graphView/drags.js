@@ -1,5 +1,5 @@
 // @ts-check
-// Presses that drag: panning, the rubber band, moving nodes, dragging onto architectures and out of the graph, and auto-scroll
+// Presses that drag: panning, the rubber band, moving nodes, dragging out of the graph, and auto-scroll
 
 import { vscode, info, selected, selectedEdges } from './state.js';
 import { cssEscape, NODE_KINDS } from './util.js';
@@ -60,13 +60,6 @@ export function onPointerDown(e)
 	// variant), nodes move by hand, as in the GUI
 	if (info && info.moveableNodes && nodeId) {
 		startNodeMove(nodeId, e);
-		return;
-	}
-
-	// In a graph that lets them be, entities and architectures are dragged
-	// onto an architecture, as in the GUI's Architecture graph
-	if (info && info.draggableTags && nodeId) {
-		startNodeDrag(nodeId, e);
 		return;
 	}
 
@@ -158,78 +151,6 @@ export function consumeDragClick()
 	const suppress = suppressNextClick;
 	suppressNextClick = false;
 	return suppress;
-}
-
-
-/**
- * The selected nodes, or the one pressed, follow the pointer onto an
- * architecture, where Ctrl copies them instead of moving them
- * @param {string} id
- * @param {PointerEvent} e
- */
-function startNodeDrag(id, e)
-{
-	const ids = selected.has(id) ? Array.from(selected) : [id];
-	const targetAt = (/** @type {PointerEvent} */ ev) => {
-		const target = archAt(ev.clientX, ev.clientY);
-		return target && !ids.includes(target) ? target : undefined;
-	};
-	const ghost = document.createElement('div');
-	ghost.id = 'dragGhost';
-	/** @type {string | undefined} */
-	let over = undefined;
-	trackDrag(e, {
-		onStart: () => {
-			if (!ids.every(i => selected.has(i)))
-				replaceSelection(ids);
-			document.body.appendChild(ghost);
-		},
-		onMove: (ev) => {
-			ev.preventDefault();
-			autoScroll(ev.clientX, ev.clientY);
-			ghost.style.left = `${ev.clientX + 14}px`;
-			ghost.style.top = `${ev.clientY + 10}px`;
-			const target = targetAt(ev);
-			if (target !== over) {
-				markDropTarget(target);
-				over = target;
-			}
-			const count = ids.length === 1 ? '1 item' : `${ids.length} items`;
-			ghost.textContent = target ? `${ev.ctrlKey ? 'Copy' : 'Move'} ${count} to ${target}` : `${count}: drop on an architecture`;
-		},
-		onEnd: (ev, moved) => {
-			stopAutoScroll();
-			if (!moved)
-				return;
-			suppressNextClick = true;
-			const target = ev.type === 'pointerup' ? targetAt(ev) : undefined;
-			if (target)
-				vscode.postMessage({ method: 'drop', ids, target, copy: ev.ctrlKey });
-			ghost.remove();
-			markDropTarget(undefined);
-		},
-	});
-}
-
-
-/** The architecture node under a point */
-/** @param {number} x @param {number} y */
-function archAt(x, y)
-{
-	const element = document.elementFromPoint(x, y);
-	return element instanceof Element ? element.closest('[data-id][href^="arch:"]')?.getAttribute('data-id') || undefined : undefined;
-}
-
-
-/** Mark the architecture a drag would drop on, or none */
-/** @param {string | undefined} id */
-function markDropTarget(id)
-{
-	for (const element of document.querySelectorAll('.dropTarget'))
-		element.classList.remove('dropTarget');
-	if (id)
-		for (const element of document.querySelectorAll(`#graphContainer [data-id="${cssEscape(id)}"]`))
-			element.classList.add('dropTarget');
 }
 
 
@@ -435,35 +356,3 @@ export function onDragStart(e)
 }
 
 
-/**
- * Files from VS Code's Explorer (dragged with Shift, as VS Code drops into
- * a page) dropped on an architecture are added to it, in a graph that takes
- * drops, as the GUI takes them from its other views
- * @param {DragEvent} e
- */
-export function onDragOver(e)
-{
-	if (!info || !info.draggableTags || !e.dataTransfer || !Array.from(e.dataTransfer.types).includes('text/uri-list'))
-		return;
-	autoScroll(e.clientX, e.clientY);
-	const target = archAt(e.clientX, e.clientY);
-	markDropTarget(target);
-	if (!target)
-		return;
-	e.preventDefault();
-	e.dataTransfer.dropEffect = 'copy';
-}
-
-
-/** @param {DragEvent} e */
-export function onDrop(e)
-{
-	stopAutoScroll();
-	markDropTarget(undefined);
-	const target = archAt(e.clientX, e.clientY);
-	const uris = (e.dataTransfer?.getData('text/uri-list') || '').split(/\r?\n/).filter(u => u && !u.startsWith('#'));
-	if (!info || !info.draggableTags || !target || !uris.length)
-		return;
-	e.preventDefault();
-	vscode.postMessage({ method: 'droppedFiles', target, uris });
-}

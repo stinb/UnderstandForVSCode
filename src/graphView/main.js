@@ -6,7 +6,7 @@ import { focusOnGraph } from './util.js';
 import { drawOptions, updateOptionRanges } from './options.js';
 import { applySelection, drawNodeActionButtons, updateSelectionActions } from './selection.js';
 import { onClickBackground, onClickCapture, onDoubleClick } from './clicks.js';
-import { onPointerDown, stopAutoScroll, onDragStart, onDragOver, onDrop } from './drags.js';
+import { onPointerDown, onDragStart } from './drags.js';
 import { onKeyDown, onKeyUp, smoothScrollLoop } from './keys.js';
 import { updateState } from './panels.js';
 import { onDrawing, holdForView, hideDrawing } from './drawing.js';
@@ -164,9 +164,6 @@ function main()
 		container.addEventListener('dragstart', onDragStart);
 		container.addEventListener('dragend', () => { container.draggable = false; });
 	}
-	mainElement.addEventListener('dragover', onDragOver);
-	mainElement.addEventListener('dragleave', stopAutoScroll);
-	mainElement.addEventListener('drop', onDrop);
 
 	document.addEventListener('click', (e) => {
 		if (!(e.target instanceof Element) || !e.target.closest('#menu'))

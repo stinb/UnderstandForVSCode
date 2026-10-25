@@ -280,8 +280,6 @@ function targetMenuItems(target)
 		items.push({ label: 'Show Metrics', onClick: post('metrics') });
 		items.push({ label: 'Find in Files', onClick: post('findInFiles', { text: target.name || '' }) });
 		items.push({ separator: true });
-		items.push({ label: 'Add to Architecture…', onClick: post('addToArch', { text: target.name || '' }) });
-		items.push({ label: 'Remove from Architecture…', onClick: post('removeFromArch', { text: target.name || '' }) });
 		items.push(favoriteItem(uniqueName, target.name || ''));
 		if (target.definition) {
 			items.push({ separator: true });

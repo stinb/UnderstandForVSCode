@@ -426,17 +426,6 @@ button.quickLevel {
 	z-index: 6;
 }
 
-/* An architecture node's name, edited in place */
-#renameArch {
-	position: absolute;
-	z-index: 5;
-	font: inherit;
-	padding: 0 2px;
-	color: var(--vscode-input-foreground);
-	background: var(--vscode-input-background);
-	border: 1px solid var(--vscode-focusBorder);
-}
-
 /* An edge takes clicks on its line, through a wider band drawn behind it */
 path[data-edge] {
 	pointer-events: stroke;
@@ -704,23 +693,6 @@ aside {
 	border-radius: 2px;
 	color: var(--vscode-button-foreground);
 	padding: 4px 12px;
-}
-
-/* Dragging onto an architecture: what is carried, and where it would go */
-#dragGhost {
-	background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
-	border: 1px solid var(--vscode-focusBorder);
-	border-radius: 3px;
-	padding: 2px 6px;
-	pointer-events: none;
-	position: fixed;
-	white-space: nowrap;
-	z-index: 7;
-}
-
-.dropTarget {
-	stroke: var(--vscode-focusBorder) !important;
-	stroke-width: 3 !important;
 }
 
 /* Legend: a panel over the graph's corner, as the GUI's legend frame */

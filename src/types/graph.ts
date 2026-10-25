@@ -87,8 +87,6 @@ export type GraphInfo = {
 	highlightEdgesOnHover?: boolean,
 	peek?: boolean,
 	wheelZoom?: boolean,
-	/** entities and architectures can be dragged onto architectures */
-	draggableTags?: boolean,
 	/** what Export To File offers beyond png and jpg */
 	exportFormats?: string[],
 	/** a relationship graph's second entity, and the kind it must be */
@@ -200,7 +198,6 @@ export type StyleKinds = {
 export type RelationCandidate = { name: string, longName: string, uniqueName: string, kind: string };
 
 /** The architectures an entity can be added to, and those that hold it */
-export type ArchMembership = { uniqueName: string, available: string[], containing: string[], error?: string };
 
 export type SavedGraph = {
 	name: string,
@@ -259,13 +256,10 @@ export type NodeAction = {
 	value?: boolean,
 	/** toggleOption: the node option an edge indicator toggles */
 	option?: number,
-	/** renameArch: the new name; setting: which setting */
+	/** setting: which setting */
 	name?: string,
 	/** setting: its value */
 	setting?: unknown,
-	/** dropFiles: the architecture node dropped on, and the files */
-	target?: string,
-	paths?: string[],
 	/** moveNodes: how far the selected nodes moved */
 	dx?: number,
 	dy?: number,
@@ -336,8 +330,7 @@ export type EdgeMenu = { method: 'edgeRefs', index: number };
 export type TargetCommand = {
 	method: 'target',
 	command: 'info' | 'ai' | 'references' | 'metrics' | 'graph' | 'copyName' | 'copyLongName'
-		| 'annotate' | 'annotateArch' | 'explore' | 'generateAi' | 'findInFiles'
-		| 'addToArch' | 'removeFromArch' | 'favorite',
+		| 'annotate' | 'annotateArch' | 'explore' | 'generateAi' | 'findInFiles' | 'favorite',
 	uniqueName: string,
 	graphName?: string,
 	/** copy*: the text; annotate: the form's title; annotateArch: the
@@ -346,9 +339,6 @@ export type TargetCommand = {
 	/** annotate, explore: the entity's definition */
 	location?: GraphLocation,
 };
-
-/** Entities and architectures dragged onto an architecture */
-export type Drop = { method: 'drop', ids: string[], target: string, copy: boolean };
 
 /** Graphic filters: the graph menu's toggle, the Graphic Filter dialog's OK, the node menu's suggestions */
 export type FilterAction = {
@@ -374,12 +364,10 @@ export type TextFocus = { method: 'textFocus', on: boolean };
 export type Notice = { method: 'notice', text: string };
 /** The tab's Reuse toggle: the next graph opens in this tab */
 export type ChangedReuse = { method: 'reuse', on: boolean };
-/** Files dropped onto the page from VS Code's Explorer */
-export type DroppedFiles = { method: 'droppedFiles', target: string, uris: string[] };
 
 export type GraphMessageFromSandbox = ChangedOption | ClickedEntity | ClickedLocation | ClickedArch | SaveBase64 | NodeAction | LegendAction | StateAction | ChangedVariant | ChangedSync | Selection | Copied
-	| ClickedLink | EdgeMenu | TargetCommand | FilterAction | Favorite | ApiCommand | AskRelationship | Print | Drop | TextFocus
-	| Notice | DroppedFiles | ChangedReuse;
+	| ClickedLink | EdgeMenu | TargetCommand | FilterAction | Favorite | ApiCommand | AskRelationship | Print | TextFocus
+	| Notice | ChangedReuse;
 
 
 // ---- extension -> webview ----
