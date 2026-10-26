@@ -1324,10 +1324,18 @@ class Graph
 
 
 	/** The display's own title once the server says it, as the GUI's window
-	 * follows it ("Control Flow : process"); till then the graph and root */
+	 * follows it ("Control Flow : process"); till then the graph and root,
+	 * the same way. The graph name in the title doubles "&" as a menu does
+	 * ("Calls && Called By"), which the GUI's tab bar undoes and a VS Code
+	 * tab does not; the root's name after it (operator&&) is left as is. */
 	private title(): string
 	{
-		return this.info && this.info.title ? this.info.title : `${graphLabel(this.graphName)}: ${this.label}`;
+		const title = this.info?.title;
+		if (!title)
+			return `${graphLabel(this.graphName)} : ${this.label}`;
+		return title.startsWith(this.graphName)
+			? graphLabel(this.graphName) + title.slice(this.graphName.length)
+			: title;
 	}
 
 
