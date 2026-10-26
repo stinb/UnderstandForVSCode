@@ -2,7 +2,7 @@
 // The toolbar, its sections as the GUI's, and its toggles
 
 import { vscode, info } from './state.js';
-import { focusOnGraph, toolButton, separator } from './util.js';
+import { focusOnGraph, graphLabel, toolButton, separator } from './util.js';
 import { levelOptionIds, stepLevel, canStepLevel, optionsMenuItems } from './options.js';
 import { actionIds, showAllHidden, postAction } from './selection.js';
 import { peekOn, setPeekOn } from './peek.js';
@@ -312,7 +312,8 @@ export function updateToolbar()
 		variant.innerHTML = '';
 		for (const style of styles) {
 			const option = document.createElement('option');
-			option.value = option.textContent = style;
+			option.value = style;
+			option.textContent = graphLabel(style);
 			variant.appendChild(option);
 		}
 		if (info && info.style)
