@@ -173,7 +173,7 @@ export function setExportLicensed(on: boolean)
 
 export function handleUnderstandGraphsListed(params: Params)
 {
-	variables.graphProvider.setEntity(params.entityName, params.uniqueName, params.graphs);
+	variables.graphProvider.setEntity(params.entityName, params.uniqueName, params.graphs, params.source);
 	variables.graphTreeProvider.update(params);
 	// The project is online (the list carries the project's graphs then)
 	if (params.project !== undefined)
@@ -272,4 +272,6 @@ type Params = {
 	uniqueName: string,
 	project?: string[],
 	archs?: Arch[],
+	/** The graph tab whose sync this list answers */
+	source?: string,
 };

@@ -65,8 +65,9 @@ export class GraphProvider
 
 	/** The entity the Graphs view lists graphs for changed. A graph whose
 	 * Sync is on follows it, as the GUI's graph window does, when the new
-	 * entity has that graph. */
-	setEntity(entityName: string, uniqueName: string, graphs: string[])
+	 * entity has that graph; the tab the sync came from (source) syncs the
+	 * rest and keeps its own root. */
+	setEntity(entityName: string, uniqueName: string, graphs: string[], source?: string)
 	{
 		this.entityName = entityName;
 		this.listedUniqueName = uniqueName;
@@ -77,7 +78,7 @@ export class GraphProvider
 		if (!uniqueName || uniqueName === PROJECT_ROOT || uniqueName.startsWith(ARCH_PREFIX))
 			return;
 		for (const graph of this.allGraphs()) {
-			if (!graph.syncOn || graph.getUniqueName() === uniqueName)
+			if (!graph.syncOn || graph.getUniqueName() === uniqueName || graph.tabId === source)
 				continue;
 			// A relationship graph keeps its root and takes the entity as
 			// its second, as the GUI's sync does
@@ -87,6 +88,19 @@ export class GraphProvider
 			}
 			if (graphs.includes(graph.getGraphName()))
 				this.retarget(graph, graph.getGraphName(), uniqueName, entityName);
+		}
+	}
+
+
+	/** An architecture node was selected in a syncing graph: the other
+	 * syncing graphs of an architecture or the project follow it */
+	setArch(fullName: string, source: string)
+	{
+		for (const graph of this.allGraphs()) {
+			const root = graph.getUniqueName();
+			if (graph.syncOn && graph.tabId !== source && (root.startsWith(ARCH_PREFIX) || root === PROJECT_ROOT)
+				&& root !== ARCH_PREFIX + fullName)
+				this.retarget(graph, graph.getGraphName(), ARCH_PREFIX + fullName, fullName);
 		}
 	}
 
@@ -424,6 +438,7 @@ const DIFF_SCHEME = 'understand-graph-diff';
 const diffTexts = new Map<string, string>();
 const diffChanged = new vscode.EventEmitter<vscode.Uri>();
 let diffProvider: vscode.Disposable | undefined;
+let lastTabId = 0;
 
 /** The GUI's compare graph diff pane: the entity in the comparison
  * database against the current one, in VS Code's diff editor. One tab per
@@ -557,6 +572,9 @@ class Graph
 
 	/** Follow the current entity, as the GUI window's Sync checkbox does */
 	syncOn = false;
+
+	/** Names this tab in a sync it sends, so it does not follow itself */
+	readonly tabId = String(++lastTabId);
 
 	/** Open the next graph in this tab, as the GUI window's Reuse checkbox
 	 * does; a new tab starts as the setting says */
@@ -727,6 +745,7 @@ class Graph
 			case 'clickedEntity':
 				variables.languageClient.sendNotification('understand/sync', {
 					id: message.id,
+					source: this.tabId,
 				});
 				break;
 			case 'clickedLocation': {
@@ -739,17 +758,17 @@ class Graph
 				break;
 			}
 			case 'clickedArch':
-				// An architecture node is the selection; a graph that syncs
-				// follows it, as the GUI's Sync does
-				if (this.syncOn && (this.uniqueName.startsWith(ARCH_PREFIX) || this.uniqueName === PROJECT_ROOT))
-					variables.graphProvider.retarget(this, this.graphName, ARCH_PREFIX + message.fullName, message.fullName);
+				// An architecture node is the selection; the other graphs
+				// that sync follow it, as the GUI's Sync does
+				if (this.syncOn)
+					variables.graphProvider.setArch(message.fullName, this.tabId);
 				break;
 			case 'saveBase64':
 				saveFile(message.path, Buffer.from(message.content, 'base64'));
 				break;
 			case 'action': {
 				const { method: _, ...params } = message;
-				this.send('action', params);
+				this.send('action', params.action === 'sync' ? { ...params, source: this.tabId } : params);
 				break;
 			}
 			case 'selection':
