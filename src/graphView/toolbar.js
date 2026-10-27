@@ -323,6 +323,36 @@ export function updateToolbar()
 	if (minimap)
 		setOn('toggleMinimap', !minimap.hidden);
 	setOn('toggleOptions', optionsOpen());
+	tidySeparators();
+}
+
+
+/** A separator only between two groups that show something, so a group
+ * whose buttons are all hidden (the Nodes buttons on a plugin graph) or
+ * turned off leaves no gap */
+function tidySeparators()
+{
+	const toolbar = document.getElementById('toolbar');
+	if (!toolbar)
+		return;
+	/** @type {Element | null} */
+	let pending = null;
+	let itemSince = false;
+	for (const child of Array.from(toolbar.children)) {
+		if (child.classList.contains('separator')) {
+			/** @type {HTMLElement} */ (child).hidden = true;
+			if (itemSince)
+				pending = child;
+			itemSince = false;
+			continue;
+		}
+		if (/** @type {HTMLElement} */ (child).hidden || child.classList.contains('sectionHidden'))
+			continue;
+		if (pending)
+			/** @type {HTMLElement} */ (pending).hidden = false;
+		pending = null;
+		itemSince = true;
+	}
 }
 
 
