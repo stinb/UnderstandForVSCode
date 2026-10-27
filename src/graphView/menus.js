@@ -260,15 +260,6 @@ function targetMenuItems(target)
 	if (decl && !(def && def.path === decl.path && def.line === decl.line))
 		items.push({ label: 'Go To Declaration', onClick: go(decl) });
 	const uniqueName = target.uniqueName;
-	// The favorite flag flips here too, so the menu reads right before the
-	// next selection brings the server's answer
-	const favoriteItem = (/** @type {string} */ root, /** @type {string} */ text) => ({
-		label: target.favorite ? 'Remove from Favorites' : 'Add to Favorites',
-		onClick: () => {
-			target.favorite = !target.favorite;
-			vscode.postMessage({ method: 'target', command: 'favorite', uniqueName: root, text });
-		},
-	});
 	if (uniqueName) {
 		const post = (/** @type {import('../types/graph').TargetCommand['command']} */ command,
 			/** @type {Partial<import('../types/graph').TargetCommand>} */ extra = {}) =>
@@ -279,8 +270,6 @@ function targetMenuItems(target)
 		items.push({ label: 'Find References', onClick: post('references') });
 		items.push({ label: 'Show Metrics', onClick: post('metrics') });
 		items.push({ label: 'Find in Files', onClick: post('findInFiles', { text: target.name || '' }) });
-		items.push({ separator: true });
-		items.push(favoriteItem(uniqueName, target.name || ''));
 		if (target.definition) {
 			items.push({ separator: true });
 			items.push({ label: 'Annotate…', onClick: post('annotate', { location: target.definition, text: target.name }) });
@@ -294,7 +283,6 @@ function targetMenuItems(target)
 		const arch = target.arch;
 		items.push({ label: 'Annotate Architecture…', onClick: () => vscode.postMessage({
 			method: 'target', command: 'annotateArch', uniqueName: `arch:${arch}`, text: arch }) });
-		items.push(favoriteItem(`arch:${arch}`, arch));
 		items.push({ label: 'Copy Name', onClick: () => vscode.postMessage({
 			method: 'target', command: 'copyName', uniqueName: `arch:${arch}`, text: arch }) });
 	}

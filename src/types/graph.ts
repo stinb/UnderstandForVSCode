@@ -50,8 +50,6 @@ export type GraphTarget = {
 	source?: GraphLocation,
 	definition?: GraphLocation,
 	declaration?: GraphLocation,
-	/** The entity or architecture is in the project's favorites */
-	favorite?: boolean,
 };
 
 export type FilterSuggestion = { criteria: number, text: string, label: string };
@@ -206,16 +204,6 @@ export type SavedGraph = {
 	uniqueName: string,
 };
 
-/** A graph in the GUI's Favorites, which VS Code shares */
-export type FavoriteGraph = {
-	list: string,
-	/** The favorites list also holds entities and architectures */
-	kind?: 'graph' | 'entity' | 'arch',
-	graphName: string,
-	uniqueName: string,
-	rootName: string,
-};
-
 
 // ---- webview -> extension ----
 
@@ -330,7 +318,7 @@ export type EdgeMenu = { method: 'edgeRefs', index: number };
 export type TargetCommand = {
 	method: 'target',
 	command: 'info' | 'ai' | 'references' | 'metrics' | 'graph' | 'copyName' | 'copyLongName'
-		| 'annotate' | 'annotateArch' | 'explore' | 'generateAi' | 'findInFiles' | 'favorite',
+		| 'annotate' | 'annotateArch' | 'explore' | 'generateAi' | 'findInFiles',
 	uniqueName: string,
 	graphName?: string,
 	/** copy*: the text; annotate: the form's title; annotateArch: the
@@ -351,8 +339,6 @@ export type FilterAction = {
 	filters?: GraphFilters['filters'],
 };
 
-/** The toolbar's star: the extension asks which Favorites group, or what to do with one already in some */
-export type Favorite = { method: 'favorite' };
 export type ApiCommand = { method: 'apiCommand' };
 export type AskRelationship = { method: 'relationship' };
 /** Print Graph: a webview cannot print, so the extension opens the graph in the browser to */
@@ -366,7 +352,7 @@ export type Notice = { method: 'notice', text: string };
 export type ChangedReuse = { method: 'reuse', on: boolean };
 
 export type GraphMessageFromSandbox = ChangedOption | ClickedEntity | ClickedLocation | ClickedArch | SaveBase64 | NodeAction | LegendAction | StateAction | ChangedVariant | ChangedSync | Selection | Copied
-	| ClickedLink | EdgeMenu | TargetCommand | FilterAction | Favorite | ApiCommand | AskRelationship | Print | TextFocus
+	| ClickedLink | EdgeMenu | TargetCommand | FilterAction | ApiCommand | AskRelationship | Print | TextFocus
 	| Notice | ChangedReuse;
 
 
@@ -431,7 +417,6 @@ export type UpdateToolbar = {
 	method: 'updateToolbar',
 	sync?: boolean,
 	reuse?: boolean,
-	favorite?: boolean,
 	savedNames?: string[],
 };
 /** A draw began on the server, or was cancelled */
