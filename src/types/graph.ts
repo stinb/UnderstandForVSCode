@@ -340,6 +340,8 @@ export type FilterAction = {
 };
 
 export type ApiCommand = { method: 'apiCommand' };
+/** The toolbar's Save As…: the extension asks for the file and its type */
+export type SaveAs = { method: 'saveAs' };
 export type AskRelationship = { method: 'relationship' };
 /** Print Graph: a webview cannot print, so the extension opens the graph in the browser to */
 export type Print = { method: 'print', svg: string };
@@ -352,7 +354,7 @@ export type Notice = { method: 'notice', text: string };
 export type ChangedReuse = { method: 'reuse', on: boolean };
 
 export type GraphMessageFromSandbox = ChangedOption | ClickedEntity | ClickedLocation | ClickedArch | SaveBase64 | NodeAction | LegendAction | StateAction | ChangedVariant | ChangedSync | Selection | Copied
-	| ClickedLink | EdgeMenu | TargetCommand | FilterAction | ApiCommand | AskRelationship | Print | TextFocus
+	| ClickedLink | EdgeMenu | TargetCommand | FilterAction | ApiCommand | SaveAs | AskRelationship | Print | TextFocus
 	| Notice | ChangedReuse;
 
 

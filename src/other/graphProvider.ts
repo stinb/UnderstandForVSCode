@@ -808,6 +808,9 @@ class Graph
 			case 'apiCommand':
 				this.send('action', { action: 'apiCommand' });
 				break;
+			case 'saveAs':
+				await this.save();
+				break;
 			case 'relationship':
 				this.pickRelationship();
 				break;

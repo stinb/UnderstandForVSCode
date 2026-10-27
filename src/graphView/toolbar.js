@@ -8,7 +8,6 @@ import { actionIds, showAllHidden, postAction } from './selection.js';
 import { peekOn, setPeekOn } from './peek.js';
 import {
 	ZOOM_PRESETS, zoom, setZoom, undoStep, canUndo, canRedo, zoomToFit, toggleFit, updateZoomSelect, stepZoom,
-	saveGraphState,
 } from './view.js';
 import { findMatches, appendFindTools } from './find.js';
 import { showMenu } from './menus.js';
@@ -94,7 +93,6 @@ export function buildToolbar()
 	toolbar.appendChild(separator());
 
 	// State
-	toolbar.appendChild(toolButton('save-as', 'Save Graph State', saveGraphState, 'saveState'));
 	const saved = document.createElement('select');
 	saved.id = 'savedSelect';
 	saved.title = 'Load Graph State';
@@ -110,6 +108,9 @@ export function buildToolbar()
 			focusOnGraph();
 	};
 	toolbar.appendChild(saved);
+	// The extension asks where and as what: an image, SVG, Visio, DOT or PlantUML
+	toolbar.appendChild(toolButton('save-as', 'Save As… (an image, SVG, Visio, DOT or PlantUML file)',
+		() => vscode.postMessage({ method: 'saveAs' }), 'saveAs'));
 	toolbar.appendChild(toolButton('copy', 'Copy Image To Clipboard', copyImage, 'copyImage'));
 	toolbar.appendChild(toolButton('file-pdf', 'Print… (opens the graph in your browser to print or save as PDF)', () => {
 		const svg = exportableSvg({ paper: true });
@@ -147,8 +148,8 @@ export function buildToolbar()
 		relationship: 'edit', showAllHidden: 'edit', clearHighlights: 'edit',
 		zoomSelect: 'nav', zoomIn: 'nav', zoomOut: 'nav', find: 'nav', findCase: 'nav', findWords: 'nav', findCount: 'nav', findPrev: 'nav',
 		findNext: 'nav', findSelectAll: 'nav', toggleMinimap: 'nav', toggleLegend: 'nav', togglePeek: 'nav',
-		saveState: 'archive', savedSelect: 'archive',
-		copyImage: 'file', print: 'file', apiCommand: 'file', diff: 'file',
+		savedSelect: 'archive',
+		saveAs: 'file', copyImage: 'file', print: 'file', apiCommand: 'file', diff: 'file',
 		toggleReuse: 'reuse',
 		toggleSync: 'sync',
 	};
@@ -275,7 +276,6 @@ export function updateToolbar()
 			? `Show All Hidden Nodes (${info.hidden.length})` : 'Show All Hidden Nodes';
 	show('clearHighlights', interactive);
 	enable('clearHighlights', !!(info && info.highlights));
-	show('saveState', interactive);
 	show('savedSelect', interactive);
 	show('toggleLegend', !!(info && info.legend && info.legend.length));
 	show('increaseLevel', levelOptionIds.length > 0);
