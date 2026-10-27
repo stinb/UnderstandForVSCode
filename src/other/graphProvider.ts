@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import { escapeHtml } from './html';
 import { variables } from './variables';
 import {
-	FavoriteGraph, FilterAction, GraphFilters, GraphInfo, GraphKey, GraphMessageFromSandbox, GraphMessageToSandbox,
+	FilterAction, GraphFilters, GraphInfo, GraphKey, GraphMessageFromSandbox, GraphMessageToSandbox,
 	LegendAction, LegendEntry, ParamsDrew, ParamsEdgeRefs, ParamsInfo, ParamsOptionRanges, ParamsOptions, ParamsSelection, RelationCandidate,
 	SavedGraph, StateAction, StyleKinds, TargetCommand, GraphLocation, PeekSource, SavedView,
 } from '../types/graph';
@@ -55,7 +55,6 @@ export class GraphProvider
 	private focusedGraph?: Graph = undefined;
 	private listedUniqueName = '';
 	private saved: SavedGraph[] = [];
-	private favorites: FavoriteGraph[] = [];
 
 
 	focusedUniqueName(): string
@@ -66,8 +65,9 @@ export class GraphProvider
 
 	/** The entity the Graphs view lists graphs for changed. A graph whose
 	 * Sync is on follows it, as the GUI's graph window does, when the new
-	 * entity has that graph. */
-	setEntity(entityName: string, uniqueName: string, graphs: string[])
+	 * entity has that graph; the tab the sync came from (source) syncs the
+	 * rest and keeps its own root. */
+	setEntity(entityName: string, uniqueName: string, graphs: string[], source?: string)
 	{
 		this.entityName = entityName;
 		this.listedUniqueName = uniqueName;
@@ -78,7 +78,7 @@ export class GraphProvider
 		if (!uniqueName || uniqueName === PROJECT_ROOT || uniqueName.startsWith(ARCH_PREFIX))
 			return;
 		for (const graph of this.allGraphs()) {
-			if (!graph.syncOn || graph.getUniqueName() === uniqueName)
+			if (!graph.syncOn || graph.getUniqueName() === uniqueName || graph.tabId === source)
 				continue;
 			// A relationship graph keeps its root and takes the entity as
 			// its second, as the GUI's sync does
@@ -88,6 +88,19 @@ export class GraphProvider
 			}
 			if (graphs.includes(graph.getGraphName()))
 				this.retarget(graph, graph.getGraphName(), uniqueName, entityName);
+		}
+	}
+
+
+	/** An architecture node was selected in a syncing graph: the other
+	 * syncing graphs of an architecture or the project follow it */
+	setArch(fullName: string, source: string)
+	{
+		for (const graph of this.allGraphs()) {
+			const root = graph.getUniqueName();
+			if (graph.syncOn && graph.tabId !== source && (root.startsWith(ARCH_PREFIX) || root === PROJECT_ROOT)
+				&& root !== ARCH_PREFIX + fullName)
+				this.retarget(graph, graph.getGraphName(), ARCH_PREFIX + fullName, fullName);
 		}
 	}
 
@@ -300,38 +313,6 @@ export class GraphProvider
 	}
 
 
-	/** The graphs in the GUI's Favorites changed */
-	updateFavorites(favorites: FavoriteGraph[], lists: string[])
-	{
-		this.favorites = favorites;
-		this.favoriteLists = lists;
-		variables.graphTreeProvider.updateFavorites(favorites);
-		for (const graph of this.allGraphs())
-			graph.postMessage({ method: 'updateToolbar', favorite: this.isFavorite(graph.getGraphName(), graph.getUniqueName()) });
-	}
-
-
-	/** The GUI's Favorites lists, which a new favorite goes into */
-	favoriteLists: string[] = [];
-
-	/** The list the last favorite went into, offered first next time */
-	lastFavoriteList: string | undefined = undefined;
-
-
-	isFavorite(graphName: string, uniqueName: string): boolean
-	{
-		return this.favorites.some(f => f.graphName === graphName && f.uniqueName === uniqueName);
-	}
-
-
-	/** The Favorites groups a graph, or an entity or architecture (no graph name), is in */
-	favoriteGroups(graphName: string, uniqueName: string): string[]
-	{
-		return Array.from(new Set(this.favorites.filter(f => (f.graphName || '') === graphName && f.uniqueName === uniqueName)
-			.map(f => f.list)));
-	}
-
-
 	/** A draw began on the server, or was cancelled */
 	drawing(params: GraphKey, aborted: boolean)
 	{
@@ -388,70 +369,6 @@ export class GraphProvider
 }
 
 
-/**
- * The Favorites group a new favorite goes into, always the user's choice, as
- * Understand's Add to Favorites menu offers it: each group, the last used
- * first, and New Favorites Group…, which the server creates on the add
- */
-async function pickFavoriteList(already: string[] = []): Promise<string | undefined>
-{
-	const all = variables.graphProvider.favoriteLists.length ? variables.graphProvider.favoriteLists : ['Default'];
-	const lists = all.filter(l => !already.includes(l));
-	const last = variables.graphProvider.lastFavoriteList;
-	const ordered = last && lists.includes(last) ? [last, ...lists.filter(l => l !== last)] : lists;
-	const newGroup = '$(add) New Favorites Group…';
-	const picked = await vscode.window.showQuickPick([
-		...ordered.map(label => ({ label, description: label === last ? 'last used' : undefined })),
-		{ label: '', kind: vscode.QuickPickItemKind.Separator },
-		{ label: newGroup },
-	], { title: 'Add to Favorites', placeHolder: 'The Favorites group to add it to' });
-	if (!picked)
-		return undefined;
-	let list = picked.label;
-	if (list === newGroup) {
-		const name = await vscode.window.showInputBox({
-			title: 'New Favorites Group',
-			prompt: 'The group\'s name; "Group/Name" puts it inside Group, as in Understand',
-			validateInput: v => !v.trim() ? 'A name is needed' : all.includes(v.trim()) ? 'That group already exists' : undefined,
-		});
-		if (!name)
-			return undefined;
-		list = name.trim();
-	}
-	variables.graphProvider.lastFavoriteList = list;
-	return list;
-}
-
-
-/**
- * What to do with a favorite: one in no group yet is added to the group
- * chosen; one already in some groups, as Understand keeps one favorite in
- * several, is taken out of one group or all of them, or added to another.
- * Undefined when the user cancels.
- * @param groups the groups it is in
- */
-async function pickFavoriteChange(groups: string[]): Promise<{ action: 'add' | 'remove', list?: string } | undefined>
-{
-	if (!groups.length) {
-		const list = await pickFavoriteList();
-		return list ? { action: 'add', list } : undefined;
-	}
-	const another = '$(add) Add to Another Group…';
-	const items: (vscode.QuickPickItem & { list?: string })[] = groups.map(list => ({ label: `Remove from ${list}`, list }));
-	if (groups.length > 1)
-		items.push({ label: 'Remove from All Groups' });
-	items.push({ label: '', kind: vscode.QuickPickItemKind.Separator }, { label: another });
-	const picked = await vscode.window.showQuickPick(items, { title: 'Favorites', placeHolder: `In ${groups.join(', ')}` });
-	if (!picked)
-		return undefined;
-	if (picked.label === another) {
-		const list = await pickFavoriteList(groups);
-		return list ? { action: 'add', list } : undefined;
-	}
-	return { action: 'remove', list: picked.list };
-}
-
-
 /** What a root is called in a tab title */
 export function labelOf(uniqueName: string): string
 {
@@ -491,8 +408,6 @@ export const graphNotifications: { [method: string]: (params: any) => unknown } 
 	edgeRefs: (params: ParamsEdgeRefs) => variables.graphProvider.post(params, { ...params, method: 'updateEdgeRefs' }),
 	drawing: (params: GraphKey) => variables.graphProvider.drawing(params, false),
 	aborted: (params: GraphKey) => variables.graphProvider.drawing(params, true),
-	favorites: (params: { favorites: FavoriteGraph[], lists: string[] }) =>
-		variables.graphProvider.updateFavorites(params.favorites.filter(f => !f.kind || f.kind === 'graph'), params.lists ?? []),
 	apiCommand: showApiCommand,
 	// The GUI's visit (Alt+click, a click with Peek off, double-click in a
 	// plugin graph), in a normal tab that takes the focus; lines are 1-based
@@ -523,6 +438,7 @@ const DIFF_SCHEME = 'understand-graph-diff';
 const diffTexts = new Map<string, string>();
 const diffChanged = new vscode.EventEmitter<vscode.Uri>();
 let diffProvider: vscode.Disposable | undefined;
+let lastTabId = 0;
 
 /** The GUI's compare graph diff pane: the entity in the comparison
  * database against the current one, in VS Code's diff editor. One tab per
@@ -657,6 +573,9 @@ class Graph
 	/** Follow the current entity, as the GUI window's Sync checkbox does */
 	syncOn = false;
 
+	/** Names this tab in a sync it sends, so it does not follow itself */
+	readonly tabId = String(++lastTabId);
+
 	/** Open the next graph in this tab, as the GUI window's Reuse checkbox
 	 * does; a new tab starts as the setting says */
 	reuseOn = vscode.workspace.getConfiguration('understand').get<boolean>('graphs.reuseTab', false);
@@ -728,7 +647,6 @@ class Graph
 			method: 'updateToolbar',
 			sync: this.syncOn,
 			reuse: this.reuseOn,
-			favorite: variables.graphProvider.isFavorite(this.graphName, this.uniqueName),
 			savedNames: variables.graphProvider.savedNames(this.graphName, this.uniqueName),
 		});
 	}
@@ -827,6 +745,7 @@ class Graph
 			case 'clickedEntity':
 				variables.languageClient.sendNotification('understand/sync', {
 					id: message.id,
+					source: this.tabId,
 				});
 				break;
 			case 'clickedLocation': {
@@ -839,17 +758,17 @@ class Graph
 				break;
 			}
 			case 'clickedArch':
-				// An architecture node is the selection; a graph that syncs
-				// follows it, as the GUI's Sync does
-				if (this.syncOn && (this.uniqueName.startsWith(ARCH_PREFIX) || this.uniqueName === PROJECT_ROOT))
-					variables.graphProvider.retarget(this, this.graphName, ARCH_PREFIX + message.fullName, message.fullName);
+				// An architecture node is the selection; the other graphs
+				// that sync follow it, as the GUI's Sync does
+				if (this.syncOn)
+					variables.graphProvider.setArch(message.fullName, this.tabId);
 				break;
 			case 'saveBase64':
 				saveFile(message.path, Buffer.from(message.content, 'base64'));
 				break;
 			case 'action': {
 				const { method: _, ...params } = message;
-				this.send('action', params);
+				this.send('action', params.action === 'sync' ? { ...params, source: this.tabId } : params);
 				break;
 			}
 			case 'selection':
@@ -886,19 +805,11 @@ class Graph
 			case 'filter':
 				this.handleFilter(message);
 				break;
-			case 'favorite': {
-				// The star the page lit (or unlit) goes back when the user cancels
-				const groups = variables.graphProvider.favoriteGroups(this.graphName, this.uniqueName);
-				const change = await pickFavoriteChange(groups);
-				if (!change) {
-					this.postMessage({ method: 'updateToolbar', favorite: groups.length > 0 });
-					break;
-				}
-				this.send('favorite', change);
-				break;
-			}
 			case 'apiCommand':
 				this.send('action', { action: 'apiCommand' });
+				break;
+			case 'saveAs':
+				await this.save();
 				break;
 			case 'relationship':
 				this.pickRelationship();
@@ -967,20 +878,6 @@ class Graph
 					isRegex: false,
 				});
 				return;
-			case 'favorite': {
-				const arch = message.uniqueName.startsWith(ARCH_PREFIX);
-				const change = await pickFavoriteChange(variables.graphProvider.favoriteGroups('', message.uniqueName));
-				if (!change)
-					return;
-				variables.languageClient.sendNotification('understand/graphs/favorite', {
-					...change,
-					kind: arch ? 'arch' : 'entity',
-					uniqueName: message.uniqueName,
-				});
-				vscode.window.setStatusBarMessage(change.action === 'add' ? `Added ${message.text ?? ''} to Favorites: ${change.list}`
-					: `Removed ${message.text ?? ''} from ${change.list ? `Favorites: ${change.list}` : 'Favorites'}`, 3000);
-				return;
-			}
 		}
 		variables.languageClient.sendNotification('understand/sync', { uniqueName: message.uniqueName });
 		const view = { info: 'understandInfo', ai: 'understandAi', references: 'understandReferences', metrics: 'understandMetrics' }[message.command];

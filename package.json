@@ -680,10 +680,24 @@
 					},
 					"understand.metricsView.disabledMetrics": {
 						"type": "array",
-						"markdownDescription": "API names of [metrics](https://support.scitools.com/support/solutions/articles/70000582223-what-metrics-does-understand-have-) to hide (example: AvgCountLine)",
+						"markdownDescription": "API names of [metrics](https://support.scitools.com/support/solutions/articles/70000582223-what-metrics-does-understand-have-) to hide (example: AvgCountLine). By default, the Git metrics: they read the repository's whole history, which takes minutes on a large one.",
 						"items": {
 							"type": "string"
-						}
+						},
+						"default": [
+							"GitAuthors",
+							"GitAvgCoupling",
+							"GitCohesion",
+							"GitCommits",
+							"GitCoupledFiles",
+							"GitDaysSinceCreated",
+							"GitDaysSinceLastModified",
+							"GitMajorContributors",
+							"GitMaxCoupling",
+							"GitMinorContributors",
+							"GitOwnership",
+							"GitStrongCoupledFiles"
+						]
 					},
 					"understand.metricsView.enabled": {
 						"type": "boolean",

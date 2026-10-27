@@ -8,7 +8,7 @@ import {
 import { variables } from '../other/variables';
 import { ARCH_PREFIX, PROJECT_ROOT, graphLabel } from '../other/graphProvider';
 import { contexts, setContext } from '../other/context';
-import { FavoriteGraph, SavedGraph } from '../types/graph';
+import { SavedGraph } from '../types/graph';
 
 
 type Arch = {
@@ -23,7 +23,7 @@ type ArchListed = {
 	children: Arch[],
 };
 
-type Item = GraphItem | SeparatorItem | SectionItem | ArchItem | SavedItem | FavoriteItem | TreemapItem;
+type Item = GraphItem | SeparatorItem | SectionItem | ArchItem | SavedItem | TreemapItem;
 
 /** The graphs a licence without GUI Access leaves an entity */
 const BASIC_GRAPHS = ['Calls', 'Control Flow'];
@@ -31,14 +31,13 @@ const BASIC_GRAPHS = ['Calls', 'Control Flow'];
 
 /** The Graphs view: the current entity's graphs, then the project's, the
  * architectures' (by architecture, as the GUI's "By ..." menus), the saved
- * graph states, the favorite graphs and the metrics treemap. */
+ * graph states and the metrics treemap. */
 export class GraphTreeProvider implements TreeDataProvider<Item>
 {
 	private entityGraphs: GraphItem[] = [];
 	private projectGraphs: string[] = [];
 	private archs: Arch[] = [];
 	private saved: SavedGraph[] = [];
-	private favorites: FavoriteGraph[] = [];
 	private online = false;
 	private emitter = new EventEmitter<void>();
 
@@ -60,13 +59,11 @@ export class GraphTreeProvider implements TreeDataProvider<Item>
 			// Export & Share Reports/Metrics as well
 			const gui = variables.guiLicensed;
 			const saved = this.visible(this.saved);
-			const favorites = this.visible(this.favorites);
 			if (gui) {
 				items.push(new SectionItem('Project Graphs', 'project', this.projectGraphs.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None));
 				items.push(new SectionItem('Architectures', 'archs', this.archs.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None));
 			}
 			items.push(new SectionItem('Saved Graphs', 'saved', saved.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None));
-			items.push(new SectionItem('Favorite Graphs', 'favorites', favorites.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None));
 			if (gui && variables.exportLicensed)
 				items.push(new TreemapItem());
 			return items;
@@ -79,8 +76,6 @@ export class GraphTreeProvider implements TreeDataProvider<Item>
 					return this.archs.map(arch => new ArchItem(arch));
 				case 'saved':
 					return this.visible(this.saved).map(saved => new SavedItem(saved));
-				case 'favorites':
-					return this.visible(this.favorites).map(favorite => new FavoriteItem(favorite));
 			}
 		}
 		if (element instanceof ArchItem) {
@@ -117,13 +112,6 @@ export class GraphTreeProvider implements TreeDataProvider<Item>
 	}
 
 
-	updateFavorites(favorites: FavoriteGraph[])
-	{
-		this.favorites = favorites;
-		this.emitter.fire();
-	}
-
-
 	refresh()
 	{
 		this.emitter.fire();
@@ -137,7 +125,7 @@ export class GraphTreeProvider implements TreeDataProvider<Item>
 	}
 
 
-	/** Saved and favorite graphs, less the project's, the architectures' and
+	/** Saved graphs, less the project's, the architectures' and
 	 * every graph but an entity's call tree and control flow without GUI
 	 * Access, as the server lists them */
 	private visible<T extends { uniqueName: string, graphName: string }>(graphs: T[]): T[]
@@ -185,7 +173,7 @@ export function setExportLicensed(on: boolean)
 
 export function handleUnderstandGraphsListed(params: Params)
 {
-	variables.graphProvider.setEntity(params.entityName, params.uniqueName, params.graphs);
+	variables.graphProvider.setEntity(params.entityName, params.uniqueName, params.graphs, params.source);
 	variables.graphTreeProvider.update(params);
 	// The project is online (the list carries the project's graphs then)
 	if (params.project !== undefined)
@@ -224,7 +212,7 @@ class SeparatorItem extends TreeItem
 
 class SectionItem extends TreeItem
 {
-	constructor(label: string, public section: 'project' | 'archs' | 'saved' | 'favorites', state: TreeItemCollapsibleState)
+	constructor(label: string, public section: 'project' | 'archs' | 'saved', state: TreeItemCollapsibleState)
 	{
 		super(label, state);
 		this.contextValue = 'understandGraphSection';
@@ -263,24 +251,6 @@ class SavedItem extends TreeItem
 }
 
 
-/** A graph in the GUI's Favorites */
-class FavoriteItem extends TreeItem
-{
-	constructor(public favorite: FavoriteGraph)
-	{
-		super(`${graphLabel(favorite.graphName)}: ${favorite.rootName}`);
-		this.contextValue = 'understandGraphFavorite';
-		this.description = favorite.list;
-		this.iconPath = new ThemeIcon('star-full');
-		this.command = {
-			title: 'Go to Graph',
-			command: 'understand.graphs.view',
-			arguments: [favorite.graphName, favorite.uniqueName, favorite.rootName],
-		};
-	}
-}
-
-
 class TreemapItem extends TreeItem
 {
 	constructor()
@@ -302,4 +272,6 @@ type Params = {
 	uniqueName: string,
 	project?: string[],
 	archs?: Arch[],
+	/** The graph tab whose sync this list answers */
+	source?: string,
 };

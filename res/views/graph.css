@@ -504,9 +504,10 @@ body.vscode-dark .ent-enumerator,
 body.vscode-high-contrast .ent-enumerator { fill: #4fc1ff; }
 
 /* The server marks what its light-theme SVG draws in the palette's base
-   (the GUI fills a node with it, over a cluster's border) and Qt's dots */
-#graphContainer [data-fill='base'] { fill: var(--vscode-editor-background); }
-#graphContainer [data-stroke='base'] { stroke: var(--vscode-editor-background); }
+   (the GUI fills a node with it, over a cluster's border) and Qt's dots.
+   The mini-map's copy of the graph too, or its background stays white. */
+:is(#graphContainer, #minimap) [data-fill='base'] { fill: var(--vscode-editor-background); }
+:is(#graphContainer, #minimap) [data-stroke='base'] { stroke: var(--vscode-editor-background); }
 /* Qt's default pen, which the GUI draws with: bevelled corners (an
    arrowhead's tips do not spike) and square ends */
 #graphContainer :is(ellipse, line, path, polygon, polyline, rect) {

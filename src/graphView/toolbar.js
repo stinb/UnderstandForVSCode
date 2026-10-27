@@ -8,7 +8,6 @@ import { actionIds, showAllHidden, postAction } from './selection.js';
 import { peekOn, setPeekOn } from './peek.js';
 import {
 	ZOOM_PRESETS, zoom, setZoom, undoStep, canUndo, canRedo, zoomToFit, toggleFit, updateZoomSelect, stepZoom,
-	saveGraphState,
 } from './view.js';
 import { findMatches, appendFindTools } from './find.js';
 import { showMenu } from './menus.js';
@@ -21,9 +20,9 @@ import { exportableSvg, copyImage } from './images.js';
 const REMOVE_SAVED = '\u0000remove';
 
 /** What the extension keeps of the tab: Sync and Reuse, as the GUI window's
- * checkboxes; whether the graph is one of the GUI's Favorites; its saved states */
-/** @type {{sync: boolean, reuse: boolean, favorite: boolean, savedNames: string[]}} */
-const toolbarState = { sync: false, reuse: false, favorite: false, savedNames: [] };
+ * checkboxes; its saved states */
+/** @type {{sync: boolean, reuse: boolean, savedNames: string[]}} */
+const toolbarState = { sync: false, reuse: false, savedNames: [] };
 
 
 export function buildToolbar()
@@ -94,7 +93,6 @@ export function buildToolbar()
 	toolbar.appendChild(separator());
 
 	// State
-	toolbar.appendChild(toolButton('save-as', 'Save Graph State', saveGraphState, 'saveState'));
 	const saved = document.createElement('select');
 	saved.id = 'savedSelect';
 	saved.title = 'Load Graph State';
@@ -110,6 +108,9 @@ export function buildToolbar()
 			focusOnGraph();
 	};
 	toolbar.appendChild(saved);
+	// The extension asks where and as what: an image, SVG, Visio, DOT or PlantUML
+	toolbar.appendChild(toolButton('save-as', 'Save As… (an image, SVG, Visio, DOT or PlantUML file)',
+		() => vscode.postMessage({ method: 'saveAs' }), 'saveAs'));
 	toolbar.appendChild(toolButton('copy', 'Copy Image To Clipboard', copyImage, 'copyImage'));
 	toolbar.appendChild(toolButton('file-pdf', 'Print… (opens the graph in your browser to print or save as PDF)', () => {
 		const svg = exportableSvg({ paper: true });
@@ -123,10 +124,6 @@ export function buildToolbar()
 		const ids = actionIds();
 		vscode.postMessage({ method: 'action', action: 'diff', ids: ids.length === 1 ? ids : [] });
 	}, 'diff'));
-	toolbar.appendChild(toolButton('star-empty', 'Add to Favorites', () => {
-		flip('favorite');
-		vscode.postMessage({ method: 'favorite' });
-	}, 'favorite'));
 	toolbar.appendChild(separator());
 
 	// View
@@ -151,9 +148,8 @@ export function buildToolbar()
 		relationship: 'edit', showAllHidden: 'edit', clearHighlights: 'edit',
 		zoomSelect: 'nav', zoomIn: 'nav', zoomOut: 'nav', find: 'nav', findCase: 'nav', findWords: 'nav', findCount: 'nav', findPrev: 'nav',
 		findNext: 'nav', findSelectAll: 'nav', toggleMinimap: 'nav', toggleLegend: 'nav', togglePeek: 'nav',
-		saveState: 'archive', savedSelect: 'archive',
-		copyImage: 'file', print: 'file', apiCommand: 'file', diff: 'file',
-		favorite: 'favorites',
+		savedSelect: 'archive',
+		saveAs: 'file', copyImage: 'file', print: 'file', apiCommand: 'file', diff: 'file',
 		toggleReuse: 'reuse',
 		toggleSync: 'sync',
 	};
@@ -186,7 +182,6 @@ const TOOLBAR_SECTIONS = /** @type {const} */ ([
 	['archive', 0x004, 'Archive'],
 	['edit', 0x008, 'Edit'],
 	['nav', 0x010, 'Navigation'],
-	['favorites', 0x020, 'Favorites'],
 	['reuse', 0x040, 'Reuse'],
 	['sync', 0x080, 'Sync'],
 ]);
@@ -281,7 +276,6 @@ export function updateToolbar()
 			? `Show All Hidden Nodes (${info.hidden.length})` : 'Show All Hidden Nodes';
 	show('clearHighlights', interactive);
 	enable('clearHighlights', !!(info && info.highlights));
-	show('saveState', interactive);
 	show('savedSelect', interactive);
 	show('toggleLegend', !!(info && info.legend && info.legend.length));
 	show('increaseLevel', levelOptionIds.length > 0);
@@ -296,13 +290,6 @@ export function updateToolbar()
 		relationship.title = info.relationship.name
 			? `Second Entity: ${info.relationship.name} (change…)` : 'Select a Second Entity…';
 	enable('findSelectAll', findMatches.some(m => m.hasAttribute('data-owner')));
-	const favorite = setOn('favorite', toolbarState.favorite);
-	if (favorite) {
-		favorite.title = toolbarState.favorite ? 'Remove from Favorites' : 'Add to Favorites';
-		const icon = favorite.querySelector('.codicon');
-		if (icon)
-			icon.className = `codicon codicon-${toolbarState.favorite ? 'star-full' : 'star-empty'}`;
-	}
 	setOn('togglePeek', !!peekOn);
 
 	const variant = document.getElementById('variant');
@@ -352,7 +339,7 @@ function setOn(id, on)
 /**
  * Flip one of the extension's toggles and show it; the new state, to tell
  * the extension
- * @param {'sync' | 'reuse' | 'favorite'} key
+ * @param {'sync' | 'reuse'} key
  */
 function flip(key)
 {
@@ -423,11 +410,11 @@ export function toggleOptions()
 /**
  * What the extension says the toolbar's toggles and saved states are; a key
  * it leaves out is unchanged
- * @param {{sync?: boolean, reuse?: boolean, favorite?: boolean, savedNames?: string[]}} state
+ * @param {{sync?: boolean, reuse?: boolean, savedNames?: string[]}} state
  */
 export function setToolbarState(state)
 {
-	for (const key of /** @type {const} */ (['sync', 'reuse', 'favorite', 'savedNames']))
+	for (const key of /** @type {const} */ (['sync', 'reuse', 'savedNames']))
 		if (state[key] !== undefined)
 			// @ts-ignore each key's value is its own type
 			toolbarState[key] = state[key];
