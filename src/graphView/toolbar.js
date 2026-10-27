@@ -276,7 +276,8 @@ export function updateToolbar()
 			? `Show All Hidden Nodes (${info.hidden.length})` : 'Show All Hidden Nodes';
 	show('clearHighlights', interactive);
 	enable('clearHighlights', !!(info && info.highlights));
-	show('savedSelect', interactive);
+	// Only when there is a saved state to load
+	show('savedSelect', interactive && toolbarState.savedNames.length > 0);
 	show('toggleLegend', !!(info && info.legend && info.legend.length));
 	show('increaseLevel', levelOptionIds.length > 0);
 	show('decreaseLevel', levelOptionIds.length > 0);
