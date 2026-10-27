@@ -1,0 +1,132 @@
+html {
+	--asideWidth: 16rem;
+	--space: 0.75rem;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	margin: 0;
+	overflow: hidden;
+	padding: 0;
+	width: 100vw;
+}
+
+#crumbs {
+	align-items: center;
+	border-bottom: 1px solid var(--vscode-editorRuler-foreground);
+	display: flex;
+	flex: none;
+	gap: 0.25rem;
+	min-height: 1.75rem;
+	padding: 0 var(--space);
+}
+
+#crumbs .crumb {
+	background: none;
+	border: none;
+	color: var(--vscode-textLink-foreground);
+	cursor: pointer;
+	font: inherit;
+	padding: 0.25rem;
+}
+
+#crumbs .crumb:last-of-type {
+	color: var(--vscode-foreground);
+	cursor: default;
+}
+
+#crumbs .metrics {
+	margin-left: auto;
+	opacity: 0.8;
+}
+
+#content {
+	display: flex;
+	flex: 1;
+	min-height: 0;
+}
+
+main {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	position: relative;
+}
+
+main .codicon-loading {
+	font-size: 2rem;
+	left: 50%;
+	position: absolute;
+	top: 50%;
+}
+
+svg {
+	display: block;
+}
+
+.leaf rect {
+	cursor: pointer;
+	stroke: var(--vscode-editor-background);
+	stroke-width: 1;
+}
+
+.leaf:hover rect {
+	stroke: var(--vscode-focusBorder);
+	stroke-width: 2;
+}
+
+.leaf text, .groupLabel {
+	font: 11px var(--vscode-font-family);
+	pointer-events: none;
+	user-select: none;
+}
+
+.groupLabel {
+	cursor: pointer;
+	fill: var(--vscode-foreground);
+	pointer-events: all;
+}
+
+.group > rect {
+	fill: none;
+	stroke: var(--vscode-editorRuler-foreground);
+}
+
+aside {
+	border-left: 1px solid var(--vscode-editorRuler-foreground);
+	overflow: auto;
+	padding: var(--space);
+	width: var(--asideWidth);
+}
+
+aside label {
+	display: block;
+	margin-bottom: var(--space);
+}
+
+aside label p {
+	margin: 0 0 0.25rem;
+	opacity: 0.9;
+}
+
+aside select {
+	background: var(--vscode-settings-dropdownBackground);
+	border: 1px solid var(--vscode-settings-dropdownBorder);
+	border-radius: 2px;
+	color: var(--vscode-settings-dropdownForeground);
+	padding: 4px 6px;
+	width: 100%;
+}
+
+.scale .bar {
+	border-radius: 2px;
+	height: 0.75rem;
+}
+
+.scale .labels {
+	font-size: 0.9em;
+	margin-top: 0.25rem;
+	opacity: 0.8;
+}

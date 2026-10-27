@@ -21,15 +21,12 @@ import { handleUnderstandAnnotationMarks } from './annotationDecorations';
 import { handleUnderstandInfo } from '../treeProviders/info';
 import { handleUnderstandViolationsListed } from '../treeProviders/violations';
 import { actuallyChangedTextEditorSelection, contexts, setContext } from './context';
-import { handleUnderstandGraphsListed } from '../treeProviders/graphs';
+import { handleUnderstandGraphsListed, setExportLicensed, setGuiLicensed } from '../treeProviders/graphs';
 import { handleUnderstandMetricsListed } from '../treeProviders/metrics';
 import { handleUnderstandChangedReferences } from '../treeProviders/references';
 import { Section } from '../types/annotation';
-import {
-	handleUnderstandGraphsDrew,
-	handleUnderstandGraphsOptionRanges,
-	handleUnderstandGraphsOptions
-} from './graphProvider';
+import { graphNotifications } from './graphProvider';
+import { handleUnderstandGraphsTreemapped } from './treemapProvider';
 
 
 type AiClearParams = {
@@ -130,14 +127,26 @@ export async function startLsp()
 		// Entitlements. The initialize result carries the startup value, so no AI
 		// UI is live before we know; the notification carries later changes, so a
 		// revoked licence hides it without a restart (und-issues#709).
-		const init = variables.languageClient.initializeResult as
-			{ understand?: { aiLicensed?: boolean } } | undefined;
+		// GUI Access gates the graphs that are not an entity's, CodeCheck the
+		// violations, and Export the metrics; a server that does not say has
+		// no such limit.
+		type Features = { aiLicensed?: boolean, guiLicensed?: boolean, apiLicensed?: boolean,
+			codecheckLicensed?: boolean, exportLicensed?: boolean };
+		const init = variables.languageClient.initializeResult as { understand?: Features } | undefined;
 		variables.aiLicensed = init?.understand?.aiLicensed === true;
 		setContext(contexts.aiLicensed, variables.aiLicensed);
+		setGuiLicensed(init?.understand?.guiLicensed !== false);
+		setContext(contexts.apiLicensed, init?.understand?.apiLicensed === true);
+		setContext(contexts.codecheckLicensed, init?.understand?.codecheckLicensed !== false);
+		setExportLicensed(init?.understand?.exportLicensed !== false);
 		variables.languageClient.onNotification('understand/changedLicenseFeatures',
-			(params: { aiLicensed?: boolean }) => {
+			(params: Features) => {
 				variables.aiLicensed = params.aiLicensed === true;
 				setContext(contexts.aiLicensed, variables.aiLicensed);
+				setGuiLicensed(params.guiLicensed !== false);
+				setContext(contexts.apiLicensed, params.apiLicensed === true);
+				setContext(contexts.codecheckLicensed, params.codecheckLicensed !== false);
+				setExportLicensed(params.exportLicensed !== false);
 			});
 
 		variables.languageClient.onNotification('understand/licenseLost', handleUnderstandLicenseLost);
@@ -154,10 +163,10 @@ export async function startLsp()
 		variables.languageClient.onNotification('understand/violations/listed', handleUnderstandViolationsListed);
 		variables.languageClient.onNotification('understand/changedReferences', handleUnderstandChangedReferences);
 		variables.languageClient.onNotification('understand/metrics/listed', handleUnderstandMetricsListed);
-		variables.languageClient.onNotification('understand/graphs/drew', handleUnderstandGraphsDrew);
+		for (const [method, handler] of Object.entries(graphNotifications))
+			variables.languageClient.onNotification(`understand/graphs/${method}`, handler);
 		variables.languageClient.onNotification('understand/graphs/listed', handleUnderstandGraphsListed);
-		variables.languageClient.onNotification('understand/graphs/optionRanges', handleUnderstandGraphsOptionRanges);
-		variables.languageClient.onNotification('understand/graphs/options', handleUnderstandGraphsOptions);
+		variables.languageClient.onNotification('understand/graphs/treemapped', handleUnderstandGraphsTreemapped);
 		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
 		variables.languageClient.onRequest('workspace/configuration', handleWorkspaceConfiguration);
 	}).catch(function(error) {
@@ -176,7 +185,10 @@ export async function stopLsp()
 	if (variables.languageClient === undefined || variables.languageClient.state !== lc.State.Running)
 		return;
 
-	return variables.languageClient.stop();
+	// The client's default is 2 s, after which it kills the server. Closing
+	// a large project writes its violation store, half a minute for a
+	// 400 MB one, and a server killed in that write leaves it half written.
+	return variables.languageClient.stop(60_000);
 }
 
 

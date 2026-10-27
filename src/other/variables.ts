@@ -10,10 +10,18 @@ import { GraphTreeProvider } from '../treeProviders/graphs';
 import { MetricTreeProvider } from '../treeProviders/metrics';
 import { ReferencesTreeProvider } from '../treeProviders/references';
 import { GraphProvider } from '../other/graphProvider';
+import { TreemapProvider } from '../other/treemapProvider';
 
 
 /** Global variables used in different files */
 export const variables: Variables = {
+	// Whether the licence grants GUI Access, which the graphs that are not an
+	// entity's need. True until the server says otherwise: the server refuses
+	// those graphs itself, and an older server that never says has no limit.
+	guiLicensed: true,
+	// Whether the licence grants Export & Share Reports/Metrics, which the
+	// treemap needs. True until the server says otherwise, as above.
+	exportLicensed: true,
 	// Whether the licence grants AI. False until the server says otherwise,
 	// so nothing AI-related runs before we know (und-issues#709).
 	aiLicensed: false,
@@ -48,6 +56,8 @@ export const variables: Variables = {
 	// @ts-ignore initialized in `activate`
 	referencesTreeProvider: undefined,
 	// @ts-ignore initialized in `activate`
+	treemapProvider: undefined,
+	// @ts-ignore initialized in `activate`
 	violationsListProvider: undefined,
 };
 
@@ -58,15 +68,18 @@ interface Variables {
 	aiViewProvider: AiViewProvider,
 	annotateCodeLensProvider: AnnotateCodeLensProvider,
 	annotationsTreeProvider: AnnotationTreeProvider,
+	exportLicensed: boolean,
 	extensionUri: Uri,
 	fileSystemWatcher: FileSystemWatcher,
 	graphProvider: GraphProvider,
 	graphTreeProvider: GraphTreeProvider,
+	guiLicensed: boolean,
 	infoTreeProvider: InfoTreeProvider,
 	languageClient: LanguageClient,
 	licenseLost: string,
 	metricTreeProvider: MetricTreeProvider,
 	preserveView: string,
 	referencesTreeProvider: ReferencesTreeProvider,
+	treemapProvider: TreemapProvider,
 	violationsListProvider: ViolationTreeProvider,
 }

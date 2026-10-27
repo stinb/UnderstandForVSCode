@@ -4,6 +4,7 @@ html {
 	--optionsMargin: 1rem;
 	--spaceBig: 1rem;
 	--spaceSmall: 0.25rem;
+	--toolbarHeight: 2.25rem;
 }
 
 @font-face {
@@ -13,7 +14,8 @@ html {
 }
 
 ::selection {
-	background: var(--vscode-selection-background);
+	/* Most themes leave selection.background unset, which left selected text unmarked */
+	background: var(--vscode-selection-background, var(--vscode-editor-selectionBackground));
 }
 
 body.vscode-dark {
@@ -22,6 +24,7 @@ body.vscode-dark {
 
 body {
 	display: flex;
+	flex-direction: column;
 	height: 100vh;
 	margin: 0;
 	overflow: hidden;
@@ -29,11 +32,116 @@ body {
 	width: 100vw;
 }
 
+/* The toolbar above the graph: the graph window's controls */
+#toolbar {
+	align-items: center;
+	background: var(--vscode-editor-background);
+	border-bottom: 1px solid var(--vscode-editorRuler-foreground);
+	display: flex;
+	flex: none;
+	/* A narrow tab wraps the buttons onto another row rather than hiding them */
+	flex-wrap: wrap;
+	gap: 2px;
+	min-height: var(--toolbarHeight);
+	overflow: hidden;
+	padding: 0 var(--spaceSmall);
+}
+
+#toolbar:empty {
+	display: none;
+}
+
+/* The buttons, panels and menus set their own display, which would otherwise
+   show the ones that are hidden */
+[hidden] {
+	display: none !important;
+}
+
+#toolbar .separator {
+	border-left: 1px solid var(--vscode-editorRuler-foreground);
+	height: 1.25rem;
+	margin: 0 var(--spaceSmall);
+}
+
+button {
+	cursor: pointer;
+}
+
+button:disabled {
+	cursor: default;
+	opacity: 0.4;
+}
+
+button.tool {
+	align-items: center;
+	background: none;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	color: var(--vscode-icon-foreground);
+	display: inline-flex;
+	height: 1.625rem;
+	justify-content: center;
+	padding: 0;
+	width: 1.625rem;
+}
+
+button.tool:hover:not(:disabled) {
+	background: var(--vscode-toolbar-hoverBackground);
+}
+
+button.tool.on {
+	background: var(--vscode-toolbar-activeBackground, var(--vscode-toolbar-hoverBackground));
+	border-color: var(--vscode-focusBorder);
+}
+
+#toolbar select {
+	max-width: 11rem;
+	width: auto;
+}
+
+#toolbar input[type='search'] {
+	margin: 0;
+	width: 9rem;
+}
+
+#toolbar #zoomInput {
+	margin: 0;
+	width: 5rem;
+}
+
+#findCount {
+	font-size: 0.85em;
+	min-width: 4.5rem;
+	opacity: 0.8;
+	padding: 0 var(--spaceSmall);
+	white-space: nowrap;
+}
+
+#content {
+	display: flex;
+	flex: 1;
+	min-height: 0;
+}
+
 main {
+	cursor: grab;
 	height: 100%;
 	outline: none;
 	overflow: auto;
+	position: relative;
 	width: 100%;
+}
+
+main.grabbing,
+main.grabbing * {
+	cursor: grabbing;
+	user-select: none;
+}
+
+.graphMessage {
+	color: var(--vscode-descriptionForeground);
+	max-width: 40em;
+	text-align: center;
 }
 
 #graphContainer {
@@ -41,7 +149,7 @@ main {
 	display: flex;
 	height: fit-content;
 	justify-content: center;
-	min-height: calc(100vh - var(--graphMargin) * 2);
+	min-height: calc(100vh - var(--toolbarHeight) - var(--graphMargin) * 2);
 	min-width: calc(100vw - var(--asideWidth) - var(--graphMargin) * 2);
 	padding: var(--graphMargin);
 	width: fit-content;
@@ -51,23 +159,423 @@ main {
 	font-size: 2rem;
 }
 
+/* Text that takes clicks: a node's edge indicator, which shows or hides that
+   side's edges (its click is its own, not its label's); an entity a label
+   names (a member in a UML class diagram), which a click selects, as in the
+   GUI; and a node's label, which is part of the node, as in the GUI, so its
+   clicks, menu, drags and tooltip are the node's (a sequence diagram's
+   message label is its call's) */
+tspan[data-opt],
+tspan[data-link],
+text[data-owner] {
+	cursor: pointer;
+	pointer-events: auto;
+}
+
+tspan[data-opt]:hover,
+tspan[data-link]:hover {
+	text-decoration: underline;
+}
+
+/* An edge under the pointer, where the GUI's preference glows it */
+.hot {
+	filter: drop-shadow(0 0 2px var(--vscode-foreground));
+}
+
 [href] {
 	cursor: pointer;
 	transition: all 0.125s;
 }
 
-ellipse[href]:hover,
-path[href]:hover,
-polygon[href]:hover,
-polyline[href]:hover,
-rect[href]:hover {
-	stroke: var(--vscode-focusBorder);
+/* A selected node, cluster or edge, as the GUI's: a shadow in the
+   highlight color around it */
+ellipse.selected,
+path.selected,
+polygon.selected,
+polyline.selected,
+rect.selected {
+	filter: drop-shadow(0 0 3px var(--vscode-focusBorder)) drop-shadow(0 0 1px var(--vscode-focusBorder));
+}
+
+[data-kind='node'] {
+	cursor: pointer;
+}
+
+/* A find pattern that matches nothing, as the GUI's field turns red */
+#find.failed {
+	background: var(--vscode-inputValidation-errorBackground);
+	border-color: var(--vscode-inputValidation-errorBorder);
+}
+
+/* Dialogs: the Graphic Filter dialog and its editor, laid out as the GUI's
+   and drawn in VS Code's dialog colors over a dimmed graph */
+#filterBackdrop {
+	background: rgba(0, 0, 0, 0.3);
+	inset: 0;
+	position: fixed;
+	z-index: 8;
+}
+
+.dialog {
+	background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+	border: 1px solid var(--vscode-editorWidget-border, var(--vscode-contrastBorder, transparent));
+	border-radius: 6px;
+	box-shadow: 0 0 8px 2px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.36));
+	color: var(--vscode-editorWidget-foreground, var(--vscode-foreground));
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	left: 50%;
+	max-height: 80vh;
+	max-width: calc(100vw - 32px);
+	padding: 16px 20px;
+	position: fixed;
+	top: 15%;
+	transform: translateX(-50%);
+	width: 540px;
+	z-index: 9;
+}
+
+#filterEditor {
+	top: 25%;
+	width: 420px;
+	z-index: 10;
+}
+
+.dialog h3 {
+	font-size: 13px;
+	font-weight: 600;
+	margin: 0;
+}
+
+.dialog label.filterEnable {
+	align-items: center;
+	cursor: pointer;
+	display: flex;
+	gap: 8px;
+	margin: 0;
+	width: auto;
+}
+
+.dialog input[type='checkbox'] {
+	border: 1px solid var(--vscode-checkbox-border, var(--vscode-settings-checkboxBorder, var(--vscode-foreground)));
+	flex: none;
+}
+
+.filterGroup {
+	border: 1px solid var(--vscode-widget-border, var(--vscode-editorWidget-border, var(--vscode-panel-border)));
+	border-radius: 4px;
+	margin: 0;
+	min-height: 0;
+	padding: 8px 12px 12px;
+}
+
+.filterGroup legend {
+	color: var(--vscode-descriptionForeground);
+	padding: 0 4px;
+}
+
+.filterGroupBody {
+	display: flex;
+	gap: 12px;
+	min-height: 0;
+}
+
+.filterTableBox {
+	background: var(--vscode-input-background);
+	border: 1px solid var(--vscode-input-border, var(--vscode-widget-border, transparent));
+	flex: 1;
+	height: 180px;
+	overflow: auto;
+}
+
+.filterTableBox table {
+	border-collapse: collapse;
+	width: 100%;
+}
+
+.filterTableBox th {
+	background: var(--vscode-keybindingTable-headerBackground, var(--vscode-editorWidget-background));
+	font-weight: 600;
+	padding: 4px 8px;
+	position: sticky;
+	text-align: left;
+	top: 0;
+	white-space: nowrap;
+}
+
+.filterTableBox td {
+	padding: 3px 8px;
+	white-space: nowrap;
+}
+
+.filterTableBox td:first-child {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: normal;
+	width: 100%;
+	word-break: break-all;
+}
+
+.filterRow {
+	cursor: default;
+}
+
+.filterRow:hover {
+	background: var(--vscode-list-hoverBackground);
+}
+
+.filterRow.selected {
+	background: var(--vscode-list-activeSelectionBackground);
+	color: var(--vscode-list-activeSelectionForeground);
+}
+
+.filterSide {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	width: 96px;
+}
+
+.filterSpacer {
+	flex: 1;
+}
+
+.filterForm {
+	align-items: center;
+	display: grid;
+	gap: 8px 12px;
+	grid-template-columns: max-content 1fr;
+}
+
+.filterForm input, .filterForm select {
+	border: 1px solid var(--vscode-input-border, var(--vscode-dropdown-border, transparent));
+	padding: 3px 6px;
+}
+
+.dialogButtons {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+}
+
+/* VS Code's buttons: the primary one filled, the others secondary */
+button.dialogButton {
+	background: var(--vscode-button-secondaryBackground);
+	border: 1px solid var(--vscode-button-border, transparent);
+	border-radius: 2px;
+	color: var(--vscode-button-secondaryForeground);
+	font: inherit;
+	line-height: 18px;
+	min-width: 72px;
+	padding: 4px 12px;
+}
+
+button.dialogButton:hover:not(:disabled) {
+	background: var(--vscode-button-secondaryHoverBackground);
+}
+
+button.dialogButton.primary {
+	background: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+}
+
+button.dialogButton.primary:hover:not(:disabled) {
+	background: var(--vscode-button-hoverBackground);
+}
+
+button.dialogButton:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: 2px;
+}
+
+/* A toolbar section turned off in the Toolbar Sections menu */
+#toolbar .sectionHidden {
+	display: none;
+}
+
+/* The customizer's node-action buttons, a row per group, and Advanced */
+.nodeActionRow {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2px;
+	margin-bottom: var(--spaceSmall);
+}
+
+/* The headings are the GUI's labels, which are plain */
+#options h3 {
+	font-size: inherit;
+	font-weight: normal;
+}
+
+#advancedToggle,
+button.quickLevel {
+	align-items: center;
+	display: flex;
+	gap: var(--spaceSmall);
+	margin: var(--spaceSmall) 0;
+	width: auto;
+}
+
+/* Ctrl+drag selects what the band covers */
+#rubberBand {
+	background: color-mix(in srgb, var(--vscode-focusBorder) 15%, transparent);
+	border: 1px solid var(--vscode-focusBorder);
+	pointer-events: none;
+	position: fixed;
+	z-index: 6;
+}
+
+/* An edge takes clicks on its line, through a wider band drawn behind it */
+path[data-edge] {
+	pointer-events: stroke;
+}
+
+#graphContainer .edgeHit {
+	stroke: transparent;
+	stroke-width: 6;
+	fill: none;
+	stroke-dasharray: none;
 }
 
 text {
-	fill: var(--vscode-foreground);
 	pointer-events: none;
 	user-select: none;
+}
+
+/* Find */
+/* A box behind each match, as an editor marks find matches */
+rect.findMark {
+	fill: var(--vscode-editor-findMatchHighlightBackground, #ea5c0055);
+	pointer-events: none;
+}
+
+rect.findMark.current {
+	fill: var(--vscode-editor-findMatchBackground, #a8ac94);
+}
+
+/* The whole label, where its characters could not be measured */
+text.found:not(.marked) {
+	fill: var(--vscode-editor-findMatchHighlightForeground, var(--vscode-foreground));
+	paint-order: stroke;
+	stroke: var(--vscode-editor-findMatchHighlightBackground, #ea5c0055);
+	stroke-width: 6;
+}
+
+text.foundCurrent:not(.marked) {
+	stroke: var(--vscode-editor-findMatchBackground, #a8ac94);
+}
+
+/* Source text in a graph arrives as runs the server marks by kind: comment,
+   keyword, string, number, operator, preprocessor, or plain code (und-issues #711).
+   VS Code exposes no token colors to a webview, so these are the colors of
+   its Light Modern and Dark Modern themes. */
+.comment { fill: #008000; }
+.keyword { fill: #0000ff; }
+.string { fill: #a31515; }
+.number { fill: #098658; }
+.preprocessor { fill: #af00db; }
+
+body.vscode-dark .comment,
+body.vscode-high-contrast .comment { fill: #6a9955; }
+body.vscode-dark .keyword,
+body.vscode-high-contrast .keyword { fill: #569cd6; }
+body.vscode-dark .string,
+body.vscode-high-contrast .string { fill: #ce9178; }
+body.vscode-dark .number,
+body.vscode-high-contrast .number { fill: #b5cea8; }
+body.vscode-dark .preprocessor,
+body.vscode-high-contrast .preprocessor { fill: #c586c0; }
+
+/* An entity's name, by the category Understand's editor colors it by, in
+   the colors those themes give functions, types and variables */
+.ent-function, .ent-method, .ent-virtual-function, .ent-macro { fill: #795e26; }
+.ent-class, .ent-interface, .ent-type, .ent-module, .ent-namespace, .ent-package { fill: #267f99; }
+.ent-global-variable, .ent-local-variable, .ent-member-variable, .ent-parameter { fill: #001080; }
+.ent-enumerator { fill: #0070c1; }
+
+body.vscode-dark :is(.ent-function, .ent-method, .ent-virtual-function, .ent-macro),
+body.vscode-high-contrast :is(.ent-function, .ent-method, .ent-virtual-function, .ent-macro) { fill: #dcdcaa; }
+body.vscode-dark :is(.ent-class, .ent-interface, .ent-type, .ent-module, .ent-namespace, .ent-package),
+body.vscode-high-contrast :is(.ent-class, .ent-interface, .ent-type, .ent-module, .ent-namespace, .ent-package) { fill: #4ec9b0; }
+body.vscode-dark :is(.ent-global-variable, .ent-local-variable, .ent-member-variable, .ent-parameter),
+body.vscode-high-contrast :is(.ent-global-variable, .ent-local-variable, .ent-member-variable, .ent-parameter) { fill: #9cdcfe; }
+body.vscode-dark .ent-enumerator,
+body.vscode-high-contrast .ent-enumerator { fill: #4fc1ff; }
+
+/* The server marks what its light-theme SVG draws in the palette's base
+   (the GUI fills a node with it, over a cluster's border) and Qt's dots */
+#graphContainer [data-fill='base'] { fill: var(--vscode-editor-background); }
+#graphContainer [data-stroke='base'] { stroke: var(--vscode-editor-background); }
+/* Qt's default pen, which the GUI draws with: bevelled corners (an
+   arrowhead's tips do not spike) and square ends */
+#graphContainer :is(ellipse, line, path, polygon, polyline, rect) {
+	stroke-linecap: square;
+	stroke-linejoin: bevel;
+}
+/* A wide dotted outline's sides, drawn apart to put Qt's dots where it
+   does (svg.js dotSides); the outline under them takes the clicks */
+#graphContainer .dotSide {
+	pointer-events: none;
+}
+#graphContainer [data-dash='dot'] {
+	stroke-dasharray: 0.01 1.99;
+	stroke-linecap: round;
+}
+
+/* The panels and menus that float over the graph */
+#minimap,
+#peek,
+#drawingOverlay,
+#legend,
+#menu,
+#menu .submenu {
+	background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+	border: 1px solid var(--vscode-editorWidget-border, var(--vscode-editorRuler-foreground));
+	border-radius: 4px;
+	box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.2));
+}
+
+#menu,
+#menu .submenu {
+	background: var(--vscode-menu-background, var(--vscode-editorWidget-background, var(--vscode-editor-background)));
+	border-color: var(--vscode-menu-border, var(--vscode-editorWidget-border, var(--vscode-editorRuler-foreground)));
+	border-radius: 5px;
+}
+
+/* Mini-map: a scaled copy of the graph in the corner, with the view's
+   rectangle, in the GUI's rounded box (its palette's alternate base and text
+   colors); minimap.js places it below the toolbar */
+#minimap {
+	background: color-mix(in srgb, var(--vscode-editor-foreground) 9%, var(--vscode-editor-background));
+	border: 1px solid var(--vscode-editor-foreground);
+	border-radius: 10px;
+	box-shadow: none;
+	box-sizing: border-box;
+	cursor: crosshair;
+	height: 100px;
+	left: 10px;
+	overflow: hidden;
+	position: fixed;
+	top: 50px;
+	width: 100px;
+	z-index: 5;
+}
+
+#minimap svg {
+	display: block;
+	position: absolute;
+}
+
+#minimap svg text {
+	display: none;
+}
+
+#minimap .view {
+	border: 1px solid #cd0000;
+	box-sizing: border-box;
+	pointer-events: none;
+	position: absolute;
 }
 
 aside {
@@ -80,6 +588,242 @@ aside {
 
 #options {
 	padding: var(--optionsMargin);
+}
+
+/* The legend moves by any part of it, the peek by its header; Ctrl (Cmd)
+   moves the mini-map */
+#legend,
+.peekHeader {
+	cursor: move;
+}
+
+#legend button,
+#legend select {
+	cursor: default;
+}
+
+/* The peek: a clicked node's source, as the GUI's peek window */
+/* In the colors and frame of VS Code's own peek view (Go to References):
+   a title bar and the source edge to edge, as tall as the source up to a
+   limit. The frame is the focus color: some themes make peekView.border as
+   dark as the editor, which loses the box against the graph */
+#peek {
+	--peekBorder: var(--vscode-peekView-border, var(--vscode-focusBorder));
+	border: 1px solid var(--vscode-focusBorder, var(--peekBorder));
+	border-radius: 3px;
+	cursor: default;
+	display: flex;
+	flex-direction: column;
+	max-height: min(15rem, calc(100% - 4rem));
+	overflow: hidden;
+	padding: 0;
+	position: fixed;
+	right: calc(var(--asideWidth) + 0.75rem);
+	top: 3rem;
+	width: min(56rem, 90vw);
+	z-index: 4;
+}
+
+#peekSource {
+	background: var(--vscode-peekViewEditor-background, var(--vscode-editor-background));
+	flex: 1;
+	min-height: 0;
+	font-family: var(--vscode-editor-font-family);
+	font-size: var(--vscode-editor-font-size);
+	margin: 0;
+	overflow: auto;
+	padding: 2px 0;
+}
+
+.peekLine {
+	padding-right: 6px;
+	white-space: pre;
+}
+
+.peekLine.marked {
+	background: var(--vscode-peekViewEditor-matchHighlightBackground, var(--vscode-editor-rangeHighlightBackground));
+}
+
+.peekLineNumber {
+	color: var(--vscode-editorLineNumber-foreground);
+	display: inline-block;
+	margin-right: 1em;
+	min-width: 3ch;
+	padding-left: 6px;
+	text-align: right;
+	user-select: none;
+}
+
+.peekHeader {
+	align-items: center;
+	background: var(--vscode-peekViewTitle-background, var(--vscode-editorWidget-background));
+	border-bottom: 1px solid var(--peekBorder);
+	display: flex;
+	flex: none;
+	justify-content: space-between;
+	padding: 1px 2px 1px 8px;
+}
+
+.peekHeader h3 {
+	color: var(--vscode-peekViewTitleLabel-foreground, inherit);
+	font-size: 1em;
+	font-weight: normal;
+	margin: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* The GUI's "Calculating ideal graph layout", with Cancel */
+#drawingOverlay {
+	align-items: center;
+	display: flex;
+	gap: var(--optionsMargin);
+	left: 50%;
+	padding: var(--optionsMargin);
+	position: fixed;
+	top: 40%;
+	transform: translate(-50%, -50%);
+	z-index: 6;
+}
+
+#drawingOverlay button {
+	background: var(--vscode-button-background);
+	border: none;
+	border-radius: 2px;
+	color: var(--vscode-button-foreground);
+	padding: 4px 12px;
+}
+
+/* Legend: a panel over the graph's corner, as the GUI's legend frame */
+#legend {
+	bottom: 0.75rem;
+	cursor: default;
+	max-height: calc(100% - 2rem);
+	max-width: calc(100% - 2rem);
+	overflow: auto;
+	padding: var(--spaceSmall) var(--optionsMargin) var(--optionsMargin);
+	position: fixed;
+	right: calc(var(--asideWidth) + 0.75rem);
+	z-index: 5;
+}
+
+/* Its border resizes it, as the GUI's legend frame */
+#legend[data-edge='n'], #legend[data-edge='s'] { cursor: ns-resize; }
+#legend[data-edge='e'], #legend[data-edge='w'] { cursor: ew-resize; }
+#legend[data-edge='ne'], #legend[data-edge='sw'] { cursor: nesw-resize; }
+#legend[data-edge='nw'], #legend[data-edge='se'] { cursor: nwse-resize; }
+
+.legendHeader {
+	align-items: center;
+	display: flex;
+	justify-content: space-between;
+}
+
+.legendHeader h3 {
+	margin: 0;
+}
+
+#legend select {
+	margin: var(--spaceSmall) 0 var(--spaceBig);
+}
+
+.legendColumns {
+	align-items: flex-start;
+	display: flex;
+	gap: 0 var(--spaceBig);
+}
+
+.legendColumn {
+	flex: 0 0 auto;
+}
+
+.legendEntry {
+	align-items: center;
+	border-radius: 3px;
+	display: flex;
+	gap: var(--spaceSmall);
+	padding: 2px 4px;
+	white-space: nowrap;
+}
+
+.legendEntry.editable {
+	cursor: context-menu;
+}
+
+.legendEntry.editable:hover {
+	background: var(--vscode-list-hoverBackground);
+}
+
+.legendEntry .swatch {
+	flex: none;
+}
+
+/* Context menus */
+#menu {
+	color: var(--vscode-menu-foreground, var(--vscode-foreground));
+	min-width: 12rem;
+	padding: 4px 0;
+	position: fixed;
+	user-select: none;
+	z-index: 10;
+	/* An edge's 25 references outgrow a short window: the menu scrolls
+	   rather than running off the bottom with its last rows unreachable */
+	max-height: calc(100vh - 8px);
+	overflow-y: auto;
+}
+
+#menu .item {
+	align-items: center;
+	cursor: pointer;
+	display: flex;
+	gap: 6px;
+	padding: 3px 10px 3px 6px;
+	position: relative;
+}
+
+#menu .item:hover:not(.disabled) {
+	background: var(--vscode-menu-selectionBackground, var(--vscode-list-activeSelectionBackground));
+	color: var(--vscode-menu-selectionForeground, var(--vscode-list-activeSelectionForeground));
+}
+
+#menu .item.disabled {
+	cursor: default;
+	opacity: 0.5;
+}
+
+#menu .item .check {
+	display: inline-block;
+	width: 1rem;
+}
+
+#menu .item .label {
+	flex: 1;
+	white-space: nowrap;
+}
+
+#menu .item .swatch {
+	border: 1px solid var(--vscode-editorRuler-foreground);
+	border-radius: 2px;
+	display: inline-block;
+	height: 0.8rem;
+	width: 0.8rem;
+}
+
+#menu hr {
+	border: none;
+	border-top: 1px solid var(--vscode-menu-separatorBackground, var(--vscode-editorRuler-foreground));
+	margin: 4px 0;
+}
+
+#menu .submenu {
+	left: 100%;
+	max-height: 60vh;
+	min-width: 10rem;
+	overflow: auto;
+	padding: 4px 0;
+	position: absolute;
+	top: -5px;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -178,12 +922,16 @@ input[type='checkbox'] {
 	width: 18px;
 }
 
-input[type='number'], input[type='text'], select {
+input[type='number'], input[type='text'], input[type='search'], select {
 	border: 1px solid;
 	padding: 4px 6px;
 	box-sizing: border-box;
 	border-radius: 2px;
 	margin-top: var(--spaceSmall);
+}
+
+#toolbar input[type='search'], #toolbar select {
+	margin-top: 0;
 }
 
 input[type='number'] {
@@ -192,7 +940,7 @@ input[type='number'] {
 	border-color: var(--vscode-settings-numberInputBorder);
 }
 
-input[type='text'] {
+input[type='text'], input[type='search'] {
 	border-color: var(--vscode-settings-textInputBorder);
 	color: var(--vscode-settings-textInputForeground);
 }

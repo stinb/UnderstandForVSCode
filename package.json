@@ -27,7 +27,8 @@
 	"l10n": "./l10n",
 	"activationEvents": [
 		"workspaceContains:**/*.und/id.txt",
-		"onStartupFinished"
+		"onStartupFinished",
+		"onWebviewPanel:understandGraph"
 	],
 	"contributes": {
 		"icons": {
@@ -82,7 +83,18 @@
 			},
 			{
 				"view": "understandViolationsList",
-				"contents": "Every violation the background CodeChecks found in the project, grouped by file, check, severity, or entity.\nAnalyze the project to fill it, use Group Violations By... in this view's title bar to regroup, and the filter button to show only the current file's."
+				"contents": "Every violation the background CodeChecks found in the project, grouped by file, check, severity, or entity.\nAnalyze the project to fill it, use Group Violations By... in this view's title bar to regroup, and the filter button to show only the current file's.",
+				"when": "!understand.violationsListed"
+			},
+			{
+				"view": "understandViolationsList",
+				"contents": "This project has no violations.\nThis view lists what Understand's background CodeChecks find. To turn them on, open the project in Understand, choose Checks > Select Checks, pick a configuration, and turn on Run in Background. Violations appear here after the next analysis.\n[How to run CodeCheck in the background](https://docs.scitools.com/help/codecheck/background-checks.html)",
+				"when": "understand.violationsListed && understand.violationsListScope != file"
+			},
+			{
+				"view": "understandViolationsList",
+				"contents": "The current file has no violations.\nUse the filter button in this view's title bar to show the whole project's.",
+				"when": "understand.violationsListed && understand.violationsListScope == file"
 			}
 		],
 		"jsonValidation": [
@@ -238,6 +250,66 @@
 				"title": "Save",
 				"category": "Understand: Graphs",
 				"icon": "$(save)"
+			},
+			{
+				"command": "understand.graphs.copyImage",
+				"title": "Copy Image To Clipboard",
+				"category": "Understand: Graphs",
+				"icon": "$(copy)"
+			},
+			{
+				"command": "understand.graphs.undo",
+				"title": "Undo Graph Change",
+				"category": "Understand: Graphs",
+				"icon": "$(discard)"
+			},
+			{
+				"command": "understand.graphs.redo",
+				"title": "Redo Graph Change",
+				"category": "Understand: Graphs",
+				"icon": "$(redo)"
+			},
+			{
+				"command": "understand.graphs.saveState",
+				"title": "Save Graph State",
+				"category": "Understand: Graphs",
+				"icon": "$(save-as)"
+			},
+			{
+				"command": "understand.graphs.loadState",
+				"title": "Load Graph State",
+				"category": "Understand: Graphs",
+				"icon": "$(folder-opened)"
+			},
+			{
+				"command": "understand.graphs.removeSaved",
+				"title": "Remove Saved Graph",
+				"category": "Understand: Graphs",
+				"icon": "$(trash)"
+			},
+			{
+				"command": "understand.graphs.treemap",
+				"title": "Metrics Treemap",
+				"category": "Understand: Graphs",
+				"icon": "$(layout)"
+			},
+			{
+				"command": "understand.graphs.zoomIn",
+				"title": "Zoom In",
+				"category": "Understand: Graphs",
+				"icon": "$(zoom-in)"
+			},
+			{
+				"command": "understand.graphs.zoomOut",
+				"title": "Zoom Out",
+				"category": "Understand: Graphs",
+				"icon": "$(zoom-out)"
+			},
+			{
+				"command": "understand.graphs.findPrevious",
+				"title": "Find Previous",
+				"category": "Understand: Graphs",
+				"icon": "$(arrow-up)"
 			},
 			{
 				"command": "understand.metrics.documentation",
@@ -587,6 +659,11 @@
 						"default": true,
 						"description": "Show content of the Graphs view"
 					},
+					"understand.graphs.reuseTab": {
+						"type": "boolean",
+						"default": false,
+						"description": "Open a graph in the active graph tab instead of a new one, as the graph window's Reuse checkbox does"
+					},
 					"understand.license.code": {
 						"type": "string",
 						"default": "",
@@ -713,6 +790,38 @@
 				}
 			}
 		],
+		"keybindings": [
+			{
+				"command": "understand.graphs.zoomIn",
+				"key": "ctrl+=",
+				"mac": "cmd+=",
+				"when": "activeWebviewPanelId == understandGraph"
+			},
+			{
+				"command": "understand.graphs.zoomOut",
+				"key": "ctrl+-",
+				"mac": "cmd+-",
+				"when": "activeWebviewPanelId == understandGraph"
+			},
+			{
+				"command": "understand.graphs.findPrevious",
+				"key": "ctrl+shift+f",
+				"mac": "cmd+shift+f",
+				"when": "activeWebviewPanelId == understandGraph"
+			},
+			{
+				"command": "understand.graphs.save",
+				"key": "ctrl+s",
+				"mac": "cmd+s",
+				"when": "activeWebviewPanelId == understandGraph"
+			},
+			{
+				"command": "understand.graphs.copyImage",
+				"key": "ctrl+c",
+				"mac": "cmd+c",
+				"when": "activeWebviewPanelId == understandGraph && !understandGraphTextFocus"
+			}
+		],
 		"menus": {
 			"commandPalette": [
 				{
@@ -722,6 +831,46 @@
 				{
 					"command": "understand.checks.show",
 					"when": "false"
+				},
+				{
+					"command": "understand.graphs.removeSaved",
+					"when": "false"
+				},
+				{
+					"command": "understand.graphs.copyImage",
+					"when": "activeWebviewPanelId == understandGraph"
+				},
+				{
+					"command": "understand.graphs.undo",
+					"when": "activeWebviewPanelId == understandGraph"
+				},
+				{
+					"command": "understand.graphs.redo",
+					"when": "activeWebviewPanelId == understandGraph"
+				},
+				{
+					"command": "understand.graphs.saveState",
+					"when": "activeWebviewPanelId == understandGraph"
+				},
+				{
+					"command": "understand.graphs.loadState",
+					"when": "activeWebviewPanelId == understandGraph"
+				},
+				{
+					"command": "understand.graphs.zoomIn",
+					"when": "activeWebviewPanelId == understandGraph"
+				},
+				{
+					"command": "understand.graphs.zoomOut",
+					"when": "activeWebviewPanelId == understandGraph"
+				},
+				{
+					"command": "understand.graphs.findPrevious",
+					"when": "activeWebviewPanelId == understandGraph"
+				},
+				{
+					"command": "understand.graphs.treemap",
+					"when": "understandProject && understandGuiLicensed && understandExportLicensed"
 				},
 				{
 					"command": "understand.ai.generateAiOverview",
@@ -840,31 +989,31 @@
 				},
 				{
 					"command": "understand.violations.fix",
-					"when": "understandFile && !editorReadonly"
+					"when": "understandFile && !editorReadonly && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.goToNextViolationInAllFiles",
-					"when": "understandProject"
+					"when": "understandProject && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.goToNextViolationInCurrentFile",
-					"when": "understandFile"
+					"when": "understandFile && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.goToPreviousViolationInAllFiles",
-					"when": "understandProject"
+					"when": "understandProject && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.goToPreviousViolationInCurrentFile",
-					"when": "understandFile"
+					"when": "understandFile && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.ignore",
-					"when": "understandFile && !editorReadonly"
+					"when": "understandFile && !editorReadonly && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.toggleVisibilityAndFocus",
-					"when": "understandProject"
+					"when": "understandProject && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violationsView.goToLocation",
@@ -909,6 +1058,50 @@
 				{
 					"command": "understand.violations.ignoreWithAnnotation",
 					"when": "false"
+				},
+				{
+					"command": "understand.violations.excludeFromCodeCheck",
+					"when": "understandCodeCheckLicensed"
+				},
+				{
+					"command": "understand.violations.excludeFolderFromCodeCheck",
+					"when": "understandCodeCheckLicensed"
+				},
+				{
+					"command": "understand.violations.editExcludedPaths",
+					"when": "understandCodeCheckLicensed"
+				},
+				{
+					"command": "understand.violations.groupBy",
+					"when": "understandCodeCheckLicensed"
+				},
+				{
+					"command": "understand.violations.showCurrentFile",
+					"when": "understandCodeCheckLicensed"
+				},
+				{
+					"command": "understand.violations.showAllFiles",
+					"when": "understandCodeCheckLicensed"
+				},
+				{
+					"command": "understand.checks.showConfiguration",
+					"when": "understandCodeCheckLicensed"
+				},
+				{
+					"command": "understand.metrics.documentation",
+					"when": "understandExportLicensed"
+				},
+				{
+					"command": "understand.metrics.copyApiName",
+					"when": "understandExportLicensed"
+				},
+				{
+					"command": "understand.metrics.copyFriendlyNameAndValue",
+					"when": "understandExportLicensed"
+				},
+				{
+					"command": "understand.settings.showSettingsMetricsView",
+					"when": "understandExportLicensed"
 				},
 				{
 					"command": "understand.annotations.openFieldFromBrowser",
@@ -972,6 +1165,11 @@
 					"command": "understand.graphs.save",
 					"when": "activeWebviewPanelId == understandGraph",
 					"group": "navigation"
+				},
+				{
+					"command": "understand.graphs.copyImage",
+					"when": "activeWebviewPanelId == understandGraph",
+					"group": "navigation"
 				}
 			],
 			"editor/title/context": [
@@ -987,18 +1185,18 @@
 				},
 				{
 					"command": "understand.violations.excludeFromCodeCheck",
-					"when": "understandProject"
+					"when": "understandProject && understandCodeCheckLicensed"
 				}
 			],
 			"view/title": [
 				{
 					"command": "understand.metrics.documentation",
-					"when": "view == understandMetrics",
+					"when": "view == understandMetrics && understandExportLicensed",
 					"group": "navigation"
 				},
 				{
 					"command": "understand.settings.showSettingsMetricsView",
-					"when": "view == understandMetrics",
+					"when": "view == understandMetrics && understandExportLicensed",
 					"group": "navigation"
 				},
 				{
@@ -1018,26 +1216,26 @@
 				},
 				{
 					"command": "understand.violations.showCurrentFile",
-					"when": "view == understandViolationsList && understand.violationsListScope != file",
+					"when": "view == understandViolationsList && understand.violationsListScope != file && understandCodeCheckLicensed",
 					"group": "navigation@1"
 				},
 				{
 					"command": "understand.violations.showAllFiles",
-					"when": "view == understandViolationsList && understand.violationsListScope == file",
+					"when": "view == understandViolationsList && understand.violationsListScope == file && understandCodeCheckLicensed",
 					"group": "navigation@1"
 				},
 				{
 					"command": "understand.violations.groupBy",
-					"when": "view == understandViolationsList",
+					"when": "view == understandViolationsList && understandCodeCheckLicensed",
 					"group": "navigation@2"
 				},
 				{
 					"command": "understand.violations.editExcludedPaths",
-					"when": "view == understandViolationsList"
+					"when": "view == understandViolationsList && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.checks.showConfiguration",
-					"when": "view == understandViolationsList"
+					"when": "view == understandViolationsList && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.annotations.showCurrentFile",
@@ -1069,38 +1267,42 @@
 			],
 			"view/item/context": [
 				{
-					"command": "understand.violations.excludeFromCodeCheck",
-					"when": "view == understandViolationsList && viewItem == understandViolationFileGroup"
+					"command": "understand.graphs.removeSaved",
+					"when": "view == understandGraphs && viewItem == understandGraphSaved"
 				},
 				{
 					"command": "understand.violations.excludeFromCodeCheck",
-					"when": "view == understandViolationsList && viewItem =~ /^understandViolation(Parse)?$/"
+					"when": "view == understandViolationsList && viewItem == understandViolationFileGroup && understandCodeCheckLicensed"
+				},
+				{
+					"command": "understand.violations.excludeFromCodeCheck",
+					"when": "view == understandViolationsList && viewItem =~ /^understandViolation(Parse)?$/ && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.excludeFolderFromCodeCheck",
-					"when": "view == understandViolationsList && viewItem == understandViolationFileGroup"
+					"when": "view == understandViolationsList && viewItem == understandViolationFileGroup && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.excludeFolderFromCodeCheck",
-					"when": "view == understandViolationsList && viewItem =~ /^understandViolation(Parse)?$/"
+					"when": "view == understandViolationsList && viewItem =~ /^understandViolation(Parse)?$/ && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.checks.show",
-					"when": "view == understandViolationsList && viewItem == understandViolation",
+					"when": "view == understandViolationsList && viewItem == understandViolation && understandCodeCheckLicensed",
 					"group": "inline"
 				},
 				{
 					"command": "understand.checks.show",
-					"when": "view == understandViolationsList && viewItem == understandViolation"
+					"when": "view == understandViolationsList && viewItem == understandViolation && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.metrics.copyApiName",
-					"when": "view == understandMetrics && viewItem == understandMetric",
+					"when": "view == understandMetrics && viewItem == understandMetric && understandExportLicensed",
 					"group": "inline"
 				},
 				{
 					"command": "understand.metrics.copyFriendlyNameAndValue",
-					"when": "view == understandMetrics && viewItem == understandMetric",
+					"when": "view == understandMetrics && viewItem == understandMetric && understandExportLicensed",
 					"group": "inline"
 				},
 				{
@@ -1178,13 +1380,14 @@
 					"name": "API Info",
 					"type": "tree",
 					"visibility": "collapsed",
-					"when": "config.understand.infoView.enabled"
+					"when": "config.understand.infoView.enabled && understandApiLicensed"
 				},
 				{
 					"icon": "$(pulse)",
 					"id": "understandMetrics",
 					"name": "Metrics",
-					"type": "tree"
+					"type": "tree",
+					"when": "understandExportLicensed"
 				},
 				{
 					"icon": "$(symbol-reference)",
@@ -1198,7 +1401,7 @@
 					"name": "Violations",
 					"type": "tree",
 					"visibility": "collapsed",
-					"when": "config.understand.violationsView.enabled"
+					"when": "config.understand.violationsView.enabled && understandCodeCheckLicensed"
 				}
 			]
 		}
@@ -1225,9 +1428,9 @@
 		"typescript": "5.3.3"
 	},
 	"scripts": {
-		"build": "npm install --ignore-scripts && node node_modules/typescript/bin/tsc && esbuild ./src/other/templateRules.ts --bundle --outfile=res/views/templateRules.js --format=iife --global-name=understandTemplateRules --minify && esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node --minify && node node_modules/@vscode/vsce/vsce package -o understand.vsix",
+		"build": "npm install --ignore-scripts && node node_modules/typescript/bin/tsc && esbuild ./src/other/templateRules.ts --bundle --outfile=res/views/templateRules.js --format=iife --global-name=understandTemplateRules --minify && esbuild ./src/graphView/main.js --bundle --outfile=res/views/graph.js --format=iife --minify && esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node --minify && node node_modules/@vscode/vsce/vsce package -o understand.vsix",
 		"clean": "git clean -dfX",
 		"install": "npm run build && code --install-extension understand.vsix",
-		"watch": "npm install --ignore-scripts && esbuild ./src/other/templateRules.ts --bundle --outfile=res/views/templateRules.js --format=iife --global-name=understandTemplateRules --minify && esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node --minify --watch"
+		"watch": "npm install --ignore-scripts && esbuild ./src/other/templateRules.ts --bundle --outfile=res/views/templateRules.js --format=iife --global-name=understandTemplateRules --minify && esbuild ./src/graphView/main.js --bundle --outfile=res/views/graph.js --format=iife --minify && esbuild ./src/main.ts --bundle --outfile=extension.js --external:vscode --format=cjs --platform=node --minify --watch"
 	}
 }

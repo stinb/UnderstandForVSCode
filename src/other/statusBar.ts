@@ -75,6 +75,7 @@ export function databasePath(): string
 
 let mainStatusBarItem: vscode.StatusBarItem;
 let fileStatusBarItem: vscode.StatusBarItem;
+let entityStatusBarItem: vscode.StatusBarItem;
 let progressStatusBarItems = new Map<string, StatusBarItem>();
 
 
@@ -177,6 +178,24 @@ export function changeFileStatus(status: FileStatus | undefined)
 	}
 
 	fileStatusBarItem.show();
+}
+
+
+/** The entity status bar item: the entity the Understand views show, which
+ * follows the cursor (Rob, 2026-10-20) */
+export function changeEntityStatus(name: string)
+{
+	if (entityStatusBarItem === undefined) {
+		entityStatusBarItem = vscode.window.createStatusBarItem('entity', vscode.StatusBarAlignment.Left, 98);
+		entityStatusBarItem.name = 'Understand Entity';
+		entityStatusBarItem.tooltip = 'The entity the Understand views show';
+	}
+	if (!name) {
+		entityStatusBarItem.hide();
+		return;
+	}
+	entityStatusBarItem.text = `$(symbol-object) ${name}`;
+	entityStatusBarItem.show();
 }
 
 
