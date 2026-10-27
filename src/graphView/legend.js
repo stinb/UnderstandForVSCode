@@ -376,7 +376,9 @@ function legendMenuItems()
 			});
 		}
 		items.push({ separator: true });
-		items.push({ label: 'Add Metric Color Scale…', onClick: post({ method: 'legend', action: 'styleDialog', styleKind: 'metric' }) });
+		// A metric color scale needs Export & Share Reports/Metrics
+		if (themes.metricScale !== false)
+			items.push({ label: 'Add Metric Color Scale…', onClick: post({ method: 'legend', action: 'styleDialog', styleKind: 'metric' }) });
 		items.push({ label: 'Add Node Style…', onClick: post({ method: 'legend', action: 'styleDialog', styleKind: 'node' }) });
 		items.push({ label: 'Add Edge Style…', onClick: post({ method: 'legend', action: 'styleDialog', styleKind: 'edge' }) });
 	}

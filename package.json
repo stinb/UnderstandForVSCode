@@ -870,7 +870,7 @@
 				},
 				{
 					"command": "understand.graphs.treemap",
-					"when": "understandProject && understandGuiLicensed"
+					"when": "understandProject && understandGuiLicensed && understandExportLicensed"
 				},
 				{
 					"command": "understand.ai.generateAiOverview",
@@ -989,31 +989,31 @@
 				},
 				{
 					"command": "understand.violations.fix",
-					"when": "understandFile && !editorReadonly"
+					"when": "understandFile && !editorReadonly && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.goToNextViolationInAllFiles",
-					"when": "understandProject"
+					"when": "understandProject && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.goToNextViolationInCurrentFile",
-					"when": "understandFile"
+					"when": "understandFile && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.goToPreviousViolationInAllFiles",
-					"when": "understandProject"
+					"when": "understandProject && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.goToPreviousViolationInCurrentFile",
-					"when": "understandFile"
+					"when": "understandFile && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.ignore",
-					"when": "understandFile && !editorReadonly"
+					"when": "understandFile && !editorReadonly && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.toggleVisibilityAndFocus",
-					"when": "understandProject"
+					"when": "understandProject && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violationsView.goToLocation",
@@ -1058,6 +1058,50 @@
 				{
 					"command": "understand.violations.ignoreWithAnnotation",
 					"when": "false"
+				},
+				{
+					"command": "understand.violations.excludeFromCodeCheck",
+					"when": "understandCodeCheckLicensed"
+				},
+				{
+					"command": "understand.violations.excludeFolderFromCodeCheck",
+					"when": "understandCodeCheckLicensed"
+				},
+				{
+					"command": "understand.violations.editExcludedPaths",
+					"when": "understandCodeCheckLicensed"
+				},
+				{
+					"command": "understand.violations.groupBy",
+					"when": "understandCodeCheckLicensed"
+				},
+				{
+					"command": "understand.violations.showCurrentFile",
+					"when": "understandCodeCheckLicensed"
+				},
+				{
+					"command": "understand.violations.showAllFiles",
+					"when": "understandCodeCheckLicensed"
+				},
+				{
+					"command": "understand.checks.showConfiguration",
+					"when": "understandCodeCheckLicensed"
+				},
+				{
+					"command": "understand.metrics.documentation",
+					"when": "understandExportLicensed"
+				},
+				{
+					"command": "understand.metrics.copyApiName",
+					"when": "understandExportLicensed"
+				},
+				{
+					"command": "understand.metrics.copyFriendlyNameAndValue",
+					"when": "understandExportLicensed"
+				},
+				{
+					"command": "understand.settings.showSettingsMetricsView",
+					"when": "understandExportLicensed"
 				},
 				{
 					"command": "understand.annotations.openFieldFromBrowser",
@@ -1141,18 +1185,18 @@
 				},
 				{
 					"command": "understand.violations.excludeFromCodeCheck",
-					"when": "understandProject"
+					"when": "understandProject && understandCodeCheckLicensed"
 				}
 			],
 			"view/title": [
 				{
 					"command": "understand.metrics.documentation",
-					"when": "view == understandMetrics",
+					"when": "view == understandMetrics && understandExportLicensed",
 					"group": "navigation"
 				},
 				{
 					"command": "understand.settings.showSettingsMetricsView",
-					"when": "view == understandMetrics",
+					"when": "view == understandMetrics && understandExportLicensed",
 					"group": "navigation"
 				},
 				{
@@ -1172,26 +1216,26 @@
 				},
 				{
 					"command": "understand.violations.showCurrentFile",
-					"when": "view == understandViolationsList && understand.violationsListScope != file",
+					"when": "view == understandViolationsList && understand.violationsListScope != file && understandCodeCheckLicensed",
 					"group": "navigation@1"
 				},
 				{
 					"command": "understand.violations.showAllFiles",
-					"when": "view == understandViolationsList && understand.violationsListScope == file",
+					"when": "view == understandViolationsList && understand.violationsListScope == file && understandCodeCheckLicensed",
 					"group": "navigation@1"
 				},
 				{
 					"command": "understand.violations.groupBy",
-					"when": "view == understandViolationsList",
+					"when": "view == understandViolationsList && understandCodeCheckLicensed",
 					"group": "navigation@2"
 				},
 				{
 					"command": "understand.violations.editExcludedPaths",
-					"when": "view == understandViolationsList"
+					"when": "view == understandViolationsList && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.checks.showConfiguration",
-					"when": "view == understandViolationsList"
+					"when": "view == understandViolationsList && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.annotations.showCurrentFile",
@@ -1228,37 +1272,37 @@
 				},
 				{
 					"command": "understand.violations.excludeFromCodeCheck",
-					"when": "view == understandViolationsList && viewItem == understandViolationFileGroup"
+					"when": "view == understandViolationsList && viewItem == understandViolationFileGroup && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.excludeFromCodeCheck",
-					"when": "view == understandViolationsList && viewItem =~ /^understandViolation(Parse)?$/"
+					"when": "view == understandViolationsList && viewItem =~ /^understandViolation(Parse)?$/ && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.excludeFolderFromCodeCheck",
-					"when": "view == understandViolationsList && viewItem == understandViolationFileGroup"
+					"when": "view == understandViolationsList && viewItem == understandViolationFileGroup && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.violations.excludeFolderFromCodeCheck",
-					"when": "view == understandViolationsList && viewItem =~ /^understandViolation(Parse)?$/"
+					"when": "view == understandViolationsList && viewItem =~ /^understandViolation(Parse)?$/ && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.checks.show",
-					"when": "view == understandViolationsList && viewItem == understandViolation",
+					"when": "view == understandViolationsList && viewItem == understandViolation && understandCodeCheckLicensed",
 					"group": "inline"
 				},
 				{
 					"command": "understand.checks.show",
-					"when": "view == understandViolationsList && viewItem == understandViolation"
+					"when": "view == understandViolationsList && viewItem == understandViolation && understandCodeCheckLicensed"
 				},
 				{
 					"command": "understand.metrics.copyApiName",
-					"when": "view == understandMetrics && viewItem == understandMetric",
+					"when": "view == understandMetrics && viewItem == understandMetric && understandExportLicensed",
 					"group": "inline"
 				},
 				{
 					"command": "understand.metrics.copyFriendlyNameAndValue",
-					"when": "view == understandMetrics && viewItem == understandMetric",
+					"when": "view == understandMetrics && viewItem == understandMetric && understandExportLicensed",
 					"group": "inline"
 				},
 				{
@@ -1342,7 +1386,8 @@
 					"icon": "$(pulse)",
 					"id": "understandMetrics",
 					"name": "Metrics",
-					"type": "tree"
+					"type": "tree",
+					"when": "understandExportLicensed"
 				},
 				{
 					"icon": "$(symbol-reference)",
@@ -1356,7 +1401,7 @@
 					"name": "Violations",
 					"type": "tree",
 					"visibility": "collapsed",
-					"when": "config.understand.violationsView.enabled"
+					"when": "config.understand.violationsView.enabled && understandCodeCheckLicensed"
 				}
 			]
 		}

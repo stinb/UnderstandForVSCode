@@ -56,7 +56,8 @@ export class GraphTreeProvider implements TreeDataProvider<Item>
 			if (items.length)
 				items.push(new SeparatorItem());
 			// An entity's graphs are always there; the project's, the
-			// architectures' and the treemap need GUI Access
+			// architectures' and the treemap need GUI Access, and the treemap
+			// Export & Share Reports/Metrics as well
 			const gui = variables.guiLicensed;
 			const saved = this.visible(this.saved);
 			const favorites = this.visible(this.favorites);
@@ -66,7 +67,7 @@ export class GraphTreeProvider implements TreeDataProvider<Item>
 			}
 			items.push(new SectionItem('Saved Graphs', 'saved', saved.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None));
 			items.push(new SectionItem('Favorite Graphs', 'favorites', favorites.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None));
-			if (gui)
+			if (gui && variables.exportLicensed)
 				items.push(new TreemapItem());
 			return items;
 		}
@@ -168,6 +169,16 @@ export function setGuiLicensed(on: boolean)
 	setContext(contexts.guiLicensed, on);
 	// The start-up path that calls this goes on to register the licence
 	// handlers, so it must not depend on the Graphs view existing yet
+	variables.graphTreeProvider?.refresh();
+}
+
+
+/** What the server says the licence grants of Export & Share Reports/Metrics,
+ * which the treemap needs as well as GUI Access */
+export function setExportLicensed(on: boolean)
+{
+	variables.exportLicensed = on;
+	setContext(contexts.exportLicensed, on);
 	variables.graphTreeProvider?.refresh();
 }
 

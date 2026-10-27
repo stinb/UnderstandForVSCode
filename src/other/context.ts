@@ -18,6 +18,12 @@ export const contexts = {
 	// Whether the licence grants the API, which the API Info view needs.
 	// Starts false so the view stays hidden until the server says.
 	apiLicensed: 'understandApiLicensed',
+	// Whether the licence grants CodeCheck, which the Violations view and
+	// every violation and CodeCheck command need
+	codecheckLicensed: 'understandCodeCheckLicensed',
+	// Whether the licence grants Export & Share Reports/Metrics, which the
+	// Metrics view needs
+	exportLicensed: 'understandExportLicensed',
 };
 
 

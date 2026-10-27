@@ -19,6 +19,9 @@ export const variables: Variables = {
 	// entity's need. True until the server says otherwise: the server refuses
 	// those graphs itself, and an older server that never says has no limit.
 	guiLicensed: true,
+	// Whether the licence grants Export & Share Reports/Metrics, which the
+	// treemap needs. True until the server says otherwise, as above.
+	exportLicensed: true,
 	// Whether the licence grants AI. False until the server says otherwise,
 	// so nothing AI-related runs before we know (und-issues#709).
 	aiLicensed: false,
@@ -65,6 +68,7 @@ interface Variables {
 	aiViewProvider: AiViewProvider,
 	annotateCodeLensProvider: AnnotateCodeLensProvider,
 	annotationsTreeProvider: AnnotationTreeProvider,
+	exportLicensed: boolean,
 	extensionUri: Uri,
 	fileSystemWatcher: FileSystemWatcher,
 	graphProvider: GraphProvider,

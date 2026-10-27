@@ -21,7 +21,7 @@ import { handleUnderstandAnnotationMarks } from './annotationDecorations';
 import { handleUnderstandInfo } from '../treeProviders/info';
 import { handleUnderstandViolationsListed } from '../treeProviders/violations';
 import { actuallyChangedTextEditorSelection, contexts, setContext } from './context';
-import { handleUnderstandGraphsListed, setGuiLicensed } from '../treeProviders/graphs';
+import { handleUnderstandGraphsListed, setExportLicensed, setGuiLicensed } from '../treeProviders/graphs';
 import { handleUnderstandMetricsListed } from '../treeProviders/metrics';
 import { handleUnderstandChangedReferences } from '../treeProviders/references';
 import { Section } from '../types/annotation';
@@ -127,20 +127,26 @@ export async function startLsp()
 		// Entitlements. The initialize result carries the startup value, so no AI
 		// UI is live before we know; the notification carries later changes, so a
 		// revoked licence hides it without a restart (und-issues#709).
-		// GUI Access gates the graphs that are not an entity's; a server that
-		// does not say has no such limit.
-		const init = variables.languageClient.initializeResult as
-			{ understand?: { aiLicensed?: boolean, guiLicensed?: boolean, apiLicensed?: boolean } } | undefined;
+		// GUI Access gates the graphs that are not an entity's, CodeCheck the
+		// violations, and Export the metrics; a server that does not say has
+		// no such limit.
+		type Features = { aiLicensed?: boolean, guiLicensed?: boolean, apiLicensed?: boolean,
+			codecheckLicensed?: boolean, exportLicensed?: boolean };
+		const init = variables.languageClient.initializeResult as { understand?: Features } | undefined;
 		variables.aiLicensed = init?.understand?.aiLicensed === true;
 		setContext(contexts.aiLicensed, variables.aiLicensed);
 		setGuiLicensed(init?.understand?.guiLicensed !== false);
 		setContext(contexts.apiLicensed, init?.understand?.apiLicensed === true);
+		setContext(contexts.codecheckLicensed, init?.understand?.codecheckLicensed !== false);
+		setExportLicensed(init?.understand?.exportLicensed !== false);
 		variables.languageClient.onNotification('understand/changedLicenseFeatures',
-			(params: { aiLicensed?: boolean, guiLicensed?: boolean, apiLicensed?: boolean }) => {
+			(params: Features) => {
 				variables.aiLicensed = params.aiLicensed === true;
 				setContext(contexts.aiLicensed, variables.aiLicensed);
 				setGuiLicensed(params.guiLicensed !== false);
 				setContext(contexts.apiLicensed, params.apiLicensed === true);
+				setContext(contexts.codecheckLicensed, params.codecheckLicensed !== false);
+				setExportLicensed(params.exportLicensed !== false);
 			});
 
 		variables.languageClient.onNotification('understand/licenseLost', handleUnderstandLicenseLost);
