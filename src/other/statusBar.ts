@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as lc from 'vscode-languageclient/node';
 
-import { contexts, invalidateFileStatus, setContext } from './context';
+import { contexts, invalidateFileStatus, refreshFileStatus, setContext } from './context';
 import { variables, } from './variables';
 
 
@@ -150,29 +150,31 @@ export function changeFileStatus(status: FileStatus | undefined)
 		fileStatusBarItem.name = 'Understand File';
 	}
 
-	// No file or no project: show nothing
-	if (status === undefined) {
+	// No file or no project: show nothing. Nor while an analysis runs: its
+	// progress item says what is happening, and the file's state is only
+	// known once it ends, when the status is asked for again (Rob, 2026-10-27)
+	if (status === undefined || progressStatusBarItems.has('Understand Analysis')) {
 		fileStatusBarItem.hide();
 		return;
 	}
 
 	if (!status.inProject) {
-		fileStatusBarItem.text = '$(circle-slash) Not in project';
+		fileStatusBarItem.text = '$(circle-slash) File not in project';
 		fileStatusBarItem.tooltip = 'This file is not a file of the Understand project';
 		fileStatusBarItem.command = undefined;
 	}
 	else if (status.analysis === 'analyzed') {
-		fileStatusBarItem.text = '$(check) Analyzed';
+		fileStatusBarItem.text = '$(check) File analyzed';
 		fileStatusBarItem.tooltip = 'Project file, analyzed and up to date';
 		fileStatusBarItem.command = undefined;
 	}
 	else if (status.analysis === 'stale') {
-		fileStatusBarItem.text = '$(warning) Needs analysis';
+		fileStatusBarItem.text = '$(warning) File needs analysis';
 		fileStatusBarItem.tooltip = 'Project file, modified since it was last analyzed — click to analyze changed files';
 		fileStatusBarItem.command = 'understand.analysis.analyzeChangedFiles';
 	}
 	else {
-		fileStatusBarItem.text = '$(circle-large-outline) Not analyzed';
+		fileStatusBarItem.text = '$(circle-large-outline) File not analyzed';
 		fileStatusBarItem.tooltip = 'Project file that has not been analyzed yet — click to analyze changed files';
 		fileStatusBarItem.command = 'understand.analysis.analyzeChangedFiles';
 	}
@@ -235,6 +237,9 @@ export function handleWindowWorkDoneProgressCreate(params: lc.WorkDoneProgressCr
 	// Create the progress item
 	const progressStatusBarItem = vscode.window.createStatusBarItem(token, vscode.StatusBarAlignment.Left, 99);
 	progressStatusBarItems.set(token, progressStatusBarItem)
+	// The file item stays hidden till the analysis ends
+	if (token === 'Understand Analysis')
+		fileStatusBarItem?.hide();
 }
 
 
@@ -275,8 +280,10 @@ export function handleProgress(params: ProgressParams)
 			progressStatusBarItem.dispose();
 			// A finished ANALYSIS may have changed the current file's status;
 			// other tasks (AI generation) can't, so they keep the cache warm
-			if (token === 'Understand Analysis')
+			if (token === 'Understand Analysis') {
 				invalidateFileStatus();
+				refreshFileStatus();
+			}
 		}
 	}
 
