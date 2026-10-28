@@ -51,6 +51,16 @@ export function invalidateFileStatus()
 }
 
 
+/** Ask the server again for the active file's status, as once an analysis
+ * ends, when the status bar shows the file item again */
+export async function refreshFileStatus()
+{
+	const editor = vscode.window.activeTextEditor;
+	if (editor && editor.document.uri.scheme === 'file')
+		await updateFileStatus(editor.document.uri, setContext);
+}
+
+
 /** When the text cursor moves, notify the server */
 export function actuallyChangedTextEditorSelection()
 {
