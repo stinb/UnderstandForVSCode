@@ -83,13 +83,18 @@
 			},
 			{
 				"view": "understandViolationsList",
-				"contents": "Every violation the background CodeChecks found in the project, grouped by file, check, severity, or entity.\nAnalyze the project to fill it, use Group Violations By... in this view's title bar to regroup, and the filter button to show only the current file's.",
+				"contents": "The project's analysis errors and warnings, and every violation the background CodeChecks found, grouped by file, check, severity, or entity.\nAnalyze the project to fill it, use Group Violations By... in this view's title bar to regroup, and the filter button to show only the current file's.",
 				"when": "!understand.violationsListed"
 			},
 			{
 				"view": "understandViolationsList",
+				"contents": "This project has no analysis errors or warnings.\nYour license does not include CodeCheck, so this view lists only what analysis finds.",
+				"when": "understand.violationsListed && understand.violationsListScope != file && !understandCodeCheckLicensed"
+			},
+			{
+				"view": "understandViolationsList",
 				"contents": "This project has no violations.\nThis view lists what Understand's background CodeChecks find. To turn them on, open the project in Understand, choose Checks > Select Checks, pick a configuration, and turn on Run in Background. Violations appear here after the next analysis.\n[How to run CodeCheck in the background](https://docs.scitools.com/help/codecheck/background-checks.html)",
-				"when": "understand.violationsListed && understand.violationsListScope != file"
+				"when": "understand.violationsListed && understand.violationsListScope != file && understandCodeCheckLicensed"
 			},
 			{
 				"view": "understandViolationsList",
@@ -1007,19 +1012,19 @@
 				},
 				{
 					"command": "understand.violations.goToNextViolationInAllFiles",
-					"when": "understandProject && understandCodeCheckLicensed"
+					"when": "understandProject"
 				},
 				{
 					"command": "understand.violations.goToNextViolationInCurrentFile",
-					"when": "understandFile && understandCodeCheckLicensed"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.violations.goToPreviousViolationInAllFiles",
-					"when": "understandProject && understandCodeCheckLicensed"
+					"when": "understandProject"
 				},
 				{
 					"command": "understand.violations.goToPreviousViolationInCurrentFile",
-					"when": "understandFile && understandCodeCheckLicensed"
+					"when": "understandFile"
 				},
 				{
 					"command": "understand.violations.ignore",
@@ -1027,7 +1032,7 @@
 				},
 				{
 					"command": "understand.violations.toggleVisibilityAndFocus",
-					"when": "understandProject && understandCodeCheckLicensed"
+					"when": "understandProject"
 				},
 				{
 					"command": "understand.violationsView.goToLocation",
@@ -1087,15 +1092,15 @@
 				},
 				{
 					"command": "understand.violations.groupBy",
-					"when": "understandCodeCheckLicensed"
+					"when": "understandProject"
 				},
 				{
 					"command": "understand.violations.showCurrentFile",
-					"when": "understandCodeCheckLicensed"
+					"when": "understandProject"
 				},
 				{
 					"command": "understand.violations.showAllFiles",
-					"when": "understandCodeCheckLicensed"
+					"when": "understandProject"
 				},
 				{
 					"command": "understand.checks.showConfiguration",
@@ -1230,17 +1235,17 @@
 				},
 				{
 					"command": "understand.violations.showCurrentFile",
-					"when": "view == understandViolationsList && understand.violationsListScope != file && understandCodeCheckLicensed",
+					"when": "view == understandViolationsList && understand.violationsListScope != file",
 					"group": "navigation@1"
 				},
 				{
 					"command": "understand.violations.showAllFiles",
-					"when": "view == understandViolationsList && understand.violationsListScope == file && understandCodeCheckLicensed",
+					"when": "view == understandViolationsList && understand.violationsListScope == file",
 					"group": "navigation@1"
 				},
 				{
 					"command": "understand.violations.groupBy",
-					"when": "view == understandViolationsList && understandCodeCheckLicensed",
+					"when": "view == understandViolationsList",
 					"group": "navigation@2"
 				},
 				{
@@ -1415,7 +1420,7 @@
 					"name": "Violations",
 					"type": "tree",
 					"visibility": "collapsed",
-					"when": "config.understand.violationsView.enabled && understandCodeCheckLicensed"
+					"when": "config.understand.violationsView.enabled"
 				}
 			]
 		}

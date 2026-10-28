@@ -13,6 +13,7 @@ import {
 	window,
 } from 'vscode';
 import { variables } from '../other/variables';
+import { contexts, setContext } from '../other/context';
 import { pathOf } from '../other/filePath';
 import { textEditorColumn } from '../other/textEditorColumn';
 import { isCheckId } from '../types/check';
@@ -32,6 +33,11 @@ export type ViolationScope = 'all' | 'file';
 const kScopeContext = 'understand.violationsListScope';
 const kListedContext = 'understand.violationsListed';
 
+// The view's two sections (Rob 2026-10-28): the analysis errors and warnings,
+// which the parser stores and every licence shows, and what the background
+// CodeChecks found, which needs CodeCheck
+export type Section = 'analysis' | 'codecheck';
+
 
 export class ViolationTreeProvider implements TreeDataProvider<Node>
 {
@@ -40,6 +46,7 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 	private truncated = false;
 	private groupBy: GroupBy = 'file';
 	private scope: ViolationScope = 'all';
+	private codecheckLicensed = true;
 	private currentFile = '';
 	private emitter = new EventEmitter<void>();
 	private view: TreeView<Node> | undefined;
@@ -58,7 +65,9 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 	getChildren(element: Node | undefined): Node[]
 	{
 		if (element === undefined)
-			return this.groups();
+			return this.sections();
+		if (element instanceof SectionItem)
+			return this.groups(element.section);
 		if (element instanceof GroupItem)
 			// Rows materialize when the group expands: at the 20k cap,
 			// building every row up front on each update or regroup was
@@ -98,6 +107,15 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 	setGroupBy(groupBy: GroupBy)
 	{
 		this.groupBy = groupBy;
+		this.emitter.fire();
+	}
+
+
+	setCodeCheckLicensed(licensed: boolean)
+	{
+		if (licensed === this.codecheckLicensed)
+			return;
+		this.codecheckLicensed = licensed;
 		this.emitter.fire();
 	}
 
@@ -159,14 +177,42 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 	}
 
 
+	// Analysis, then CodeCheck when the licence has it. Nothing at all when
+	// there is nothing to list, so the view's welcome text says so.
+	private sections(): GroupItem[]
+	{
+		const counts = { analysis: 0, codecheck: 0 };
+		for (const file of this.visibleFiles())
+			for (const violation of file.violations)
+				counts[sectionOf(violation)]++;
+		if (counts.analysis + counts.codecheck === 0)
+			return [];
+
+		const sections: GroupItem[] = [new SectionItem('analysis', counts.analysis)];
+		if (this.codecheckLicensed)
+			sections.push(new SectionItem('codecheck', counts.codecheck));
+
+		if (this.truncated && this.scope === 'all') {
+			const notice = new GroupItem(
+				`Showing a subset — ${this.total} violations in the project`, []);
+			notice.collapsibleState = TreeItemCollapsibleState.None;
+			notice.iconPath = new ThemeIcon('info');
+			sections.unshift(notice);
+		}
+		return sections;
+	}
+
+
 	// One flat pass over the pushed payload, bucketed by the current
 	// grouping. Rebuilt on demand: regrouping is a client-side toggle and
 	// must not wait on the server.
-	private groups(): GroupItem[]
+	private groups(section: Section): GroupItem[]
 	{
 		const buckets = new Map<string, Row[]>();
 		for (const file of this.visibleFiles()) {
 			for (const violation of file.violations) {
+				if (sectionOf(violation) !== section)
+					continue;
 				const key = this.keyOf(file, violation);
 				let bucket = buckets.get(key);
 				if (bucket === undefined) {
@@ -205,14 +251,6 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 			}
 			return group;
 		});
-
-		if (this.truncated && this.scope === 'all') {
-			const notice = new GroupItem(
-				`Showing a subset — ${this.total} violations in the project`, []);
-			notice.collapsibleState = TreeItemCollapsibleState.None;
-			notice.iconPath = new ThemeIcon('info');
-			groups.unshift(notice);
-		}
 		return groups;
 	}
 
@@ -236,6 +274,15 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 export function handleUnderstandViolationsListed(params: Params)
 {
 	variables.violationsListProvider.update(params);
+}
+
+
+export function setCodeCheckLicensed(licensed: boolean)
+{
+	setContext(contexts.codecheckLicensed, licensed);
+	// The start-up path that calls this goes on to register the licence
+	// handlers, so it must not depend on the Violations view existing yet
+	variables.violationsListProvider?.setCodeCheckLicensed(licensed);
 }
 
 
@@ -288,6 +335,12 @@ function severityName(severity: number): string
 type Row = { file: File, violation: Violation };
 
 
+function sectionOf(violation: Violation): Section
+{
+	return isCheckId(violation.id) ? 'codecheck' : 'analysis';
+}
+
+
 /**
  * A group's rows in the Problems panel's order: worst severity first, then
  * down the file, then across the line. Sorted on a copy, so the payload the
@@ -326,6 +379,29 @@ export class GroupItem extends TreeItem
 			this.description = `${rows.length}`;
 		this.rows = rows;
 		this.groupBy = groupBy;
+	}
+}
+
+
+// A section heading: open from the start, with its count. An empty section
+// stays listed, so the reader sees that it found nothing.
+export class SectionItem extends GroupItem
+{
+	section: Section;
+
+	constructor(section: Section, count: number)
+	{
+		super(section === 'analysis' ? 'Analysis' : 'CodeCheck', []);
+		this.section = section;
+		this.id = `understandViolationSection.${section}`;
+		this.contextValue = 'understandViolationSection';
+		this.collapsibleState = count
+			? TreeItemCollapsibleState.Expanded
+			: TreeItemCollapsibleState.None;
+		this.description = `${count}`;
+		this.tooltip = section === 'analysis'
+			? 'Errors and warnings from analyzing the project'
+			: "Violations from the project's background CodeChecks";
 	}
 }
 
@@ -479,4 +555,4 @@ type Note = {
 };
 
 
-type Node = GroupItem | ViolationItem | NoteItem;
+type Node = SectionItem | GroupItem | ViolationItem | NoteItem;
