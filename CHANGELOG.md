@@ -1,6 +1,7 @@
 # Change Log
 
 # [Unreleased]
+- Change: the Violations view has an Analysis section for the analysis errors and warnings and a CodeCheck section for the background CodeChecks' violations, each grouped as Group Violations By... says; a license without CodeCheck still shows the analysis errors and warnings in the editor, the Problems panel and the Violations view, and can move through them and regroup them
 - Add: drag a graph to pan it, with the hand cursor; the mouse wheel zooms out to 25% as well as in (stinb/und-issues#711)
 - Change: source text in a graph is colored as in Understand's editor — comments green, and keywords, strings, numbers and preprocessor lines in VS Code's own theme colors; the server marks each run by kind and the view colors it for the light and dark themes (stinb/und-issues#711)
 - Add: a graph tab has the graph window's controls in a toolbar — the graph's variants, a zoom menu with Fit Width, Fit Height and Fit Page, Find, Undo and Redo, Restore Defaults, Show All Hidden Nodes, Clear All Highlighted Edges, Save and Load Graph State, Copy Image To Clipboard, a Mini-Map, the Legend, and Sync to the current selection (stinb/und-issues#711)

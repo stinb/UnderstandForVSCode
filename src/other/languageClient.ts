@@ -19,7 +19,7 @@ import {
 import { handleUnderstandAnnotationsListed } from '../treeProviders/annotations';
 import { handleUnderstandAnnotationMarks } from './annotationDecorations';
 import { handleUnderstandInfo } from '../treeProviders/info';
-import { handleUnderstandViolationsListed } from '../treeProviders/violations';
+import { handleUnderstandViolationsListed, setCodeCheckLicensed } from '../treeProviders/violations';
 import { actuallyChangedTextEditorSelection, contexts, setContext } from './context';
 import { handleUnderstandGraphsListed, setExportLicensed, setGuiLicensed } from '../treeProviders/graphs';
 import { handleUnderstandMetricsListed } from '../treeProviders/metrics';
@@ -137,7 +137,7 @@ export async function startLsp()
 		setContext(contexts.aiLicensed, variables.aiLicensed);
 		setGuiLicensed(init?.understand?.guiLicensed !== false);
 		setContext(contexts.apiLicensed, init?.understand?.apiLicensed === true);
-		setContext(contexts.codecheckLicensed, init?.understand?.codecheckLicensed !== false);
+		setCodeCheckLicensed(init?.understand?.codecheckLicensed !== false);
 		setExportLicensed(init?.understand?.exportLicensed !== false);
 		variables.languageClient.onNotification('understand/changedLicenseFeatures',
 			(params: Features) => {
@@ -145,7 +145,7 @@ export async function startLsp()
 				setContext(contexts.aiLicensed, variables.aiLicensed);
 				setGuiLicensed(params.guiLicensed !== false);
 				setContext(contexts.apiLicensed, params.apiLicensed === true);
-				setContext(contexts.codecheckLicensed, params.codecheckLicensed !== false);
+				setCodeCheckLicensed(params.codecheckLicensed !== false);
 				setExportLicensed(params.exportLicensed !== false);
 			});
 
