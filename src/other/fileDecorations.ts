@@ -80,9 +80,15 @@ class FileStatusDecorationProvider implements vscode.FileDecorationProvider
 	private flushing = false;
 
 
-	/** Forget everything and ask the explorer to come back for it. */
-	invalidate()
+	/** Forget one file's status, or every file's, and ask the explorer to
+	 *  come back for it. A save changes only the saved file's. */
+	invalidate(uri?: vscode.Uri)
 	{
+		if (uri) {
+			this.cache.delete(uri.toString());
+			this.emitter.fire([uri]);
+			return;
+		}
 		this.cache.clear();
 		this.emitter.fire(undefined);
 	}
@@ -179,8 +185,10 @@ export function fileStatusOf(uri: vscode.Uri): Promise<FileStatus | null>
 }
 
 
-/** Drop what the decorations know, so the next draw asks the server again. */
-export function invalidateFileDecorations()
+/** Forget the status of one file (it was saved) or of every file (an
+ *  analysis ended, the configuration changed), so the badges and the status
+ *  bar, which read this one cache, ask the server again (ext #6). */
+export function invalidateFileStatus(uri?: vscode.Uri)
 {
-	fileDecorationProvider.invalidate();
+	fileDecorationProvider.invalidate(uri);
 }

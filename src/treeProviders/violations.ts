@@ -43,7 +43,7 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 {
 	private files: File[] = [];
 	private total = 0;
-	private truncated = false;
+	private sectionTotals: Partial<Record<Section, number>> = {};
 	private groupBy: GroupBy = 'file';
 	private scope: ViolationScope = 'all';
 	private codecheckLicensed = true;
@@ -62,7 +62,7 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 	}
 
 
-	getChildren(element: Node | undefined): Node[]
+	getChildren(element: Node | undefined): Node[] | Thenable<Node[]>
 	{
 		if (element === undefined)
 			return this.sections();
@@ -78,9 +78,10 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 			// server stored them in, which is by check id.
 			return orderedRows(element.rows).map(
 				row => new ViolationItem(row.file, row.violation, element.groupBy));
-		// A violation's other locations, expanded on demand the same way.
+		// A violation's other locations, asked for when the row expands: the
+		// list sends only their count.
 		if (element instanceof ViolationItem)
-			return element.notes.map(note => new NoteItem(note));
+			return element.loadNotes().then(notes => notes.map(note => new NoteItem(note)));
 		return [];
 	}
 
@@ -93,9 +94,28 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 
 	update(params: Params)
 	{
-		this.files = params.files;
+		if (params.hidden) {
+			// The view is not showing, so the server sent only the count; the
+			// whole list comes when it shows
+			this.total = params.total;
+			this.refreshBadge();
+			return;
+		}
+		if (params.partial) {
+			// Only the files whose violations changed: each replaces its old
+			// entry, and one with none left goes
+			const changed = new Map(params.files.map(file => [file.uri, file]));
+			this.files = this.files.filter(file => !changed.has(file.uri));
+			changed.forEach(file => {
+				if (file.violations.length)
+					this.files.push(file);
+			});
+		}
+		else {
+			this.files = params.files;
+		}
 		this.total = params.total;
-		this.truncated = params.truncated;
+		this.sectionTotals ={ analysis: params.analysisTotal, codecheck: params.codecheckTotal };
 		// An empty list says "no violations" only once the server has
 		// listed them (the view's welcome text in package.json)
 		commands.executeCommand('setContext', kListedContext, true);
@@ -177,8 +197,9 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 	}
 
 
-	// Analysis, then CodeCheck when the licence has it. Nothing at all when
-	// there is nothing to list, so the view's welcome text says so.
+	// CodeCheck when the licence has it, then Analysis (Rob 2026-10-29).
+	// Nothing at all when there is nothing to list, so the view's welcome
+	// text says so.
 	private sections(): GroupItem[]
 	{
 		const counts = { analysis: 0, codecheck: 0 };
@@ -188,17 +209,14 @@ export class ViolationTreeProvider implements TreeDataProvider<Node>
 		if (counts.analysis + counts.codecheck === 0)
 			return [];
 
-		const sections: GroupItem[] = [new SectionItem('analysis', counts.analysis)];
+		// A section cut short says so itself; the whole file's rows come
+		// either way, so a file-scoped view is never cut
+		const totalOf = (section: Section) =>
+			this.scope === 'all' ? this.sectionTotals[section] ?? 0 : 0;
+		const sections: GroupItem[] = [];
 		if (this.codecheckLicensed)
-			sections.push(new SectionItem('codecheck', counts.codecheck));
-
-		if (this.truncated && this.scope === 'all') {
-			const notice = new GroupItem(
-				`Showing a subset — ${this.total} violations in the project`, []);
-			notice.collapsibleState = TreeItemCollapsibleState.None;
-			notice.iconPath = new ThemeIcon('info');
-			sections.unshift(notice);
-		}
+			sections.push(new SectionItem('codecheck', counts.codecheck, totalOf('codecheck')));
+		sections.push(new SectionItem('analysis', counts.analysis, totalOf('analysis')));
 		return sections;
 	}
 
@@ -389,7 +407,9 @@ export class SectionItem extends GroupItem
 {
 	section: Section;
 
-	constructor(section: Section, count: number)
+	/** @param total the section's total in the project, more than `count`
+	 * when the list was cut short */
+	constructor(section: Section, count: number, total = 0)
 	{
 		super(section === 'analysis' ? 'Analysis' : 'CodeCheck', []);
 		this.section = section;
@@ -398,10 +418,22 @@ export class SectionItem extends GroupItem
 		this.collapsibleState = count
 			? TreeItemCollapsibleState.Expanded
 			: TreeItemCollapsibleState.None;
-		this.description = `${count}`;
-		this.tooltip = section === 'analysis'
+
+		const what = section === 'analysis'
 			? 'Errors and warnings from analyzing the project'
 			: "Violations from the project's background CodeChecks";
+		if (total <= count) {
+			this.description = `${count}`;
+			this.tooltip = what;
+			return;
+		}
+		// The server lists at most 20,000 of a section, so a very large
+		// project cannot slow VS Code down; the Problems panel has them all
+		this.description = `${count.toLocaleString()} of ${total.toLocaleString()} (truncated)`;
+		this.iconPath = new ThemeIcon('warning');
+		this.tooltip = new MarkdownString(`${what}.\n\n`
+			+ `**Truncated:** this section lists ${count.toLocaleString()} of the project's `
+			+ `${total.toLocaleString()}. Every one of them is in the Problems panel.`);
 	}
 }
 
@@ -409,20 +441,23 @@ export class SectionItem extends GroupItem
 export class ViolationItem extends TreeItem
 {
 	filePath: string;
-	notes: Note[];
 	// The check that reported it, for the row's Show Check button and menu.
 	checkId: string;
+	private fileUri: string;
+	private violation: Violation;
+
 
 	constructor(file: File, violation: Violation, groupBy: GroupBy)
 	{
 		// A violation with other locations opens to show them; one without
 		// stays a leaf, so nothing offers an arrow that reveals nothing.
-		const notes = violation.notes ?? [];
-		super(violation.message, notes.length
+		const noteCount = violation.notes?.length ?? violation.noteCount ?? 0;
+		super(violation.message, noteCount
 			? TreeItemCollapsibleState.Collapsed
 			: TreeItemCollapsibleState.None);
 
-		this.notes = notes;
+		this.fileUri = file.uri;
+		this.violation = violation;
 		this.filePath = file.path;
 		this.checkId = violation.id;
 		// A parse error or warning is listed like a violation but has no check
@@ -455,12 +490,31 @@ export class ViolationItem extends TreeItem
 		tooltip.appendMarkdown(`${escapeMarkdown(file.path)} ${at}`);
 		if (violation.entity)
 			tooltip.appendMarkdown(`\n\nEntity: ${escapeMarkdown(violation.entity)}`);
-		if (notes.length)
-			tooltip.appendMarkdown(`\n\n${notes.length} other location`
-				+ (notes.length === 1 ? '' : 's'));
+		if (noteCount)
+			tooltip.appendMarkdown(`\n\n${noteCount} other location`
+				+ (noteCount === 1 ? '' : 's'));
 		this.tooltip = tooltip;
 
 		this.command = openCommand(file.uri, violation.range);
+	}
+
+
+	// The other locations, from the server the first time the row expands
+	async loadNotes(): Promise<Note[]>
+	{
+		if (this.violation.notes)
+			return this.violation.notes;
+		const v = this.violation;
+		const reply: { notes?: Note[] } | null = await variables.languageClient
+			.sendRequest<{ notes?: Note[] }>('understand/violations/notes', {
+				uri: this.fileUri,
+				id: v.id,
+				line: v.range.start.line,
+				character: v.range.start.character,
+				message: v.message,
+			}).catch(() => null);
+		v.notes = reply?.notes ?? [];
+		return v.notes;
 	}
 }
 
@@ -522,7 +576,14 @@ function basename(path: string): string
 type Params = {
 	files: File[],
 	total: number,
-	truncated: boolean,
+	// Only the files that changed since the last list
+	partial?: boolean,
+	// The view is hidden: the count alone
+	hidden?: boolean,
+	// Each section's total in the project, which the listed rows stop short
+	// of when a section is cut
+	analysisTotal?: number,
+	codecheckTotal?: number,
 };
 
 
@@ -540,8 +601,10 @@ type Violation = {
 	         end: { line: number, character: number } },
 	severity: number,
 	entity: string,
-	// The violation's other locations, the same notes the diagnostic
-	// carries as relatedInformation.
+	// How many other locations the violation has: the same notes the
+	// diagnostic carries as relatedInformation, which the server sends when
+	// the row is expanded and the row then keeps
+	noteCount?: number,
 	notes?: Note[],
 };
 

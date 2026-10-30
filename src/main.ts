@@ -37,9 +37,10 @@ import { GraphTreeProvider } from './treeProviders/graphs';
 import { MetricTreeProvider } from './treeProviders/metrics';
 import { ReferencesTreeProvider } from './treeProviders/references';
 import { watchFiles } from './other/fileSystem';
-import { actuallyChangedTextEditorSelection, invalidateFileStatus, onDidChangeTextEditorSelection } from './other/context';
+import { actuallyChangedTextEditorSelection, onDidChangeTextEditorSelection } from './other/context';
 import { followEntity } from './other/entityHeaders';
-import { fileDecorationProvider } from './other/fileDecorations';
+import { fileDecorationProvider, invalidateFileStatus } from './other/fileDecorations';
+import { watchVisibility } from './other/viewVisibility';
 
 
 /** Activate the extension */
@@ -184,7 +185,7 @@ export async function activate(context: vscode.ExtensionContext)
 
 		// A save can make the file's analysis stale: refresh the status bar
 		vscode.workspace.onDidSaveTextDocument((document) => {
-			invalidateFileStatus();
+			invalidateFileStatus(document.uri);
 			actuallyChangedTextEditorSelection();
 			violations.onConfigurationSaved(document);
 		}),
@@ -203,6 +204,7 @@ export async function activate(context: vscode.ExtensionContext)
 		(() => {
 			const view = vscode.window.createTreeView('understandViolationsList', { treeDataProvider: variables.violationsListProvider });
 			variables.violationsListProvider.attach(view);
+			watchVisibility('violations', view);
 			return view;
 		})(),
 		(() => {
@@ -220,6 +222,10 @@ export async function activate(context: vscode.ExtensionContext)
 		] as [string, vscode.TreeDataProvider<unknown>][]).map(([id, treeDataProvider]) => {
 			const view = vscode.window.createTreeView(id, { treeDataProvider });
 			followEntity(view);
+			const watched = ({ understandReferences: 'references', understandMetrics: 'metrics',
+				understandInfo: 'info' } as Record<string, string>)[id];
+			if (watched)
+				watchVisibility(watched, view);
 			return view;
 		}),
 	);
@@ -238,10 +244,9 @@ export async function activate(context: vscode.ExtensionContext)
 		// The lens sits on the cursor's line, so it is re-asked as the cursor
 		// moves and as the active editor changes.
 		vscode.window.onDidChangeTextEditorSelection(
-			() => variables.annotateCodeLensProvider.refresh()),
-		// The lens offers to ignore the line's violations, so it follows them.
+			() => variables.annotateCodeLensProvider.cursorMoved()),
 		vscode.languages.onDidChangeDiagnostics(
-			() => variables.annotateCodeLensProvider.refresh()),
+			event => variables.annotateCodeLensProvider.diagnosticsChanged(event)),
 		vscode.window.onDidChangeActiveTextEditor(() => {
 			variables.annotateCodeLensProvider.refresh();
 			variables.annotationsTreeProvider.activeFileChanged();

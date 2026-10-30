@@ -46,10 +46,46 @@ export class AnnotateCodeLensProvider implements vscode.CodeLensProvider
 	private emitter = new vscode.EventEmitter<void>();
 	onDidChangeCodeLenses = this.emitter.event;
 
-	// The lens sits on the cursor's line, so it moves as the cursor does.
+	// The cursor's line and file the lens was last drawn for, and the pending
+	// redraw while the cursor or the problems are still moving
+	private line = -1;
+	private uri = '';
+	private timer: NodeJS.Timeout | undefined;
+
 	refresh()
 	{
 		this.emitter.fire();
+	}
+
+	// The lens sits on the cursor's line, so it moves as the cursor does: when
+	// the line or the file changes, once the cursor settles. Every keystroke
+	// moves the cursor, and each redraw re-reads the file's problems.
+	cursorMoved()
+	{
+		const editor = vscode.window.activeTextEditor;
+		const uri = editor?.document.uri.toString() ?? '';
+		const line = editor?.selection.active.line ?? -1;
+		if (uri === this.uri && line === this.line)
+			return;
+		this.uri = uri;
+		this.line = line;
+		this.refreshSoon();
+	}
+
+	// The lens offers to ignore the line's violations, so it follows them --
+	// in the files on screen; other extensions' problems change on every
+	// keystroke too
+	diagnosticsChanged(event: vscode.DiagnosticChangeEvent)
+	{
+		const shown = new Set(vscode.window.visibleTextEditors.map(editor => editor.document.uri.toString()));
+		if (event.uris.some(uri => shown.has(uri.toString())))
+			this.refreshSoon();
+	}
+
+	private refreshSoon()
+	{
+		clearTimeout(this.timer);
+		this.timer = setTimeout(() => this.emitter.fire(), 150);
 	}
 
 	async provideCodeLenses(document: vscode.TextDocument): Promise<vscode.CodeLens[]>

@@ -1,4 +1,5 @@
 import {
+	commands,
 	EventEmitter,
 	MarkdownString,
 	TreeDataProvider,
@@ -17,10 +18,13 @@ export class ReferencesTreeProvider implements TreeDataProvider<Key>
 	onDidChangeTreeData = this.emitter.event;
 
 
-	getChildren(element?: Key): Key[]
+	getChildren(element?: Key): Key[] | Thenable<Key[]>
 	{
+		// One entity, the cursor's, has no row of its own: the view's header
+		// already names it, and the pin is in the title bar (Rob 2026-10-29).
+		// Rows come back once something is pinned, to tell the entities apart.
 		if (element === undefined)
-			return this.children;
+			return this.cursorOnly() ? this.children[0].getChildren() : this.children;
 		if (element instanceof EntItem)
 			return element.getChildren();
 		if (element instanceof FileItem)
@@ -54,9 +58,21 @@ export class ReferencesTreeProvider implements TreeDataProvider<Key>
 		if (params.cursor)
 			this.children.push(new EntItem(params.cursor));
 
+		commands.executeCommand('setContext', kCursorOnlyContext, this.cursorOnly());
 		this.emitter.fire();
 	}
+
+
+	private cursorOnly(): boolean
+	{
+		return this.children.length === 1 && !this.children[0].pinned;
+	}
 }
+
+
+// The view shows the cursor's entity alone, without its row, so the title
+// bar carries its Pin button
+const kCursorOnlyContext = 'understand.referencesCursorOnly';
 
 
 export function handleUnderstandChangedReferences(params: Params)
@@ -86,7 +102,7 @@ export class EntItem extends TreeItem
 
 		if ('files' in data)
 			for (const child of data.files)
-				this.files.push(new FileItem(child));
+				this.files.push(new FileItem(child, data.uniqueName));
 		else
 			for (const child of data.references)
 				this.references.push(new RefItem(child));
@@ -104,26 +120,41 @@ class FileItem extends TreeItem
 {
 	private files: FileItem[] = [];
 	private references: RefItem[] = [];
+	// A heavily used entity's file comes with its count alone, and its
+	// references are asked for when it is expanded
+	private pending?: { uniqueName: string, file: string };
 
 
-	constructor(data: FileData)
+	constructor(data: FileData, uniqueName: string)
 	{
-		super(data.name, TreeItemCollapsibleState.Expanded);
+		const lazy = 'count' in data;
+		super(data.name, lazy ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.Expanded);
 
 		this.contextValue = 'understandFile';
 		this.tooltip = new MarkdownString(data.path);
 
-		if ('files' in data)
+		if ('count' in data) {
+			this.description = `${data.count}`;
+			this.pending = { uniqueName, file: data.file };
+		}
+		else if ('files' in data)
 			for (const child of data.files)
-				this.files.push(new FileItem(child));
+				this.files.push(new FileItem(child, uniqueName));
 		else
 			for (const child of data.references)
 				this.references.push(new RefItem(child));
 	}
 
 
-	getChildren(): FileItem[] | RefItem[]
+	async getChildren(): Promise<FileItem[] | RefItem[]>
 	{
+		if (this.pending) {
+			const reply: { references?: RefData[] } | null = await variables.languageClient
+				.sendRequest<{ references?: RefData[] }>('understand/references/file', this.pending)
+				.catch(() => null);
+			this.references = (reply?.references ?? []).map(data => new RefItem(data));
+			this.pending = undefined;
+		}
 		return this.files.length !== 0 ? this.files : this.references;
 	}
 }
@@ -185,6 +216,12 @@ type FileData = {
 	name: string,
 	path: string,
 	references: RefData[],
+} | {
+	name: string,
+	path: string,
+	// The server's key for the file, to ask for its references by
+	file: string,
+	count: number,
 };
 
 type RefData = {

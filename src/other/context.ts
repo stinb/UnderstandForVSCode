@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 
 import { variables } from '../other/variables';
-import { changeFileStatus, FileStatus } from './statusBar';
-import { invalidateFileDecorations } from './fileDecorations';
+import { changeFileStatus } from './statusBar';
+import { fileStatusOf } from './fileDecorations';
 import { focusedUniqueName } from './sync';
 
 
@@ -32,24 +32,6 @@ const DELAY_MILLISECONDS = 100;
 
 let preserveView = '';
 let selectionTimeout: NodeJS.Timeout | undefined;
-
-// The last file status request by URI: the status only changes when the file,
-// the analysis, or the disk changes — not on every cursor move. Caching the
-// promise also collapses concurrent requests for the same file into one.
-let cachedStatusUri = '';
-let cachedStatus: Promise<FileStatus | null> | undefined;
-
-
-/** Forget the cached file status (the analysis or a file changed) */
-export function invalidateFileStatus()
-{
-	cachedStatusUri = '';
-	cachedStatus = undefined;
-	// The explorer and tab decorations read the same status, so they go
-	// stale at the same moments (ext #6).
-	invalidateFileDecorations();
-}
-
 
 /** Ask the server again for the active file's status, as once an analysis
  * ends, when the status bar shows the file item again */
@@ -129,14 +111,7 @@ async function sendSelection()
 /** Get the file status from the server: set the file context and status bar */
 async function updateFileStatus(uri: vscode.Uri, setFileContext: (name: string, enabled: boolean) => void)
 {
-	const key = uri.toString();
-	if (key !== cachedStatusUri || cachedStatus === undefined) {
-		cachedStatusUri = key;
-		cachedStatus = variables.languageClient.sendRequest('understand/fileStatus', {
-			uri: key,
-		});
-	}
-	const status = await cachedStatus;
+	const status = await fileStatusOf(uri);
 	setFileContext(contexts.file, status !== null && status.resolved);
 	changeFileStatus(status ?? undefined);
 }

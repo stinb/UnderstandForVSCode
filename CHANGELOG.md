@@ -2,6 +2,11 @@
 
 # [Unreleased]
 - Fix: a graph that is still drawing is no longer started over when the cursor moves to another entity or the focus changes; before, a graph that took minutes could keep redrawing and never finish
+- Change: the References view shows the cursor's entity without a row of its own, with Pin in the title bar; rows come back once an entity is pinned. A heavily used entity's files list their counts and load their references when you expand them
+- Change: the Violations view lists its CodeCheck section first; a section the server cut at 20,000 rows says "N of M (truncated)" with the explanation in its tooltip; a row's other locations load when you expand it; and after an analysis or a check run only the files that changed are sent again
+- Change: the References, Violations, Metrics and API Info views stop updating while they are hidden and catch up when shown; the status bar and the other views' headers still name the entity
+- Fix: the Annotate code lens redraws once the cursor settles rather than on every keystroke, and a save refreshes the saved file's status badge alone
+- Change: the Problems panel lists a header's analysis errors once each, not once per source file that includes the header, and lists headers outside the project as soon as the project opens
 - Add: the AI Overview view's title bar has Generate AI Overviews Automatically, which generates an overview for every card the view shows, as Understand's AI Overview window does; it is off by default, and it is the setting `understand.aiView.automaticallyGenerate`
 - Fix: the status bar's Analyzing and Checking items, and the Stop link in their tooltips, come back after the language server was restarted; before, a server that crashed once left the status bar silent for every analysis after it
 - Change: the Violations view has an Analysis section for the analysis errors and warnings and a CodeCheck section for the background CodeChecks' violations, each grouped as Group Violations By... says; a license without CodeCheck still shows the analysis errors and warnings in the editor, the Problems panel and the Violations view, and can move through them and regroup them

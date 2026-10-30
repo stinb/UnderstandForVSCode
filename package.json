@@ -1254,6 +1254,11 @@
 					"group": "navigation"
 				},
 				{
+					"command": "understand.referencesView.pinEntity",
+					"when": "view == understandReferences && understand.referencesCursorOnly",
+					"group": "navigation@2"
+				},
+				{
 					"command": "understand.settings.showSettingsReferencesView",
 					"when": "view == understandReferences",
 					"group": "navigation@3"

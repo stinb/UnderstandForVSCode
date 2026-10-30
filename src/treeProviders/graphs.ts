@@ -39,6 +39,8 @@ export class GraphTreeProvider implements TreeDataProvider<Item>
 	private archs: Arch[] = [];
 	private saved: SavedGraph[] = [];
 	private online = false;
+	// The last list drawn, to skip one that changes nothing
+	private listed = '';
 	private emitter = new EventEmitter<void>();
 
 	onDidChangeTreeData = this.emitter.event;
@@ -97,6 +99,13 @@ export class GraphTreeProvider implements TreeDataProvider<Item>
 
 	update(params: Params)
 	{
+		// Most entities offer the same graphs, and a sync that changes nothing
+		// here need not redraw the tree: a redraw asks the server again for
+		// every expanded architecture
+		const listed = JSON.stringify([params.graphs, params.project, params.archs]);
+		if (listed === this.listed)
+			return;
+		this.listed = listed;
 		this.entityGraphs = params.graphs.map(name => new GraphItem(name));
 		this.projectGraphs = params.project ?? [];
 		this.archs = params.archs ?? [];

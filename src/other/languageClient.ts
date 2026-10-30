@@ -19,6 +19,7 @@ import { handleUnderstandAnnotationsListed } from '../treeProviders/annotations'
 import { handleUnderstandAnnotationMarks } from './annotationDecorations';
 import { handleUnderstandInfo } from '../treeProviders/info';
 import { handleUnderstandViolationsListed, setCodeCheckLicensed } from '../treeProviders/violations';
+import { reportVisibility } from './viewVisibility';
 import { actuallyChangedTextEditorSelection, contexts, setContext } from './context';
 import { handleUnderstandGraphsListed, setExportLicensed, setGuiLicensed } from '../treeProviders/graphs';
 import { handleUnderstandMetricsListed } from '../treeProviders/metrics';
@@ -138,6 +139,7 @@ export async function startLsp()
 		setContext(contexts.apiLicensed, init?.understand?.apiLicensed === true);
 		setCodeCheckLicensed(init?.understand?.codecheckLicensed !== false);
 		setExportLicensed(init?.understand?.exportLicensed !== false);
+		reportVisibility();
 		variables.languageClient.onNotification('understand/changedLicenseFeatures',
 			(params: Features) => {
 				variables.aiLicensed = params.aiLicensed === true;

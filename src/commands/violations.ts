@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { variables } from '../other/variables';
 import { databasePath } from '../other/statusBar';
 import { executeCommand } from './helpers';
-import { invalidateFileDecorations } from '../other/fileDecorations';
+import { invalidateFileStatus } from '../other/fileDecorations';
 
 
 /** Go to a location in a file (from the violations view) */
@@ -164,7 +164,7 @@ export function onConfigurationSaved(document: vscode.TextDocument)
 		return;
 
 	executeCommand('understand.server.violations.pruneExcluded');
-	invalidateFileDecorations();
+	invalidateFileStatus();
 }
 
 
@@ -197,7 +197,7 @@ async function excludePath(fsPath: string)
 		config: config.json.name,
 		path: fsPath,
 	}]);
-	invalidateFileDecorations();
+	invalidateFileStatus();
 	const name = fsPath.replace(/\\/g, '/').split('/').pop();
 	if (answer?.alreadyExcluded) {
 		vscode.window.showInformationMessage(
@@ -310,7 +310,7 @@ export async function editExcludedPaths()
 				? error.message : `"${prefix.trim()}" could not be excluded`);
 			return;
 		}
-		invalidateFileDecorations();
+		invalidateFileStatus();
 		vscode.window.showInformationMessage(answer?.alreadyExcluded
 			? `"${prefix.trim()}" was already excluded from ${config.json.name}${coveredBy(answer, prefix.trim())} — nothing changed`
 			: `Excluded "${prefix.trim()}" from ${config.json.name}`);
@@ -324,7 +324,7 @@ export async function editExcludedPaths()
 	const prefix = picked.replace('$(trash) ', '');
 	const answer = await executeCommand('understand.server.violations.unexclude',
 		[{ config: config.json.name, prefix: prefix }]);
-	invalidateFileDecorations();
+	invalidateFileStatus();
 
 	const freed: string[] = answer?.files ?? [];
 	if (!freed.length) {
