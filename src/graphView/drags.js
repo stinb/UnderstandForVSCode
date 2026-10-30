@@ -250,6 +250,7 @@ function selectInside(left, top, right, bottom)
 		const index = el.getAttribute('data-edge') || '';
 		edges.set(index, (edges.get(index) ?? true) && inside(el));
 	}
+	const clusters = new Set(Array.from(container.querySelectorAll('[data-id][data-kind="cluster"]'), el => el.getAttribute('data-id')));
 	/** @type {string | undefined} */
 	let first = undefined;
 	/** @type {string | undefined} */
@@ -257,7 +258,7 @@ function selectInside(left, top, right, bottom)
 	for (const [id, all] of nodes)
 		if (all) {
 			selected.add(id);
-			if (container.querySelector(`[data-id="${cssEscape(id)}"][data-kind="cluster"]`))
+			if (clusters.has(id))
 				firstCluster ??= id;
 			else
 				first ??= id;

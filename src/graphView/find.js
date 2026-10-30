@@ -20,6 +20,11 @@ let findWords = false;
  * @type {Map<Element, SVGRectElement[]>} */
 const findMarks = new Map();
 
+/** Find waits for the typing to pause */
+const FIND_DELAY_MS = 200;
+
+let findTimer = 0;
+
 
 /**
  * The text a label shows: its tooltips (<title>) are not
@@ -41,16 +46,19 @@ function shownText(node)
 
 /**
  * A box behind each match in a label, as an editor marks a find match,
- * rather than the whole label. The label gets the class `marked`; where its
- * characters cannot be measured, the whole label is marked as before.
+ * rather than the whole label: the boxes, which the caller puts in once every
+ * label is measured, as each box put in would make the next measure lay the
+ * drawing out again. Where its characters cannot be measured, there are none,
+ * and the whole label is marked as before.
  * @param {Element} label
  * @param {RegExp} pattern
+ * @returns {SVGRectElement[]}
  */
-function markMatches(label, pattern)
+function matchBoxes(label, pattern)
 {
 	const text = /** @type {SVGTextContentElement} */ (label);
 	if (typeof text.getExtentOfChar !== 'function')
-		return;
+		return [];
 	const content = shownText(label).replace(/ /g, ' ');
 	const every = new RegExp(pattern.source, pattern.flags + 'g');
 	/** @type {SVGRectElement[]} */
@@ -80,14 +88,9 @@ function markMatches(label, pattern)
 			rects.push(rect);
 		}
 	} catch {
-		return;
+		return [];
 	}
-	if (!rects.length)
-		return;
-	for (const rect of rects)
-		label.before(rect);
-	label.classList.add('marked');
-	findMarks.set(label, rects);
+	return rects;
 }
 
 
@@ -102,6 +105,12 @@ function markMatches(label, pattern)
  */
 export function runFind(query, step = true)
 {
+	// What was typed still goes to the first match
+	if (findTimer) {
+		clearTimeout(findTimer);
+		findTimer = 0;
+		step = true;
+	}
 	const container = document.getElementById('graphContainer');
 	for (const element of findMatches)
 		element.classList.remove('found', 'foundCurrent', 'marked');
@@ -129,11 +138,17 @@ export function runFind(query, step = true)
 		for (const label of texts)
 			if (pattern && pattern.test(shownText(label).replace(/\u00a0/g, ' ')))
 				findMatches.push(label);
-		for (const element of findMatches) {
+		for (const element of findMatches)
 			element.classList.add('found');
-			if (pattern)
-				markMatches(element, pattern);
-		}
+		const boxes = findMatches.map(label => pattern ? matchBoxes(label, pattern) : []);
+		findMatches.forEach((label, i) => {
+			if (!boxes[i].length)
+				return;
+			for (const rect of boxes[i])
+				label.before(rect);
+			label.classList.add('marked');
+			findMarks.set(label, boxes[i]);
+		});
 		if (!findMatches.length)
 			field?.classList.add('failed');
 		else if (step)
@@ -150,6 +165,9 @@ export function runFind(query, step = true)
  */
 export function stepFind(direction)
 {
+	const field = document.getElementById('find');
+	if (findTimer && field instanceof HTMLInputElement)
+		runFind(field.value);
 	if (!findMatches.length) {
 		updateFindCount();
 		return;
@@ -186,7 +204,10 @@ export function appendFindTools(toolbar)
 	find.title = 'Find text in the graph (Enter: next, Shift+Enter: previous)';
 	// The page turns VS Code's Cut/Copy/Paste menu off; a text box has it
 	find.dataset.vscodeContext = '{"preventDefaultContextMenuItems":false}';
-	find.oninput = () => runFind(find.value);
+	find.oninput = () => {
+		clearTimeout(findTimer);
+		findTimer = window.setTimeout(() => runFind(find.value), FIND_DELAY_MS);
+	};
 	find.onkeydown = (e) => {
 		// The GUI's Find Next (Ctrl+F) works in the box too
 		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {

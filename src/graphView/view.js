@@ -49,6 +49,7 @@ let fitMode = '';
  */
 export function setZoom(newZoom, clientX, clientY, source = 'value')
 {
+	flushWheel();
 	const main = document.getElementById('main');
 	const container = document.getElementById('graphContainer');
 	if (!main || !container)
@@ -92,6 +93,7 @@ export function setZoom(newZoom, clientX, clientY, source = 'value')
  */
 export function undoStep(direction)
 {
+	flushWheel();
 	hideMenu();
 	if (direction < 0) {
 		const last = zoomUndo[zoomUndo.length - 1];
@@ -321,10 +323,36 @@ export function onWheel(e)
 
 	e.preventDefault();
 
-	if (pinch)
-		setZoom(zoom * Math.exp(-e.deltaY / 100), e.clientX, e.clientY, 'action');
-	else
-		stepZoom(e.deltaY > 0 ? -1 : 1, 'wheel', e.clientX, e.clientY);
+	/** @type {'wheel' | 'action'} */
+	const source = pinch ? 'action' : 'wheel';
+	const from = pendingWheel ? pendingWheel.zoom : zoom;
+	const to = pinch ? Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, from * Math.exp(-e.deltaY / 100)))
+		: steppedZoom(from, e.deltaY > 0 ? -1 : 1);
+	if (to === undefined)
+		return;
+	// A turn the other way, or a pinch after the wheel, is its own undo step
+	if (pendingWheel && (pendingWheel.source !== source || Math.sign(to - from) !== Math.sign(from - zoom)))
+		flushWheel();
+	if (!pendingWheel)
+		requestAnimationFrame(flushWheel);
+	pendingWheel = { zoom: to, source, clientX: e.clientX, clientY: e.clientY };
+}
+
+
+/**
+ * The wheel's zoom waiting for the next frame: a wheel or a trackpad sends
+ * several events a frame, and each zoom lays the whole drawing out again
+ * @type {{zoom: number, source: 'wheel' | 'action', clientX: number, clientY: number} | undefined}
+ */
+let pendingWheel = undefined;
+
+
+function flushWheel()
+{
+	const pending = pendingWheel;
+	pendingWheel = undefined;
+	if (pending)
+		setZoom(pending.zoom, pending.clientX, pending.clientY, pending.source);
 }
 
 
@@ -338,10 +366,20 @@ export function onWheel(e)
  */
 export function stepZoom(direction, source, clientX, clientY)
 {
-	const percent = Math.floor(Math.round(zoom * 100) / 10) * 10 + 10 * direction;
+	flushWheel();
+	const to = steppedZoom(zoom, direction);
+	if (to !== undefined)
+		setZoom(to, clientX, clientY, source);
+}
+
+
+/** @param {number} from @param {-1 | 1} direction */
+function steppedZoom(from, direction)
+{
+	const percent = Math.floor(Math.round(from * 100) / 10) * 10 + 10 * direction;
 	if (percent < ZOOM_MIN * 100 || percent > ZOOM_MAX * 100)
-		return;
-	setZoom(percent / 100, clientX, clientY, source);
+		return undefined;
+	return percent / 100;
 }
 
 
@@ -578,6 +616,10 @@ export function restoreView(before, keepView = false)
 }
 
 
+/** Above this many nodes and clusters, a redraw is not animated */
+const LARGE_DRAWING = 1000;
+
+
 /**
  * The GUI's animated transition: each node or cluster drawn before slides
  * from where it was to where it is, relative to the node the view follows,
@@ -594,25 +636,57 @@ function animateRedraw(positions, followed)
 	const followedThen = followed ? positions.get(followed) : undefined;
 	const shift = followedNow && followedThen
 		? { x: followedThen.x - followedNow.x, y: followedThen.y - followedNow.y } : { x: 0, y: 0 };
-	let moved = false;
-	/** @type {Set<string>} */
-	const ids = new Set(Array.from(svg.querySelectorAll('[data-id]:not(text)'), e => e.getAttribute('data-id') || ''));
-	for (const id of ids) {
+	/** @type {Map<string, {shapes: Element[], all: Element[]}>} */
+	const nodes = new Map;
+	const entry = (/** @type {string} */ id) => {
+		let found = nodes.get(id);
+		if (!found)
+			nodes.set(id, found = { shapes: [], all: [] });
+		return found;
+	};
+	for (const element of svg.querySelectorAll('[data-id], text[data-owner]')) {
+		const id = element.getAttribute('data-id');
+		const owner = element.localName === 'text' ? element.getAttribute('data-owner') : null;
+		if (id !== null) {
+			entry(id).all.push(element);
+			if (element.localName !== 'text')
+				entry(id).shapes.push(element);
+		}
+		if (owner !== null && owner !== id)
+			entry(owner).all.push(element);
+	}
+	const shown = Array.from(nodes.values()).filter(node => node.shapes.length);
+	if (shown.length > LARGE_DRAWING)
+		return;
+	// Every box is read before the first animation starts, which would make
+	// each read after it lay the drawing out again
+	const origin = svg.getBoundingClientRect();
+	/** @type {{elements: Element[], dx: number, dy: number}[]} */
+	const moves = [];
+	for (const [id, node] of nodes) {
 		const then = positions.get(id);
-		const now = then ? graphCenterOf(nodeSelector(id)) : undefined;
-		if (!then || !now)
+		if (!then || !node.shapes.length)
 			continue;
-		const dx = then.x - now.x - shift.x;
-		const dy = then.y - now.y - shift.y;
+		let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+		for (const element of node.shapes) {
+			const box = element.getBoundingClientRect();
+			left = Math.min(left, box.left);
+			top = Math.min(top, box.top);
+			right = Math.max(right, box.right);
+			bottom = Math.max(bottom, box.bottom);
+		}
+		const dx = then.x - ((left + right) / 2 - origin.left) / zoom - shift.x;
+		const dy = then.y - ((top + bottom) / 2 - origin.top) / zoom - shift.y;
 		if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5)
 			continue;
-		moved = true;
-		for (const element of svg.querySelectorAll(`[data-id="${cssEscape(id)}"], text[data-owner="${cssEscape(id)}"]`))
+		moves.push({ elements: node.all, dx, dy });
+	}
+	if (!moves.length)
+		return;
+	for (const { elements, dx, dy } of moves)
+		for (const element of elements)
 			element.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0, 0)' }],
 				{ duration: 700, easing: 'ease-in-out' });
-	}
-	if (!moved)
-		return;
 	for (const element of svg.querySelectorAll('[data-edge], text:not([data-owner])'))
 		element.animate([{ opacity: 0 }, { opacity: 0, offset: 0.58 }, { opacity: 1 }], { duration: 1200 });
 }

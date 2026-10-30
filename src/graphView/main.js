@@ -7,7 +7,7 @@ import { drawOptions, updateOptionRanges } from './options.js';
 import { applySelection, drawNodeActionButtons, updateSelectionActions } from './selection.js';
 import { onClickBackground, onClickCapture, onDoubleClick } from './clicks.js';
 import { onPointerDown, onDragStart } from './drags.js';
-import { onKeyDown, onKeyUp, smoothScrollLoop } from './keys.js';
+import { onKeyDown, onKeyUp } from './keys.js';
 import { updateState } from './panels.js';
 import { onDrawing, holdForView, hideDrawing } from './drawing.js';
 import { installSvg, onEdgeHover } from './svg.js';
@@ -150,7 +150,14 @@ function main()
 	mainElement.addEventListener('click', onClickBackground);
 	mainElement.addEventListener('dblclick', onDoubleClick);
 	mainElement.addEventListener('contextmenu', onContextMenu);
-	mainElement.addEventListener('scroll', updateMinimap);
+	let minimapFrame = 0;
+	mainElement.addEventListener('scroll', () => {
+		if (!minimapFrame)
+			minimapFrame = requestAnimationFrame(() => {
+				minimapFrame = 0;
+				updateMinimap();
+			});
+	});
 	mainElement.onkeydown = onKeyDown;
 	mainElement.onkeyup = onKeyUp;
 
@@ -192,8 +199,6 @@ function main()
 	window.onmessage = onMessage;
 
 	focusOnGraph();
-
-	requestAnimationFrame(smoothScrollLoop);
 }
 
 

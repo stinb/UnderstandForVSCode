@@ -64,6 +64,10 @@ export function onKeyDown(e)
 		case 'w': case 'a': case 's': case 'd':
 		case 'ArrowUp': case 'ArrowLeft': case 'ArrowDown': case 'ArrowRight':
 			keys[e.key] = true;
+			if (!scrolling) {
+				scrolling = true;
+				requestAnimationFrame(smoothScrollLoop);
+			}
 			return;
 		case 'Escape': {
 			// As the GUI's: menus and the peek close, and find is dismissed;
@@ -96,11 +100,17 @@ export function onKeyUp(e)
 }
 
 
-export function smoothScrollLoop()
+/** The scrolling loop runs only while a scrolling key is down */
+let scrolling = false;
+
+
+function smoothScrollLoop()
 {
 	const element = document.getElementById('main');
-	if (!element)
+	if (!element || !Object.values(keys).some(down => down)) {
+		scrolling = false;
 		return;
+	}
 
 	let dx = 0;
 	let dy = 0;
