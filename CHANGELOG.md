@@ -1,6 +1,7 @@
 # Change Log
 
 # [Unreleased]
+- Fix: cancelling a graph's first draw leaves a "Cancelled" note in the tab instead of a spinner that never stops; cancelling a redraw keeps the drawing, as before
 - Fix: a graph that is still drawing is no longer started over when the cursor moves to another entity or the focus changes; before, a graph that took minutes could keep redrawing and never finish
 - Change: the References view shows the cursor's entity without a row of its own, with Pin in the title bar; rows come back once an entity is pinned. A heavily used entity's files list their counts and load their references when you expand them
 - Change: the Violations view lists its CodeCheck section first; a section the server cut at 20,000 rows says "N of M (truncated)" with the explanation in its tooltip; a row's other locations load when you expand it; and after an analysis or a check run only the files that changed are sent again

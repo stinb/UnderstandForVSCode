@@ -51,6 +51,28 @@ function applyInfo(newInfo)
 
 
 /**
+ * The server stopped the draw at the user's Cancel. A redraw leaves the
+ * drawing it had; a first draw had nothing but the spinner, which would
+ * spin on for a build that has ended.
+ */
+function onAborted()
+{
+	hideDrawing();
+	const container = document.getElementById('graphContainer');
+	if (!container || container.querySelector('svg'))
+		return;
+	for (const loader of container.querySelectorAll('.codicon-loading'))
+		loader.remove();
+	if (container.querySelector('.graphMessage'))
+		return;
+	const text = document.createElement('p');
+	text.className = 'graphMessage';
+	text.textContent = 'Cancelled. Change an option to draw the graph, or close the tab.';
+	container.append(text);
+}
+
+
+/**
  * A new drawing from the server, or the message that it could not be drawn
  * @param {import('../types/graph').UpdateGraph} message
  */
@@ -114,7 +136,7 @@ const handlers = {
 	updateEdgeRefs: showEdgeMenu,
 	updateToolbar: setToolbarState,
 	drawing: () => onDrawing(),
-	aborted: () => hideDrawing(),
+	aborted: () => onAborted(),
 	restoreState: (message) => updateState({ graph: message.state }),
 	zoomStep: (message) => stepZoom(message.step > 0 ? 1 : -1, 'action'),
 	undoStep: (message) => undoStep(message.step < 0 ? -1 : 1),
