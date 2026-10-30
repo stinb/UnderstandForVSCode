@@ -12,8 +12,7 @@ import {
 import {
 	MainState,
 	changeMainStatus,
-	handleWindowWorkDoneProgressCreate,
-	handleProgress,
+	handleWorkDoneProgress,
 	handleUnderstandChangedDatabaseState,
 } from './statusBar';
 import { handleUnderstandAnnotationsListed } from '../treeProviders/annotations';
@@ -150,7 +149,6 @@ export async function startLsp()
 			});
 
 		variables.languageClient.onNotification('understand/licenseLost', handleUnderstandLicenseLost);
-		variables.languageClient.onNotification('$/progress', handleProgress);
 		variables.languageClient.onNotification('understand/ai/clear', handleUnderstandAiClear);
 		variables.languageClient.onNotification('understand/ai/error', handleUnderstandAiError);
 		variables.languageClient.onNotification('understand/ai/text', handleUnderstandAiText);
@@ -167,7 +165,6 @@ export async function startLsp()
 			variables.languageClient.onNotification(`understand/graphs/${method}`, handler);
 		variables.languageClient.onNotification('understand/graphs/listed', handleUnderstandGraphsListed);
 		variables.languageClient.onNotification('understand/graphs/treemapped', handleUnderstandGraphsTreemapped);
-		variables.languageClient.onRequest('window/workDoneProgress/create', handleWindowWorkDoneProgressCreate);
 		variables.languageClient.onRequest('workspace/configuration', handleWorkspaceConfiguration);
 	}).catch(function(error) {
 		if (typeof error === 'string')
@@ -198,6 +195,7 @@ function getLanguageClientOptions(): lc.LanguageClientOptions
 	return {
 		documentSelector: documentSelector,
 		errorHandler: licenseAwareErrorHandler(),
+		middleware: { handleWorkDoneProgress },
 		initializationOptions: {
 			uriScheme: vscode.env.uriScheme, // 'vscode'
 			uriAuthority: 'scitools.understand',

@@ -2,6 +2,7 @@
 
 # [Unreleased]
 - Fix: a graph that is still drawing is no longer started over when the cursor moves to another entity or the focus changes; before, a graph that took minutes could keep redrawing and never finish
+- Fix: the status bar's Analyzing and Checking items, and the Stop link in their tooltips, come back after the language server was restarted; before, a server that crashed once left the status bar silent for every analysis after it
 - Change: the Violations view has an Analysis section for the analysis errors and warnings and a CodeCheck section for the background CodeChecks' violations, each grouped as Group Violations By... says; a license without CodeCheck still shows the analysis errors and warnings in the editor, the Problems panel and the Violations view, and can move through them and regroup them
 - Add: drag a graph to pan it, with the hand cursor; the mouse wheel zooms out to 25% as well as in (stinb/und-issues#711)
 - Change: source text in a graph is colored as in Understand's editor — comments green, and keywords, strings, numbers and preprocessor lines in VS Code's own theme colors; the server marks each run by kind and the view colors it for the light and dark themes (stinb/und-issues#711)

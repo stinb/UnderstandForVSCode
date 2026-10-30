@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import * as lc from 'vscode-languageclient/node';
 
-import { contexts, invalidateFileStatus, refreshFileStatus, setContext } from './context';
+import { contexts, refreshFileStatus, setContext } from './context';
+import { invalidateFileStatus } from './fileDecorations';
 import { variables, } from './variables';
 
 
@@ -243,6 +244,27 @@ export function handleWindowWorkDoneProgressCreate(params: lc.WorkDoneProgressCr
 }
 
 
+/**
+ * Middleware: the server's progress becomes the status bar's own items. Raw
+ * handlers for window/workDoneProgress/create and $/progress only worked
+ * until the library restarted a crashed server: it initializes its features
+ * again then, and its own create handler replaced ours, so nothing showed
+ * (Rob, 2026-10-29). The library's part never sees the begin, so its window
+ * progress stays silent; the end reaches it so it lets the part go.
+ */
+export function handleWorkDoneProgress(
+	token: lc.ProgressToken,
+	progress: lc.WorkDoneProgressBegin | lc.WorkDoneProgressReport | lc.WorkDoneProgressEnd,
+	next: lc.HandleWorkDoneProgressSignature)
+{
+	if (progress.kind === 'begin')
+		handleWindowWorkDoneProgressCreate({ token });
+	handleProgress({ token, value: progress });
+	if (progress.kind === 'end')
+		next(token, progress);
+}
+
+
 /** Handler: update progress */
 export function handleProgress(params: ProgressParams)
 {
@@ -286,6 +308,12 @@ export function handleProgress(params: ProgressParams)
 			}
 		}
 	}
+
+	// A report only moves a percentage: the main item follows the progress
+	// items coming and going, and redoing it set the project context and asked
+	// for the file's status on every tick of a long analysis
+	if (progress.kind === 'report')
+		return;
 
 	// Change the main status bar item
 	if (progressStatusBarItems.size === 0)
