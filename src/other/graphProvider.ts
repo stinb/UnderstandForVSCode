@@ -55,6 +55,7 @@ export class GraphProvider
 	private focusedGraph?: Graph = undefined;
 	private listedUniqueName = '';
 	private saved: SavedGraph[] = [];
+	private online = false;
 
 
 	focusedUniqueName(): string
@@ -275,6 +276,8 @@ export class GraphProvider
 		this.getGraphs(params).forEach((graph, i) => {
 			if (params.info)
 				graph.setInfo(params.info, i === 0);
+			else if (graph.state === 'drawing')
+				graph.state = 'new';
 			graph.postMessage({
 				method: 'updateGraph',
 				svg: params.svg,
@@ -316,6 +319,10 @@ export class GraphProvider
 	/** A draw began on the server, or was cancelled */
 	drawing(params: GraphKey, aborted: boolean)
 	{
+		if (aborted)
+			for (const graph of this.getGraphs(params))
+				if (graph.state === 'drawing')
+					graph.state = 'new';
 		this.post(params, { method: aborted ? 'aborted' : 'drawing' });
 	}
 
@@ -332,11 +339,17 @@ export class GraphProvider
 	}
 
 
-	/** The project is online: draw the restored tabs the server has not */
-	whenOnline()
+	/** Whether the server's graph list carries the project's graphs, which it
+	 * does whenever the project is online. Only the change from offline to
+	 * online draws the restored tabs the server has not drawn: every sync
+	 * relists, and a tab still drawing must not be asked again, since a new
+	 * draw aborts the one in progress. */
+	setOnline(online: boolean)
 	{
-		for (const graph of this.allGraphs())
-			graph.redraw();
+		if (online && !this.online)
+			for (const graph of this.allGraphs())
+				graph.redraw();
+		this.online = online;
 	}
 
 
@@ -583,8 +596,9 @@ class Graph
 	/** What the server last said about the graph */
 	private info?: GraphInfo;
 	private askedRelationship = false;
-	/** The server has drawn it at least once */
-	drewOnce = false;
+	/** What the tab has: nothing yet, its first draw on the way, or a drawing
+	 * (a later draw's failure or abort leaves the drawing it has) */
+	state: 'new' | 'drawing' | 'drawn' = 'new';
 
 
 	/** A restored tab (after a reload) brings its panel; a new one makes it.
@@ -658,7 +672,7 @@ class Graph
 	setInfo(info: GraphInfo, mayAsk: boolean)
 	{
 		this.info = info;
-		this.drewOnce = true;
+		this.state = 'drawn';
 		if (this.panel.title !== this.title())
 			this.panel.title = this.title();
 		if (mayAsk && info.relationship && !info.relationship.uniqueName && !this.askedRelationship) {
@@ -1242,17 +1256,20 @@ class Graph
 		if (this.savedName && !('optionId' in extra))
 			params.savedName = this.savedName;
 		// A tab restored before the server runs draws once the project is
-		// online (GraphProvider.whenOnline)
+		// online (GraphProvider.setOnline)
 		if (!variables.languageClient || !variables.languageClient.isRunning())
 			return;
+		if (this.state === 'new')
+			this.state = 'drawing';
 		this.send('draw', params);
 	}
 
 
-	/** Draw again, for a restored tab the server had not drawn */
+	/** Draw, for a restored tab the server has neither drawn nor been asked
+	 * to draw */
 	redraw()
 	{
-		if (!this.drewOnce)
+		if (this.state === 'new')
 			this.draw({});
 	}
 

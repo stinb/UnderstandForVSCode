@@ -175,9 +175,8 @@ export function handleUnderstandGraphsListed(params: Params)
 {
 	variables.graphProvider.setEntity(params.entityName, params.uniqueName, params.graphs, params.source);
 	variables.graphTreeProvider.update(params);
-	// The project is online (the list carries the project's graphs then)
-	if (params.project !== undefined)
-		variables.graphProvider.whenOnline();
+	// The list carries the project's graphs while the project is online
+	variables.graphProvider.setOnline(params.project !== undefined);
 }
 
 
