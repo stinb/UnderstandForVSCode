@@ -1,6 +1,9 @@
+import * as vscode from 'vscode';
+
 import { variables } from '../other/variables';
 import { executeAtPosition, executeCommand } from './helpers';
 import { pathToSave } from '../other/popup';
+import { kAutomaticSetting } from '../viewProviders/ai';
 
 
 /** From JSON created in `AiViewProvider` */
@@ -29,6 +32,28 @@ export function generateAiOverview(context?: AiAnnotation)
 		executeCommand(command, [{uniqueName: context.id}]);
 	else
 		executeAtPosition(command);
+}
+
+
+/** The AI Overview view's title-bar toggle: generate an overview for every
+ * card the view shows, as Understand's AI Overview window does */
+export function generateAutomatically()
+{
+	return setAutomaticGeneration(true);
+}
+
+
+/** The toggle's other state: a card waits for its sparkle */
+export function generateOnClick()
+{
+	return setAutomaticGeneration(false);
+}
+
+
+async function setAutomaticGeneration(on: boolean)
+{
+	await vscode.workspace.getConfiguration().update(kAutomaticSetting, on, vscode.ConfigurationTarget.Global);
+	variables.aiViewProvider.setAutomatic(on);
 }
 
 

@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import { Dirent } from 'fs';
 import { readdir } from 'fs/promises';
 import { variables } from './variables';
+import { kAutomaticSetting } from '../viewProviders/ai';
 import { restartLsp } from './languageClient';
 import { watchFiles } from './fileSystem';
 
@@ -94,6 +95,9 @@ export function onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent)
 
 	if (event.affectsConfiguration('understand.files.watch'))
 		watchFiles();
+
+	if (event.affectsConfiguration(kAutomaticSetting))
+		variables.aiViewProvider.setAutomatic(getBooleanFromConfig(kAutomaticSetting));
 
 	// Decide whether to simply send the option to the server
 	let shouldNotify = false;

@@ -176,6 +176,18 @@
 				"category": "Understand: AI"
 			},
 			{
+				"command": "understand.ai.generateAutomatically",
+				"title": "Generate AI Overviews Automatically",
+				"category": "Understand: AI",
+				"icon": "$(sparkle)"
+			},
+			{
+				"command": "understand.ai.generateOnClick",
+				"title": "Generate AI Overviews Only When Clicked",
+				"category": "Understand: AI",
+				"icon": "$(sparkle-filled)"
+			},
+			{
 				"command": "understand.ai.regenerateAiOverview",
 				"title": "Regenerate AI Overview",
 				"category": "Understand: AI"
@@ -610,6 +622,11 @@
 						"default": true,
 						"description": "Show content of the AI view"
 					},
+					"understand.aiView.automaticallyGenerate": {
+						"type": "boolean",
+						"default": false,
+						"description": "Generate an AI Overview for every card the AI Overview view shows, as Understand's AI Overview window does, instead of waiting for a click. The view's title bar toggles this."
+					},
 					"understand.analysis.automaticallyAnalyze": {
 						"type": "boolean",
 						"default": true,
@@ -846,6 +863,14 @@
 				{
 					"command": "understand.ignoreViolationWithDetails",
 					"when": "false"
+				},
+				{
+					"command": "understand.ai.generateAutomatically",
+					"when": "understandAiLicensed && !understand.aiGenerateAutomatically"
+				},
+				{
+					"command": "understand.ai.generateOnClick",
+					"when": "understandAiLicensed && understand.aiGenerateAutomatically"
 				},
 				{
 					"command": "understand.checks.show",
@@ -1208,6 +1233,16 @@
 				}
 			],
 			"view/title": [
+				{
+					"command": "understand.ai.generateAutomatically",
+					"when": "view == understandAi && understandAiLicensed && !understand.aiGenerateAutomatically",
+					"group": "navigation@1"
+				},
+				{
+					"command": "understand.ai.generateOnClick",
+					"when": "view == understandAi && understandAiLicensed && understand.aiGenerateAutomatically",
+					"group": "navigation@1"
+				},
 				{
 					"command": "understand.metrics.documentation",
 					"when": "view == understandMetrics && understandExportLicensed",

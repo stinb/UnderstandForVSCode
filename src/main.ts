@@ -66,6 +66,8 @@ export async function activate(context: vscode.ExtensionContext)
 		vscode.commands.registerCommand('understand.ai.copyChat', ai.copyChat),
 		vscode.commands.registerCommand('understand.ai.deleteAllMessages', ai.deleteAllMessages),
 		vscode.commands.registerCommand('understand.ai.generateAiOverview', ai.generateAiOverview),
+		vscode.commands.registerCommand('understand.ai.generateAutomatically', ai.generateAutomatically),
+		vscode.commands.registerCommand('understand.ai.generateOnClick', ai.generateOnClick),
 		vscode.commands.registerCommand('understand.ai.regenerateAiOverview', ai.generateAiOverview),
 		vscode.commands.registerCommand('understand.ai.saveChat', ai.saveChat),
 		vscode.commands.registerCommand('understand.ai.stopAiGeneration', ai.stopAiGeneration),

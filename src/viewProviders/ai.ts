@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { escapeHtml } from '../other/html';
 import { followEntity } from '../other/entityHeaders';
+import { getBooleanFromConfig } from '../other/config';
 import { variables } from '../other/variables';
 import { executeCommand } from '../commands/helpers';
 import {
@@ -12,14 +13,31 @@ import {
 } from '../types/annotation';
 
 
+/** The setting behind the view's title-bar toggle */
+export const kAutomaticSetting = 'understand.aiView.automaticallyGenerate';
+
+// The title bar offers Generate Automatically or Generate On Click by this key
+const kAutomaticContext = 'understand.aiGenerateAutomatically';
+
+
 export class AiViewProvider implements vscode.WebviewViewProvider
 {
 	private annotationSections: Section[] = [];
+	// The cards asked for on their own, each once: a card whose generation
+	// failed or was stopped keeps its sparkle instead of being asked for again
+	// on every move
+	private autoRequested = new Set<string>();
 	private uriScriptMarkdown = '';
 	private uriScript = '';
 	private uriStyle = '';
 	private uriStyleIcons = '';
 	private view?: vscode.WebviewView;
+
+
+	constructor()
+	{
+		this.setAutomatic(getBooleanFromConfig(kAutomaticSetting));
+	}
 
 
 	cardClear(uniqueName: string)
@@ -100,6 +118,36 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 		this.annotationSections = annotationSections;
 		if (this.view)
 			this.drawUpdate(this.view.webview);
+		this.generateEmptyCards();
+	}
+
+
+	/** Generate an overview for every card the view shows, as Understand's AI
+	 * Overview window does, or wait for a click (Rob, 2026-10-29) */
+	setAutomatic(on: boolean)
+	{
+		vscode.commands.executeCommand('setContext', kAutomaticContext, on);
+		if (on)
+			this.generateEmptyCards();
+	}
+
+
+	/** Understand's window generates only while it is open: so does this, only
+	 * while the view is visible */
+	private generateEmptyCards()
+	{
+		if (!this.view?.visible || !getBooleanFromConfig(kAutomaticSetting))
+			return;
+		const uniqueNames: string[] = [];
+		for (const section of this.annotationSections)
+			for (const card of section.cards)
+				if (card.body.length === 0 && !this.autoRequested.has(card.id)) {
+					this.autoRequested.add(card.id);
+					uniqueNames.push(card.id);
+				}
+		// The server skips an entity that is queued or generating already
+		if (uniqueNames.length)
+			executeCommand('understand.server.ai.generateAiOverview', uniqueNames).then(undefined, () => {});
 	}
 
 
@@ -154,8 +202,10 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 
 	private handleChangeVisibility()
 	{
-		if (this.view && this.view.visible)
+		if (this.view && this.view.visible) {
 			this.drawFirst(this.view.webview);
+			this.generateEmptyCards();
+		}
 	}
 
 
