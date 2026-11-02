@@ -1033,8 +1033,12 @@ class Graph
 					const choice = await vscode.window.showWarningMessage(
 						'The current theme has unsaved changes. Switching themes discards them.',
 						{ modal: true }, 'Save and Switch', 'Discard and Switch');
-					if (!choice)
+					if (!choice) {
+						// The legend's theme list already shows the choice; put it back
+						if (this.info)
+							this.postMessage({ method: 'updateInfo', info: this.info });
 						return;
+					}
 					if (choice === 'Save and Switch')
 						this.send('legend', { action: 'save' });
 				}
