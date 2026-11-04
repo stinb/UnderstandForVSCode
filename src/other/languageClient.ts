@@ -104,6 +104,31 @@ function handleUnderstandLicenseLost(params: { message?: string })
 }
 
 
+// The oldest Understand build whose userver has every request and
+// notification this extension uses. Raise it when the extension starts using
+// one that older builds lack; a newer extension reaches users on older builds
+// through auto-update, and there they fail silently (#55).
+const minimumUnderstandBuild = 1267;
+
+
+/** Warn once per start when the server is older than this extension needs. */
+function warnIfUnderstandTooOld(serverInfo: { version?: string } | undefined)
+{
+	// userver reports its version as "(Build 1266)", or "(Build 1266 Debug)"
+	const build = Number(/Build (\d+)/.exec(serverInfo?.version ?? '')?.[1] ?? 0);
+	if (build >= minimumUnderstandBuild)
+		return;
+	const have = build ? `build ${build}` : 'an older build';
+	vscode.window.showWarningMessage(
+		`This version of the Understand extension needs Understand build ${minimumUnderstandBuild} or newer, and you have ${have}. Some features won't work until you update Understand.`,
+		'Download Understand',
+	).then(function(choice) {
+		if (choice)
+			vscode.env.openExternal(vscode.Uri.parse('https://licensing.scitools.com/download'));
+	});
+}
+
+
 /** Start language client & language server */
 export async function startLsp()
 {
@@ -140,6 +165,7 @@ export async function startLsp()
 		setCodeCheckLicensed(init?.understand?.codecheckLicensed !== false);
 		setExportLicensed(init?.understand?.exportLicensed !== false);
 		reportVisibility();
+		warnIfUnderstandTooOld(variables.languageClient.initializeResult?.serverInfo);
 		variables.languageClient.onNotification('understand/changedLicenseFeatures',
 			(params: Features) => {
 				variables.aiLicensed = params.aiLicensed === true;
