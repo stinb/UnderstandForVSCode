@@ -1,4 +1,5 @@
 name: Publish
+run-name: Publish 8.0.${{ inputs.build }}
 
 # Jenkins starts this from Understand_Release » accept with the build it
 # accepted. The .vsix is the one that build packaged and smoke tested, so
