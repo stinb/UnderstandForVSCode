@@ -1,6 +1,7 @@
 # Change Log
 
 # [Unreleased]
+- Add: a warning when the installed Understand is older than this extension needs, with a Download Understand button, instead of features failing without saying why (#55)
 - Fix: cancelling a graph's first draw leaves a "Cancelled" note in the tab instead of a spinner that never stops; cancelling a redraw keeps the drawing, as before
 - Fix: a graph that is still drawing is no longer started over when the cursor moves to another entity or the focus changes; before, a graph that took minutes could keep redrawing and never finish
 - Change: the References view shows the cursor's entity without a row of its own, with Pin in the title bar; rows come back once an entity is pinned. A heavily used entity's files list their counts and load their references when you expand them
