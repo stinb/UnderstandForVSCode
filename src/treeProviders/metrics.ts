@@ -1,3 +1,4 @@
+import { l10n } from 'vscode';
 import {
 	EventEmitter,
 	TreeDataProvider,
@@ -57,7 +58,7 @@ export class MetricItem extends TreeItem
 
 		this.contextValue = 'understandMetric';
 		this.description = `\u2003${metric.value}`;
-		this.tooltip = `API Name: ${metric.id}`;
+		this.tooltip = l10n.t('API Name: {0}', metric.id);
 
 		this.id = metric.id;
 		this.name = metric.name;

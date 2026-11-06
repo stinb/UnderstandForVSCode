@@ -1,3 +1,4 @@
+import { l10n } from 'vscode';
 import {
 	Command,
 	commands,
@@ -310,12 +311,12 @@ export async function violationsGroupBy()
 	// label is the display text; value is the stable key
 	const picked = await window.showQuickPick(
 		[
-			{ label: 'File', value: 'file' as GroupBy },
-			{ label: 'Check', value: 'check' as GroupBy },
-			{ label: 'Severity', value: 'severity' as GroupBy },
-			{ label: 'Entity', value: 'entity' as GroupBy },
+			{ label: l10n.t('File'), value: 'file' as GroupBy },
+			{ label: l10n.t('Check'), value: 'check' as GroupBy },
+			{ label: l10n.t('Severity'), value: 'severity' as GroupBy },
+			{ label: l10n.t('Entity'), value: 'entity' as GroupBy },
 		],
-		{ placeHolder: 'Group violations by' });
+		{ placeHolder: l10n.t('Group violations by') });
 	if (picked)
 		variables.violationsListProvider.setGroupBy(picked.value);
 }
@@ -346,7 +347,7 @@ function severityName(severity: number): string
 		return 'Low';
 	if (severity >= 0)
 		return 'Informational';
-	return 'No severity';
+	return l10n.t('No severity');
 }
 
 
@@ -420,8 +421,8 @@ export class SectionItem extends GroupItem
 			: TreeItemCollapsibleState.None;
 
 		const what = section === 'analysis'
-			? 'Errors and warnings from analyzing the project'
-			: "Violations from the project's background CodeChecks";
+			? l10n.t('Errors and warnings from analyzing the project')
+			: l10n.t("Violations from the project's background CodeChecks");
 		if (total <= count) {
 			this.description = `${count}`;
 			this.tooltip = what;

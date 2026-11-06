@@ -98,7 +98,7 @@ function licenseAwareErrorHandler(): lc.ErrorHandler
 /** The server lost its licence and could not get it back: say so, once. */
 function handleUnderstandLicenseLost(params: { message?: string })
 {
-	variables.licenseLost = params.message || 'The Understand licence for this machine was lost.';
+	variables.licenseLost = params.message || vscode.l10n.t('The Understand licence for this machine was lost.');
 	changeMainStatus(MainState.NoLicense);
 	vscode.window.showErrorMessage(variables.licenseLost);
 }
@@ -120,8 +120,8 @@ function warnIfUnderstandTooOld(serverInfo: { version?: string } | undefined)
 		return;
 	const have = build ? `build ${build}` : 'an older build';
 	vscode.window.showWarningMessage(
-		`This version of the Understand extension needs Understand build ${minimumUnderstandBuild} or newer, and you have ${have}. Some features won't work until you update Understand.`,
-		'Download Understand',
+		vscode.l10n.t('This version of the Understand extension needs Understand build {0} or newer, and you have {1}. Some features won\'t work until you update Understand.', minimumUnderstandBuild, have),
+		vscode.l10n.t('Download Understand'),
 	).then(function(choice) {
 		if (choice)
 			vscode.env.openExternal(vscode.Uri.parse('https://licensing.scitools.com/download'));
@@ -260,11 +260,29 @@ async function getLanguageServerOptions(): Promise<lc.ServerOptions>
 
 	return {
 		command: getStringFromConfig('understand.server.executable') || await getUserverPathIfUnix() || 'userver',
+		args: userverLocaleArgs(),
 		transport: transport,
 		options: {
 			env: env,
 		},
 	};
+}
+
+
+/** The locale switch for userver: VS Code's display language, so the text the
+ * server sends (AI overviews, card sections, errors) matches the extension's.
+ * A language the extension has no translations for, English included, passes
+ * nothing and leaves the server on the system locale, so a Japanese Windows
+ * with an English VS Code still gets Japanese overviews. Older servers ignore
+ * the switch. */
+function userverLocaleArgs(): string[]
+{
+	const language = vscode.env.language; // 'ja', 'zh-cn', 'zh-tw', 'en-us', ...
+	if (!language || language.startsWith('en') || !vscode.l10n.bundle)
+		return [];
+	// Qt names: language, then the region in capitals ('zh_CN')
+	const locale = language.replace(/-(\w+)$/, (_, region: string) => '_' + region.toUpperCase());
+	return [`--locale=${locale}`];
 }
 
 

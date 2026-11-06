@@ -4,6 +4,7 @@
 import { vscode, info } from './state.js';
 import { focusOnGraph } from './util.js';
 import { hideMenu } from './menus.js';
+import { t } from './l10n.js';
 
 
 /**
@@ -56,9 +57,9 @@ function showFilterEditor(filter, criteria, actions, onOk)
 	editor.className = 'dialog';
 	editor.setAttribute('role', 'dialog');
 	editor.setAttribute('aria-modal', 'true');
-	editor.setAttribute('aria-label', 'Graphic Filter Editor');
+	editor.setAttribute('aria-label', t('Graphic Filter Editor'));
 	const title = document.createElement('h3');
-	title.textContent = 'Graphic Filter Editor';
+	title.textContent = t('Graphic Filter Editor');
 	editor.appendChild(title);
 
 	const form = document.createElement('div');
@@ -78,7 +79,7 @@ function showFilterEditor(filter, criteria, actions, onOk)
 	const criteriaSelect = select(criteria, filter.criteria);
 	const actionSelect = select(actions, filter.action);
 	for (const [label, control] of /** @type {[string, HTMLElement][]} */ ([
-		['Filter Text:', text], ['Filter Criteria:', criteriaSelect], ['Filter Action:', actionSelect]])) {
+		[t('Filter Text:'), text], [t('Filter Criteria:'), criteriaSelect], [t('Filter Action:'), actionSelect]])) {
 		const name = document.createElement('span');
 		name.textContent = label;
 		form.append(name, control);
@@ -97,7 +98,7 @@ function showFilterEditor(filter, criteria, actions, onOk)
 	updateOk();
 	const buttons = document.createElement('div');
 	buttons.className = 'dialogButtons';
-	buttons.append(ok, dialogButton('Cancel', () => editor.remove()));
+	buttons.append(ok, dialogButton(t('Cancel'), () => editor.remove()));
 	editor.appendChild(buttons);
 
 	// The editor's own keys; the dialog under it keeps its own
@@ -140,9 +141,9 @@ function showFilterDialog()
 	dialog.className = 'dialog';
 	dialog.setAttribute('role', 'dialog');
 	dialog.setAttribute('aria-modal', 'true');
-	dialog.setAttribute('aria-label', 'Graphic Filters');
+	dialog.setAttribute('aria-label', t('Graphic Filters'));
 	const title = document.createElement('h3');
-	title.textContent = 'Graphic Filters';
+	title.textContent = t('Graphic Filters');
 	dialog.appendChild(title);
 
 	const enabled = document.createElement('label');
@@ -150,18 +151,18 @@ function showFilterDialog()
 	const enableBox = document.createElement('input');
 	enableBox.type = 'checkbox';
 	enableBox.checked = filters.enabled;
-	enabled.append(enableBox, 'Enable Project Filters');
+	enabled.append(enableBox, t('Enable Project Filters'));
 	dialog.appendChild(enabled);
 
 	const group = document.createElement('fieldset');
 	group.className = 'filterGroup';
-	group.appendChild(Object.assign(document.createElement('legend'), { textContent: 'Project Filters' }));
+	group.appendChild(Object.assign(document.createElement('legend'), { textContent: t('Project Filters') }));
 	const tableBox = document.createElement('div');
 	tableBox.className = 'filterTableBox';
 	const table = document.createElement('table');
 	const head = document.createElement('thead');
 	const headRow = document.createElement('tr');
-	for (const name of ['Filter Name', 'Criteria', 'Action'])
+	for (const name of [t('Filter Name'), t('Criteria'), t('Action')])
 		headRow.appendChild(Object.assign(document.createElement('th'), { textContent: name }));
 	head.appendChild(headRow);
 	const body = document.createElement('tbody');
@@ -178,22 +179,22 @@ function showFilterDialog()
 			render();
 		});
 	};
-	const editButton = dialogButton('Edit', edit);
-	const removeButton = dialogButton('Remove', () => {
+	const editButton = dialogButton(t('Edit'), edit);
+	const removeButton = dialogButton(t('Remove'), () => {
 		if (current < 0)
 			return;
 		list.splice(current, 1);
 		current = Math.min(current, list.length - 1);
 		render();
 	});
-	const removeAllButton = dialogButton('Remove All', () => {
+	const removeAllButton = dialogButton(t('Remove All'), () => {
 		list.length = 0;
 		current = -1;
 		render();
 	});
 	const spacer = document.createElement('div');
 	spacer.className = 'filterSpacer';
-	side.append(dialogButton('New', () => {
+	side.append(dialogButton(t('New'), () => {
 		showFilterEditor({ text: '', criteria: filters.criteria[0]?.id ?? 1, action: filters.actions[0]?.id ?? 1 },
 			filters.criteria, filters.actions, (added) => {
 				list.push(added);
@@ -239,7 +240,7 @@ function showFilterDialog()
 	buttons.append(dialogButton('OK', () => {
 		vscode.postMessage({ method: 'filter', action: 'set', enabled: enableBox.checked, filters: list });
 		closeFilterDialog();
-	}, true), dialogButton('Cancel', closeFilterDialog));
+	}, true), dialogButton(t('Cancel'), closeFilterDialog));
 	dialog.appendChild(buttons);
 
 	dialog.onkeydown = (e) => {
@@ -263,9 +264,9 @@ export function filterMenuItems()
 	const enabled = info.filters.enabled;
 	return [
 		{
-			label: enabled ? 'Disable Graphic Filters' : 'Enable Graphic Filters',
+			label: enabled ? t('Disable Graphic Filters') : t('Enable Graphic Filters'),
 			onClick: () => vscode.postMessage({ method: 'filter', action: 'enable', value: !enabled }),
 		},
-		{ label: 'Edit Graphic Filters…', onClick: showFilterDialog },
+		{ label: t('Edit Graphic Filters…'), onClick: showFilterDialog },
 	];
 }

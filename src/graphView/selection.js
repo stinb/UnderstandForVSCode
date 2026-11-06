@@ -4,6 +4,7 @@
 import { vscode, info, selected, selectedEdges } from './state.js';
 import { cssEscape, toolButton, idsKey, NODE_KINDS, nodeElement } from './util.js';
 import { hideMenu } from './menus.js';
+import { t } from './l10n.js';
 
 
 /**
@@ -89,25 +90,25 @@ export function actionIds()
 
 /** The GUI customizer's node-action rows: the action, its icon, its label */
 const NODE_ACTION_ROWS = /** @type {const} */ ([
-	['Visibility:', [
-		['hide', 'eye-closed', 'Hide Selected Node(s)'],
-		['showAllHidden', 'eye', 'Show All Hidden Nodes'],
-		['showEdgesOut', 'arrow-right', 'Show Edges Going Out'],
-		['showEdgesIn', 'arrow-left', 'Show Edges Coming In'],
+	[t('Visibility:'), [
+		['hide', 'eye-closed', t('Hide Selected Node(s)')],
+		['showAllHidden', 'eye', t('Show All Hidden Nodes')],
+		['showEdgesOut', 'arrow-right', t('Show Edges Going Out')],
+		['showEdgesIn', 'arrow-left', t('Show Edges Coming In')],
 	]],
-	['Clusters:', [
-		['expandChildren', 'unfold', 'Show Selected Node Children'],
-		['showInterEdges', 'git-compare', 'Show Edges Between Children'],
-		['aggregateOut', 'merge', 'Aggregate Child Edges Going Out'],
-		['aggregateIn', 'git-merge', 'Aggregate Child Edges Coming In'],
+	[t('Clusters:'), [
+		['expandChildren', 'unfold', t('Show Selected Node Children')],
+		['showInterEdges', 'git-compare', t('Show Edges Between Children')],
+		['aggregateOut', 'merge', t('Aggregate Child Edges Going Out')],
+		['aggregateIn', 'git-merge', t('Aggregate Child Edges Coming In')],
 	]],
-	['Highlighting', [
-		['highlightOut', 'arrow-small-right', 'Highlight Edges Going Out'],
-		['highlightIn', 'arrow-small-left', 'Highlight Edges Coming In'],
-		['highlightPath', 'debug-step-over', 'Highlight Path to Node'],
-		['clearHighlights', 'clear-all', 'Clear All Highlighted Edges'],
-		['hideUnhighlightedNodes', 'filter', 'Hide Nodes With No Highlighted Edges'],
-		['hideUnhighlightedEdges', 'filter-filled', 'Hide Unhighlighted Edges'],
+	[t('Highlighting'), [
+		['highlightOut', 'arrow-small-right', t('Highlight Edges Going Out')],
+		['highlightIn', 'arrow-small-left', t('Highlight Edges Coming In')],
+		['highlightPath', 'debug-step-over', t('Highlight Path to Node')],
+		['clearHighlights', 'clear-all', t('Clear All Highlighted Edges')],
+		['hideUnhighlightedNodes', 'filter', t('Hide Nodes With No Highlighted Edges')],
+		['hideUnhighlightedEdges', 'filter-filled', t('Hide Unhighlighted Edges')],
 	]],
 ]);
 
@@ -192,7 +193,7 @@ export function showAllHidden()
 	if (info && info.hideUnhighlightedNodes)
 		vscode.postMessage({
 			method: 'notice',
-			text: 'Some Nodes May Still be Hidden: although "hidden" status on all nodes has been cleared, there may be nodes '
+			text: t('Some Nodes May Still be Hidden: although "hidden" status on all nodes has been cleared, there may be nodes ')
 				+ 'that remain hidden until the "Hide Nodes With No Highlighted Edges" option is disabled',
 		});
 }

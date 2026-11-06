@@ -1,4 +1,11 @@
 // @ts-check
+// The extension's translated strings for this page, read from <body data-l10n>
+const l10nTable = (() => { try { return JSON.parse(document.body.dataset.l10n || '{}'); } catch { return {}; } })();
+function t(text, ...args) {
+	const s = l10nTable[text] || text;
+	return s.replace(/\{(\d+)\}/g, (_, i) => String(args[i] ?? ''));
+}
+
 'use strict';
 
 
@@ -81,7 +88,7 @@ function drawNewMessage(user, text)
 
 	const copyButton = document.createElement('button');
 	copyButton.className = 'codicon codicon-copy small';
-	copyButton.title = 'Copy';
+	copyButton.title = t('Copy');
 	copyButton.onclick = handleClickCopy;
 	copyButton.dataset.index = i;
 	buttonsUi.appendChild(copyButton);
@@ -89,7 +96,7 @@ function drawNewMessage(user, text)
 	if (user) {
 		const editButton = document.createElement('button');
 		editButton.className = 'codicon codicon-edit small';
-		editButton.title = 'Edit';
+		editButton.title = t('Edit');
 		editButton.dataset.index = i;
 		editButton.onclick = handleClickEdit;
 		buttonsUi.appendChild(editButton);
@@ -97,7 +104,7 @@ function drawNewMessage(user, text)
 	else {
 		const regenerateButton = document.createElement('button');
 		regenerateButton.className = 'codicon codicon-refresh small regenerate';
-		regenerateButton.title = 'Regenerate';
+		regenerateButton.title = t('Regenerate');
 		regenerateButton.onclick = handleClickRegenerate;
 		buttonsUi.appendChild(regenerateButton);
 	}
@@ -155,7 +162,7 @@ function enablePrompting(enable)
 
 	const send = document.getElementById('send');
 	if (send)
-		send.title = enable ? 'Send' : 'Cancel';
+		send.title = enable ? t('Send') : t('Cancel');
 
 	const icon = document.getElementById('sendIcon');
 	if (icon)

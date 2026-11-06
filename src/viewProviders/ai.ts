@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import { escapeHtml } from '../other/html';
+import { l10nAttribute } from '../other/webviewL10n';
 import { followEntity } from '../other/entityHeaders';
 import { getBooleanFromConfig } from '../other/config';
 import { variables } from '../other/variables';
@@ -165,7 +166,7 @@ export class AiViewProvider implements vscode.WebviewViewProvider
 		htmlParts.push(`<link rel='stylesheet' href='${escapeHtml(this.uriStyleIcons)}'>`);
 		htmlParts.push('</head>');
 
-		htmlParts.push('<body>');
+		htmlParts.push(`<body${l10nAttribute()}>`);
 
 		htmlParts.push('<div id="sections">');
 		htmlParts.push('</div>');

@@ -17,7 +17,7 @@ export async function addAnnotation(args: any, extra: any)
 {
 	if (args && typeof args.path === 'string' && extra) {
 		if (args.scheme !== 'file') {
-			vscode.window.showErrorMessage('Expected a file to annotate');
+			vscode.window.showErrorMessage(vscode.l10n.t('Expected a file to annotate'));
 			return;
 		}
 		const name = basename(args.path);
@@ -29,7 +29,7 @@ export async function addAnnotation(args: any, extra: any)
 
 	const editor = vscode.window.activeTextEditor;
 	if (!editor) {
-		vscode.window.showErrorMessage('Expected an editor to annotate');
+		vscode.window.showErrorMessage(vscode.l10n.t('Expected an editor to annotate'));
 		return;
 	}
 	await openNewAnnotationForm(
@@ -41,7 +41,7 @@ export async function addAnnotation(args: any, extra: any)
 				character: editor.selection.start.character,
 			},
 		},
-		'New annotation');
+		vscode.l10n.t('New annotation'));
 }
 
 
@@ -53,8 +53,8 @@ export async function addAnnotation(args: any, extra: any)
 export async function deleteAnnotations(ids: string[])
 {
 	const choice = await vscode.window.showWarningMessage(
-		ids.length === 1 ? 'Delete annotation' : `Delete ${ids.length} annotations`, { modal: true }, 'Delete');
-	if (choice !== 'Delete')
+		ids.length === 1 ? vscode.l10n.t('Delete annotation') : vscode.l10n.t('Delete {0} annotations', ids.length), { modal: true }, vscode.l10n.t('Delete'));
+	if (choice !== vscode.l10n.t('Delete'))
 		return;
 	for (const id of ids)
 		await variables.languageClient.sendRequest('understand/deleteAnnotation', { id });
@@ -87,7 +87,7 @@ export function deleteSelectedAnnotations()
 {
 	const ids = variables.annotationsTreeProvider.selectedIds();
 	if (ids.length === 0) {
-		vscode.window.showInformationMessage('Select an annotation in the Annotations view to delete it');
+		vscode.window.showInformationMessage(vscode.l10n.t('Select an annotation in the Annotations view to delete it'));
 		return Promise.resolve();
 	}
 	return deleteAnnotations(ids);

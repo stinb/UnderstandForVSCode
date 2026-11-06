@@ -25,7 +25,7 @@ function decorationFor(status: FileStatus): vscode.FileDecoration | undefined
 	if (!status.inProject) {
 		return {
 			color: new vscode.ThemeColor('list.deemphasizedForeground'),
-			tooltip: 'Not a file of the Understand project',
+			tooltip: vscode.l10n.t('Not a file of the Understand project'),
 		};
 	}
 
@@ -38,7 +38,7 @@ function decorationFor(status: FileStatus): vscode.FileDecoration | undefined
 		return {
 			badge: 'X',
 			color: new vscode.ThemeColor('list.deemphasizedForeground'),
-			tooltip: `Excluded from CodeCheck in ${excludedFrom.join(', ')}`,
+			tooltip: vscode.l10n.t('Excluded from CodeCheck in {0}', excludedFrom.join(', ')),
 			// so a collapsed folder shows that its contents are skipped
 			propagate: true,
 		};
@@ -51,7 +51,7 @@ function decorationFor(status: FileStatus): vscode.FileDecoration | undefined
 			return {
 				badge: '!',
 				color: new vscode.ThemeColor('list.warningForeground'),
-				tooltip: 'Project file, modified since it was last analyzed',
+				tooltip: vscode.l10n.t('Project file, modified since it was last analyzed'),
 				// so a collapsed folder still shows that something inside it
 				// is waiting on an analysis
 				propagate: true,
@@ -60,7 +60,7 @@ function decorationFor(status: FileStatus): vscode.FileDecoration | undefined
 			return {
 				badge: '?',
 				color: new vscode.ThemeColor('list.deemphasizedForeground'),
-				tooltip: 'Project file that has not been analyzed yet',
+				tooltip: vscode.l10n.t('Project file that has not been analyzed yet'),
 				propagate: true,
 			};
 	}

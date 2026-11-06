@@ -16,7 +16,7 @@ import { openNewAnnotationForm } from './annotateLine';
 export async function openAnnotationMedia(mediaId?: string, name?: string)
 {
 	if (!mediaId) {
-		vscode.window.showErrorMessage('No media to open');
+		vscode.window.showErrorMessage(vscode.l10n.t('No media to open'));
 		return;
 	}
 
@@ -26,7 +26,7 @@ export async function openAnnotationMedia(mediaId?: string, name?: string)
 			'understand/annotationMedia', { mediaId });
 	} catch (error) {
 		vscode.window.showErrorMessage(error instanceof Error
-			? error.message : 'Failed to read the media');
+			? error.message : vscode.l10n.t('Failed to read the media'));
 		return;
 	}
 
@@ -41,7 +41,7 @@ export async function openAnnotationMedia(mediaId?: string, name?: string)
 			target, Buffer.from(media.contents, 'base64'));
 	} catch (error) {
 		vscode.window.showErrorMessage(error instanceof Error
-			? error.message : 'Failed to write the media');
+			? error.message : vscode.l10n.t('Failed to write the media'));
 		return;
 	}
 
@@ -58,14 +58,14 @@ export async function openAnnotationMedia(mediaId?: string, name?: string)
 export async function attachAnnotationMedia(annotation: { id: string } | undefined)
 {
 	if (!annotation || !annotation.id) {
-		vscode.window.showErrorMessage('Select an annotation to attach a file to');
+		vscode.window.showErrorMessage(vscode.l10n.t('Select an annotation to attach a file to'));
 		return;
 	}
 
 	const picked = await vscode.window.showOpenDialog({
 		canSelectMany: false,
-		openLabel: 'Attach',
-		title: 'Attach a file to this annotation',
+		openLabel: vscode.l10n.t('Attach'),
+		title: vscode.l10n.t('Attach a file to this annotation'),
 	});
 	if (!picked || !picked.length)
 		return;
@@ -76,7 +76,7 @@ export async function attachAnnotationMedia(annotation: { id: string } | undefin
 			{ id: annotation.id, path: picked[0].fsPath });
 	} catch (error) {
 		vscode.window.showErrorMessage(error instanceof Error
-			? error.message : 'Failed to attach the file');
+			? error.message : vscode.l10n.t('Failed to attach the file'));
 	}
 }
 
@@ -95,18 +95,18 @@ export async function annotateArchitecture()
 		architectures = result.architectures ?? [];
 	} catch (error) {
 		vscode.window.showErrorMessage(error instanceof Error
-			? error.message : 'Failed to list the architectures');
+			? error.message : vscode.l10n.t('Failed to list the architectures'));
 		return;
 	}
 
 	if (!architectures.length) {
 		vscode.window.showInformationMessage(
-			'This project has no architectures to annotate.');
+			vscode.l10n.t('This project has no architectures to annotate.'));
 		return;
 	}
 
 	const architecture = await vscode.window.showQuickPick(architectures, {
-		placeHolder: 'Annotate which architecture node',
+		placeHolder: vscode.l10n.t('Annotate which architecture node'),
 		matchOnDescription: true,
 	});
 	if (architecture === undefined)

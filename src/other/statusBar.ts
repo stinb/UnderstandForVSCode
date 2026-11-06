@@ -98,45 +98,45 @@ export function changeMainStatus(status: MainState)
 			switch (db.state) {
 				case DbState.Finding:
 					mainStatusBarItem.text = '$(loading~spin) Understand';
-					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server, finding project');
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, vscode.l10n.t('Connected to the Understand language server, finding project'));
 					setContext(contexts.project, true);
 					break;
 				case DbState.NoProject:
 					mainStatusBarItem.text = '$(error) Understand';
-					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'No database found/opened by the Understand language server');
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, vscode.l10n.t('No database found/opened by the Understand language server'));
 					setContext(contexts.project, false);
 					break;
 				case DbState.Resolved:
 					mainStatusBarItem.text = '$(search-view-icon) Understand';
-					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server and ready');
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, vscode.l10n.t('Connected to the Understand language server and ready'));
 					setContext(contexts.project, true);
 					break;
 				case DbState.Resolving:
 					mainStatusBarItem.text = '$(loading~spin) Understand';
-					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server, resolving database');
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, vscode.l10n.t('Connected to the Understand language server, resolving database'));
 					setContext(contexts.project, false);
 					break;
 				default:
 					mainStatusBarItem.text = '$(error) Understand';
-					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Database not resolved yet by the Understand language server');
+					mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, vscode.l10n.t('Database not resolved yet by the Understand language server'));
 					setContext(contexts.project, true);
 					break;
 			}
 			break;
 		case MainState.NoConnection:
 			mainStatusBarItem.text = '$(error) Understand';
-			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Failed to connect to the Understand language server');
+			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, vscode.l10n.t('Failed to connect to the Understand language server'));
 			setContext(contexts.project, false);
 			break;
 		case MainState.NoLicense:
 			mainStatusBarItem.text = '$(error) Understand';
 			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status,
-				variables.licenseLost || 'The Understand language server has no valid licence');
+				variables.licenseLost || vscode.l10n.t('The Understand language server has no valid licence'));
 			setContext(contexts.project, false);
 			break;
 		case MainState.Progress:
 			mainStatusBarItem.text = '$(loading~spin) Understand';
-			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, 'Connected to the Understand language server, working');
+			mainStatusBarItem.tooltip = statusBarItemStatusAndCommands(status, vscode.l10n.t('Connected to the Understand language server, working'));
 			setContext(contexts.project, true);
 			break;
 	}
@@ -148,7 +148,7 @@ export function changeFileStatus(status: FileStatus | undefined)
 {
 	if (fileStatusBarItem === undefined) {
 		fileStatusBarItem = vscode.window.createStatusBarItem('file', vscode.StatusBarAlignment.Left, 99);
-		fileStatusBarItem.name = 'Understand File';
+		fileStatusBarItem.name = vscode.l10n.t('Understand File');
 	}
 
 	// No file or no project: show nothing. Nor while an analysis runs: its
@@ -160,23 +160,23 @@ export function changeFileStatus(status: FileStatus | undefined)
 	}
 
 	if (!status.inProject) {
-		fileStatusBarItem.text = '$(circle-slash) File not in project';
-		fileStatusBarItem.tooltip = 'This file is not a file of the Understand project';
+		fileStatusBarItem.text = `$(circle-slash) ${vscode.l10n.t('File not in project')}`;
+		fileStatusBarItem.tooltip = vscode.l10n.t('This file is not a file of the Understand project');
 		fileStatusBarItem.command = undefined;
 	}
 	else if (status.analysis === 'analyzed') {
-		fileStatusBarItem.text = '$(check) File analyzed';
-		fileStatusBarItem.tooltip = 'Project file, analyzed and up to date';
+		fileStatusBarItem.text = `$(check) ${vscode.l10n.t('File analyzed')}`;
+		fileStatusBarItem.tooltip = vscode.l10n.t('Project file, analyzed and up to date');
 		fileStatusBarItem.command = undefined;
 	}
 	else if (status.analysis === 'stale') {
-		fileStatusBarItem.text = '$(warning) File needs analysis';
-		fileStatusBarItem.tooltip = 'Project file, modified since it was last analyzed — click to analyze changed files';
+		fileStatusBarItem.text = `$(warning) ${vscode.l10n.t('File needs analysis')}`;
+		fileStatusBarItem.tooltip = vscode.l10n.t('Project file, modified since it was last analyzed — click to analyze changed files');
 		fileStatusBarItem.command = 'understand.analysis.analyzeChangedFiles';
 	}
 	else {
-		fileStatusBarItem.text = '$(circle-large-outline) File not analyzed';
-		fileStatusBarItem.tooltip = 'Project file that has not been analyzed yet — click to analyze changed files';
+		fileStatusBarItem.text = `$(circle-large-outline) ${vscode.l10n.t('File not analyzed')}`;
+		fileStatusBarItem.tooltip = vscode.l10n.t('Project file that has not been analyzed yet — click to analyze changed files');
 		fileStatusBarItem.command = 'understand.analysis.analyzeChangedFiles';
 	}
 
@@ -190,8 +190,8 @@ export function changeEntityStatus(name: string)
 {
 	if (entityStatusBarItem === undefined) {
 		entityStatusBarItem = vscode.window.createStatusBarItem('entity', vscode.StatusBarAlignment.Left, 98);
-		entityStatusBarItem.name = 'Understand Entity';
-		entityStatusBarItem.tooltip = 'The entity the Understand views show';
+		entityStatusBarItem.name = vscode.l10n.t('Understand Entity');
+		entityStatusBarItem.tooltip = vscode.l10n.t('The entity the Understand views show');
 	}
 	if (!name) {
 		entityStatusBarItem.hide();
@@ -347,27 +347,27 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 	// Define commands
 	const commands: StatusBarCommand[] = [
 		{
-			name: 'Analyze all files',
+			name: vscode.l10n.t('Analyze all files'),
 			command: 'understand.analysis.analyzeAllFiles',
 		},
 		{
-			name: 'Analyze changed files',
+			name: vscode.l10n.t('Analyze changed files'),
 			command: 'understand.analysis.analyzeChangedFiles',
 		},
 		{
-			name: 'Analyze this file',
+			name: vscode.l10n.t('Analyze this file'),
 			command: 'understand.analysis.analyzeCurrentFile',
 		},
 		{
-			name: 'Create new .und project',
+			name: vscode.l10n.t('Create new .und project'),
 			command: 'understand.exploreInUnderstand.newProject',
 		},
 		{
-			name: 'Select .und project',
+			name: vscode.l10n.t('Select .und project'),
 			command: 'understand.settings.showSettingsProject',
 		},
 		{
-			name: 'Show settings',
+			name: vscode.l10n.t('Show settings'),
 			command: 'understand.settings.showSettings',
 		},
 	];
@@ -432,16 +432,16 @@ function databaseToString(database: Db)
 	let stateString = '';
 	switch (database.state) {
 		case DbState.Finding:
-			stateString = 'Finding project';
+			stateString = vscode.l10n.t('Finding project');
 			break;
 		case DbState.NoProject:
-			stateString = 'No project';
+			stateString = vscode.l10n.t('No project');
 			break;
 		case DbState.UnableToOpen:
-			stateString = 'Not opened';
+			stateString = vscode.l10n.t('Not opened');
 			break;
 		case DbState.Empty:
-			stateString = 'Empty database';
+			stateString = vscode.l10n.t('Empty database');
 			break;
 		case DbState.Resolved:
 			stateString = ''; // (Empty to imply success)
@@ -450,13 +450,13 @@ function databaseToString(database: Db)
 			stateString = 'Resolving';
 			break;
 		case DbState.Unresolved:
-			stateString = 'Not resolved';
+			stateString = vscode.l10n.t('Not resolved');
 			break;
 		case DbState.WrongVersion:
-			stateString = 'Wrong database version';
+			stateString = vscode.l10n.t('Wrong database version');
 			break;
 		default:
-			stateString = 'Unknown state';
+			stateString = vscode.l10n.t('Unknown state');
 			break;
 	}
 

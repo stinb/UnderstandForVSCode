@@ -6,6 +6,7 @@ import { toolButton } from './util.js';
 import { restorePanel, placePanel, panelEdge, panelScale, setPanelScale } from './panels.js';
 import { updateToolbar } from './toolbar.js';
 import { showMenu, colorMenuItem } from './menus.js';
+import { t } from './l10n.js';
 
 
 /**
@@ -41,7 +42,7 @@ export function toggleLegend(remember = true)
 	updateToolbar();
 	if (remember)
 		vscode.postMessage({ method: 'action', action: 'setting',
-			name: info && info.style.includes('Compare') ? 'compareLegend' : 'legend', setting: !legend.hidden });
+			name: info && info.style.includes(t('Compare')) ? 'compareLegend' : 'legend', setting: !legend.hidden });
 }
 
 
@@ -204,9 +205,9 @@ export function drawLegend()
 	header.className = 'legendHeader';
 	const title = document.createElement('h3');
 	// Unsaved changes to the theme, as the GUI's legend title shows them
-	title.textContent = info.themes && info.themes.modified ? 'Legend*' : 'Legend';
+	title.textContent = info.themes && info.themes.modified ? t('Legend*') : t('Legend');
 	header.appendChild(title);
-	const menuButton = toolButton('menu', 'Legend menu', () => {
+	const menuButton = toolButton('menu', t('Legend menu'), () => {
 		const rect = menuButton.getBoundingClientRect();
 		showMenu(legendMenuItems(), rect.left, rect.bottom);
 	}, 'legendMenu');
@@ -218,7 +219,7 @@ export function drawLegend()
 	if (themes && themes.list.length > 1) {
 		const select = document.createElement('select');
 		select.id = 'themeSelect';
-		select.title = 'Theme';
+		select.title = t('Theme');
 		for (const theme of themes.list) {
 			const option = document.createElement('option');
 			option.value = theme.id;
@@ -308,16 +309,16 @@ function legendEntryMenuItems(entry, index)
 	/** @type {MenuItem[]} */
 	const items = [];
 	if (entry.kind === 'edge') {
-		items.push(choice('Arrow Head', 'arrowhead', GRAPHVIZ_ARROWS));
+		items.push(choice(t('Arrow Head'), 'arrowhead', GRAPHVIZ_ARROWS));
 		if (attrs.dir === 'both')
-			items.push(choice('Arrow Tail', 'arrowtail', GRAPHVIZ_ARROWS));
-		items.push(colorMenuItem('Color', attrs.color, set('color'), true));
-		items.push(choice('Line Style', 'style', GRAPHVIZ_LINE_STYLES));
+			items.push(choice(t('Arrow Tail'), 'arrowtail', GRAPHVIZ_ARROWS));
+		items.push(colorMenuItem(t('Color'), attrs.color, set('color'), true));
+		items.push(choice(t('Line Style'), 'style', GRAPHVIZ_LINE_STYLES));
 	}
 	else {
-		items.push(choice('Shape', 'shape', GRAPHVIZ_SHAPES));
-		items.push(colorMenuItem('Line Color', attrs.color, set('color'), true));
-		items.push(colorMenuItem('Fill Color', attrs.fillcolor, set('fillcolor'), true));
+		items.push(choice(t('Shape'), 'shape', GRAPHVIZ_SHAPES));
+		items.push(colorMenuItem(t('Line Color'), attrs.color, set('color'), true));
+		items.push(colorMenuItem(t('Fill Color'), attrs.fillcolor, set('fillcolor'), true));
 	}
 	if (entry.user && entry.id) {
 		const id = entry.id;
@@ -360,14 +361,14 @@ function legendMenuItems()
 		if (themes.modified)
 			themeItems.push({ label: `Save ${currentName}`, onClick: post({ method: 'legend', action: 'save' }) });
 		themeItems.push({ label: 'Import Themes…', onClick: post({ method: 'legend', action: 'import' }) });
-		items.push({ label: 'Theme', children: themeItems });
+		items.push({ label: t('Theme'), children: themeItems });
 		items.push({ label: 'Show Unused Styles', checked: themes.showUnused, onClick: post({ method: 'legend', action: 'showUnused', value: !themes.showUnused }) });
 		for (const kind of /** @type {const} */ (['node', 'edge'])) {
 			const globals = themes.globalStyles.filter(g => g.kind === kind);
 			if (!globals.length)
 				continue;
 			items.push({
-				label: kind === 'node' ? 'Global Node Styles' : 'Global Edge Styles',
+				label: kind === 'node' ? t('Global Node Styles') : t('Global Edge Styles'),
 				children: globals.map(g => ({
 					label: g.name,
 					checked: g.enabled,
@@ -388,6 +389,6 @@ function legendMenuItems()
 			items.push({ separator: true });
 		items.push({ label: 'Save Legend as Image…', onClick: post({ method: 'legend', action: 'saveImage' }) });
 	}
-	items.push({ label: 'Hide Legend', onClick: () => toggleLegend() });
+	items.push({ label: t('Hide Legend'), onClick: () => toggleLegend() });
 	return items;
 }

@@ -4,6 +4,7 @@
 import { vscode } from './state.js';
 import { toolButton } from './util.js';
 import { placePanel, restorePanel, panelPlaces } from './panels.js';
+import { t } from './l10n.js';
 
 
 /** Show a clicked entity's source in the graph, as the GUI's peek window
@@ -36,7 +37,7 @@ export function showPeek(id, at, uniqueName)
 		const title = document.createElement('h3');
 		title.id = 'peekTitle';
 		header.appendChild(title);
-		header.appendChild(toolButton('close', 'Close', hidePeek, 'peekClose'));
+		header.appendChild(toolButton('close', t('Close'), hidePeek, 'peekClose'));
 		peek.appendChild(header);
 		const source = document.createElement('pre');
 		source.id = 'peekSource';
@@ -47,7 +48,7 @@ export function showPeek(id, at, uniqueName)
 	peek.hidden = false;
 	const title = document.getElementById('peekTitle');
 	if (title)
-		title.textContent = 'Loading…';
+		title.textContent = t('Loading…');
 	const source = document.getElementById('peekSource');
 	if (source)
 		source.innerHTML = '';
@@ -102,12 +103,12 @@ export function showPeekSource(source)
 	else if (source.path)
 		title.textContent = source.path.replace(/^.*[\\/]/, '');
 	else
-		title.textContent = 'No source';
+		title.textContent = t('No source');
 	pre.innerHTML = '';
 	if (!source.path) {
 		const line = document.createElement('div');
 		line.className = 'peekLine';
-		line.textContent = source.entityName ? 'No definition' : 'No source for this node';
+		line.textContent = source.entityName ? t('No definition') : t('No source for this node');
 		pre.appendChild(line);
 		return;
 	}

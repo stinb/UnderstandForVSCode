@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { variables } from './variables';
 import { getStringFromConfig } from './config';
 import { escapeHtml } from './html';
+import { l10nAttribute } from './webviewL10n';
 import {
 	AiChatMessageFromSandbox,
 	AiChatMessageToSandbox
@@ -137,7 +138,7 @@ class Chat
 
 		this.panel = vscode.window.createWebviewPanel(
 			'understandChat',
-			`Chat - ${name}`,
+			vscode.l10n.t('Chat - {0}', name),
 			half ? vscode.ViewColumn.Beside : vscode.ViewColumn.Active,
 			{ retainContextWhenHidden: true }
 		);
@@ -181,12 +182,12 @@ class Chat
 	<link rel='stylesheet' href='${escapeHtml(uriStyleIcons)}'>
 </head>
 
-<body>
+<body${l10nAttribute()}>
 	<div id="messages"></div>
 	<div id="inputs">
 		<div id="suggestions"></div>
-		<code id="input" contenteditable placeholder="Ask anything about ${escapeHtml(name)}" data-vscode-context="{&quot;preventDefaultContextMenuItems&quot;:false}"></code>
-		<button id="send" class="small" title="Send" disabled><span id="sendIcon" class="codicon codicon-send"></span></button>
+		<code id="input" contenteditable placeholder="${escapeHtml(vscode.l10n.t('Ask anything about {0}', name))}" data-vscode-context="{&quot;preventDefaultContextMenuItems&quot;:false}"></code>
+		<button id="send" class="small" title="${escapeHtml(vscode.l10n.t('Send'))}" disabled><span id="sendIcon" class="codicon codicon-send"></span></button>
 	</div>
 
 	<script src="${escapeHtml(uriScriptMarkdown)}"></script>
@@ -242,7 +243,7 @@ class Chat
 				break;
 			case 'edit':
 				vscode.window
-					.showInformationMessage('Do you want to overwrite your prompt', 'Yes', 'No')
+					.showInformationMessage(vscode.l10n.t('Do you want to overwrite your prompt'), vscode.l10n.t('Yes'), vscode.l10n.t('No'))
 					.then(answer => {
 						if (answer === 'Yes')
 							this.postMessage(message);

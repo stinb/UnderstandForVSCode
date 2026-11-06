@@ -28,7 +28,7 @@ export async function showConfiguration(arg?: string)
 		configuration = await variables.languageClient.sendRequest('understand/configuration', { name });
 	} catch (error) {
 		vscode.window.showErrorMessage(error instanceof Error
-			? error.message : `Failed to load the CodeCheck configuration ${name}`);
+			? error.message : vscode.l10n.t('Failed to load the CodeCheck configuration {0}', name));
 		return;
 	}
 	openFieldEditor({ method: 'configuration', title: configuration.name, configuration });
@@ -42,12 +42,12 @@ async function pickConfiguration(): Promise<string | undefined>
 		listed = await variables.languageClient.sendRequest('understand/configurations', {});
 	} catch (error) {
 		vscode.window.showErrorMessage(error instanceof Error
-			? error.message : 'Failed to list the CodeCheck configurations');
+			? error.message : vscode.l10n.t('Failed to list the CodeCheck configurations'));
 		return undefined;
 	}
 	const configurations = listed.configurations ?? [];
 	if (!configurations.length) {
-		vscode.window.showInformationMessage('The project has no CodeCheck configurations.');
+		vscode.window.showInformationMessage(vscode.l10n.t('The project has no CodeCheck configurations.'));
 		return undefined;
 	}
 	if (configurations.length === 1)
@@ -57,10 +57,10 @@ async function pickConfiguration(): Promise<string | undefined>
 			label: c.name,
 			description: `${c.checkCount} ${c.checkCount === 1 ? 'check' : 'checks'}`,
 			detail: [
-				c.automatic ? 'Runs in the background' : 'Runs on demand',
-				c.excludes.length ? `Excludes ${c.excludes.join(', ')}` : '',
+				c.automatic ? vscode.l10n.t('Runs in the background') : vscode.l10n.t('Runs on demand'),
+				c.excludes.length ? vscode.l10n.t('Excludes {0}', c.excludes.join(', ')) : '',
 			].filter(Boolean).join(' · '),
 		})),
-		{ placeHolder: 'CodeCheck configuration to show', matchOnDescription: true, matchOnDetail: true });
+		{ placeHolder: vscode.l10n.t('CodeCheck configuration to show'), matchOnDescription: true, matchOnDetail: true });
 	return picked?.label;
 }

@@ -21,7 +21,7 @@ export class TreemapProvider
 			return;
 		}
 
-		const panel = openGraphWebview('understandTreemap', 'Metrics Treemap', 'treemap',
+		const panel = openGraphWebview('understandTreemap', vscode.l10n.t('Metrics Treemap'), 'treemap',
 `	<div id='crumbs'></div>
 	<div id='content'>
 		<main id='main'>

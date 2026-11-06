@@ -9,6 +9,7 @@ import { updateUndoButtons } from './toolbar.js';
 import { hideMenu } from './menus.js';
 import { toggleLegend, holdLegendPlace } from './legend.js';
 import { toggleMinimap, updateMinimap } from './minimap.js';
+import { t } from './l10n.js';
 
 
 // The GUI's zoom: 1% to 300%, its presets, and steps of 10 points
@@ -278,7 +279,7 @@ export function updateZoomSelect()
 	// The fits read their zoom, and a check on the one that is on, as the
 	// GUI's labels do
 	const fits = fitZooms();
-	for (const [what, label] of /** @type {const} */ ([['width', 'Fit Width'], ['height', 'Fit Height']])) {
+	for (const [what, label] of /** @type {const} */ ([['width', t('Fit Width')], ['height', t('Fit Height')]])) {
 		const option = select.querySelector(`option[value="fit-${what}"]`);
 		if (option)
 			option.textContent = `${fitMode === what ? '✓ ' : ''}${label}${fits ? ` (${Math.round(fits[what] * 100)}%)` : ''}`;
@@ -288,7 +289,7 @@ export function updateZoomSelect()
 	const other = select.querySelector('option[value="other"]');
 	const preset = ZOOM_PRESETS.find(p => Math.round(p * 100) === percent);
 	if (other)
-		other.textContent = preset === undefined ? `Other…(${percent}%)` : 'Other…';
+		other.textContent = preset === undefined ? t('Other…({0}%)', percent) : t('Other…');
 	// The box shows the zoom itself (the GUI's button is an icon; the
 	// percentage is only in its menu's Other…), by a hidden item rather than
 	// by Other…, which choosing again would not change, so it would not ask

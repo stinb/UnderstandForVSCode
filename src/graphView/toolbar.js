@@ -14,6 +14,7 @@ import { showMenu } from './menus.js';
 import { toggleLegend } from './legend.js';
 import { toggleMinimap, updateMinimap } from './minimap.js';
 import { exportableSvg, copyImage } from './images.js';
+import { t } from './l10n.js';
 
 
 // The saved-state list's Remove… entry; no saved state is named so
@@ -35,29 +36,29 @@ export function buildToolbar()
 	// Variant, as the GUI's styles menu
 	const variant = document.createElement('select');
 	variant.id = 'variant';
-	variant.title = 'Variant';
+	variant.title = t('Variant');
 	variant.hidden = true;
 	variant.onchange = () => vscode.postMessage({ method: 'variant', style: variant.value });
 	toolbar.appendChild(variant);
 
-	toolbar.appendChild(toolButton('discard', 'Undo', () => undoStep(-1), 'undo'));
-	toolbar.appendChild(toolButton('redo', 'Redo', () => undoStep(1), 'redo'));
-	toolbar.appendChild(toolButton('refresh', 'Restore Defaults', () => postAction('restoreDefaults'), 'restoreDefaults'));
-	toolbar.appendChild(toolButton('chevron-up', 'Increase Level', () => stepLevel(1), 'increaseLevel'));
-	toolbar.appendChild(toolButton('chevron-down', 'Decrease Level', () => stepLevel(-1), 'decreaseLevel'));
+	toolbar.appendChild(toolButton('discard', t('Undo'), () => undoStep(-1), 'undo'));
+	toolbar.appendChild(toolButton('redo', t('Redo'), () => undoStep(1), 'redo'));
+	toolbar.appendChild(toolButton('refresh', t('Restore Defaults'), () => postAction('restoreDefaults'), 'restoreDefaults'));
+	toolbar.appendChild(toolButton('chevron-up', t('Increase Level'), () => stepLevel(1), 'increaseLevel'));
+	toolbar.appendChild(toolButton('chevron-down', t('Decrease Level'), () => stepLevel(-1), 'decreaseLevel'));
 	toolbar.appendChild(toolButton('link', 'Select a Second Entity…', () => vscode.postMessage({ method: 'relationship' }), 'relationship'));
 	toolbar.appendChild(separator());
 
 	// Zoom: presets and fits, as the GUI's zoom menu
 	const zoomSelect = document.createElement('select');
 	zoomSelect.id = 'zoomSelect';
-	zoomSelect.title = 'Zoom';
+	zoomSelect.title = t('Zoom');
 	for (const preset of ZOOM_PRESETS) {
 		const option = document.createElement('option');
 		option.value = option.textContent = `${Math.round(preset * 100)}%`;
 		zoomSelect.appendChild(option);
 	}
-	for (const [value, label] of [['width', 'Fit Width'], ['height', 'Fit Height'], ['page', 'Fit Page'], ['other', 'Other…']]) {
+	for (const [value, label] of [['width', t('Fit Width')], ['height', t('Fit Height')], ['page', t('Fit Page')], ['other', t('Other…')]]) {
 		const option = document.createElement('option');
 		option.value = value === 'other' ? 'other' : `fit-${value}`;
 		option.textContent = label;
@@ -80,22 +81,22 @@ export function buildToolbar()
 		focusOnGraph();
 	};
 	toolbar.appendChild(zoomSelect);
-	toolbar.appendChild(toolButton('zoom-in', 'Zoom In (Ctrl+=)', () => stepZoom(1, 'action'), 'zoomIn'));
-	toolbar.appendChild(toolButton('zoom-out', 'Zoom Out (Ctrl+-)', () => stepZoom(-1, 'action'), 'zoomOut'));
+	toolbar.appendChild(toolButton('zoom-in', t('Zoom In (Ctrl+=)'), () => stepZoom(1, 'action'), 'zoomIn'));
+	toolbar.appendChild(toolButton('zoom-out', t('Zoom Out (Ctrl+-)'), () => stepZoom(-1, 'action'), 'zoomOut'));
 	toolbar.appendChild(separator());
 
 	appendFindTools(toolbar);
 	toolbar.appendChild(separator());
 
 	// Nodes
-	toolbar.appendChild(toolButton('eye', 'Show All Hidden Nodes', showAllHidden, 'showAllHidden'));
-	toolbar.appendChild(toolButton('clear-all', 'Clear All Highlighted Edges', () => postAction('clearHighlights'), 'clearHighlights'));
+	toolbar.appendChild(toolButton('eye', t('Show All Hidden Nodes'), showAllHidden, 'showAllHidden'));
+	toolbar.appendChild(toolButton('clear-all', t('Clear All Highlighted Edges'), () => postAction('clearHighlights'), 'clearHighlights'));
 	toolbar.appendChild(separator());
 
 	// State
 	const saved = document.createElement('select');
 	saved.id = 'savedSelect';
-	saved.title = 'Load Graph State';
+	saved.title = t('Load Graph State');
 	saved.onchange = () => {
 		const remove = saved.value === REMOVE_SAVED;
 		if (remove)
@@ -109,35 +110,35 @@ export function buildToolbar()
 	};
 	toolbar.appendChild(saved);
 	// The extension asks where and as what: an image, SVG, Visio, DOT or PlantUML
-	toolbar.appendChild(toolButton('save-as', 'Save As… (an image, SVG, Visio, DOT or PlantUML file)',
+	toolbar.appendChild(toolButton('save-as', t('Save As… (an image, SVG, Visio, DOT or PlantUML file)'),
 		() => vscode.postMessage({ method: 'saveAs' }), 'saveAs'));
-	toolbar.appendChild(toolButton('copy', 'Copy Image To Clipboard', copyImage, 'copyImage'));
-	toolbar.appendChild(toolButton('file-pdf', 'Print… (opens the graph in your browser to print or save as PDF)', () => {
+	toolbar.appendChild(toolButton('copy', t('Copy Image To Clipboard'), copyImage, 'copyImage'));
+	toolbar.appendChild(toolButton('file-pdf', t('Print… (opens the graph in your browser to print or save as PDF)'), () => {
 		const svg = exportableSvg({ paper: true });
 		if (svg)
 			vscode.postMessage({ method: 'print', svg: svg.outerHTML });
 	}, 'print'));
-	toolbar.appendChild(toolButton('terminal', 'Copy API Command (the Python that draws this graph)',
+	toolbar.appendChild(toolButton('terminal', t('Copy API Command (the Python that draws this graph)'),
 		() => vscode.postMessage({ method: 'apiCommand' }), 'apiCommand'));
 	// A Compare variant's diff pane: the selected node's entity, or the root's
-	toolbar.appendChild(toolButton('diff', 'Show Differences (the selected entity, or the graph\'s, against the comparison database)', () => {
+	toolbar.appendChild(toolButton('diff', t('Show Differences (the selected entity, or the graph\'s, against the comparison database)'), () => {
 		const ids = actionIds();
 		vscode.postMessage({ method: 'action', action: 'diff', ids: ids.length === 1 ? ids : [] });
 	}, 'diff'));
 	toolbar.appendChild(separator());
 
 	// View
-	toolbar.appendChild(toolButton('preview', 'Show Mini-Map', toggleMinimap, 'toggleMinimap'));
-	toolbar.appendChild(toolButton('list-unordered', 'Show Legend', () => toggleLegend(), 'toggleLegend'));
-	toolbar.appendChild(toolButton('open-preview', 'Peek: show a clicked node\'s source and its Information or AI overview', () => {
+	toolbar.appendChild(toolButton('preview', t('Show Mini-Map'), toggleMinimap, 'toggleMinimap'));
+	toolbar.appendChild(toolButton('list-unordered', t('Show Legend'), () => toggleLegend(), 'toggleLegend'));
+	toolbar.appendChild(toolButton('open-preview', t('Peek: show a clicked node\'s source and its Information or AI overview'), () => {
 		setPeekOn(!peekOn);
 		updateToolbar();
 	}, 'togglePeek'));
-	toolbar.appendChild(toolButton('window', 'Reuse: open the next graph in this tab',
+	toolbar.appendChild(toolButton('window', t('Reuse: open the next graph in this tab'),
 		() => vscode.postMessage({ method: 'reuse', on: flip('reuse') }), 'toggleReuse'));
-	toolbar.appendChild(toolButton('sync', 'Sync to the current selection',
+	toolbar.appendChild(toolButton('sync', t('Sync to the current selection'),
 		() => vscode.postMessage({ method: 'sync', on: flip('sync') }), 'toggleSync'));
-	toolbar.appendChild(toolButton('settings', 'Options', toggleOptions, 'toggleOptions'));
+	toolbar.appendChild(toolButton('settings', t('Options'), toggleOptions, 'toggleOptions'));
 
 	// The GUI's toolbar sections, which its Toolbar Sections menu hides; a
 	// separator goes with the section before it
@@ -166,7 +167,7 @@ export function buildToolbar()
 		showMenu([
 			...optionsMenuItems(),
 			{ separator: true },
-			{ label: 'Toolbar Sections', children: toolbarSectionItems },
+			{ label: t('Toolbar Sections'), children: toolbarSectionItems },
 		], e.clientX, e.clientY);
 	};
 
@@ -177,13 +178,13 @@ export function buildToolbar()
 
 /** The GUI's toolbar sections by their bit in its ClusterGraphSettings/toolbars */
 const TOOLBAR_SECTIONS = /** @type {const} */ ([
-	['style', 0x001, 'Variant'],
-	['file', 0x002, 'File'],
-	['archive', 0x004, 'Archive'],
-	['edit', 0x008, 'Edit'],
-	['nav', 0x010, 'Navigation'],
-	['reuse', 0x040, 'Reuse'],
-	['sync', 0x080, 'Sync'],
+	['style', 0x001, t('Variant')],
+	['file', 0x002, t('File')],
+	['archive', 0x004, t('Archive')],
+	['edit', 0x008, t('Edit')],
+	['nav', 0x010, t('Navigation')],
+	['reuse', 0x040, t('Reuse')],
+	['sync', 0x080, t('Sync')],
 ]);
 
 // Style, File, Edit, Navigation, Sync and the GUI's released windows
@@ -206,7 +207,7 @@ function askZoom(zoomSelect)
 	input.min = '1';
 	input.max = '300';
 	input.value = String(Math.round(zoom * 100));
-	input.title = 'Zoom percentage (1 to 300): Enter applies, Escape cancels';
+	input.title = t('Zoom percentage (1 to 300): Enter applies, Escape cancels');
 	zoomSelect.hidden = true;
 	zoomSelect.after(input);
 	let done = false;
@@ -273,7 +274,7 @@ export function updateToolbar()
 	const showAll = document.getElementById('showAllHidden');
 	if (showAll)
 		showAll.title = info && info.hidden && info.hidden.length
-			? `Show All Hidden Nodes (${info.hidden.length})` : 'Show All Hidden Nodes';
+			? t('Show All Hidden Nodes ({0})', info.hidden.length) : t('Show All Hidden Nodes');
 	show('clearHighlights', interactive);
 	enable('clearHighlights', !!(info && info.highlights));
 	// Only when there is a saved state to load
@@ -289,7 +290,7 @@ export function updateToolbar()
 	const relationship = document.getElementById('relationship');
 	if (relationship && info && info.relationship)
 		relationship.title = info.relationship.name
-			? `Second Entity: ${info.relationship.name} (change…)` : 'Select a Second Entity…';
+			? t('Second Entity: {0} (change…)', info.relationship.name) : t('Select a Second Entity…');
 	enable('findSelectAll', findMatches.some(m => m.hasAttribute('data-owner')));
 	setOn('togglePeek', !!peekOn);
 
@@ -389,7 +390,7 @@ export function updateSavedSelect()
 	const { savedNames } = toolbarState;
 	const placeholder = document.createElement('option');
 	placeholder.value = '';
-	placeholder.textContent = savedNames.length ? 'Load saved state…' : 'No saved states';
+	placeholder.textContent = savedNames.length ? t('Load saved state…') : t('No saved states');
 	select.appendChild(placeholder);
 	for (const name of savedNames) {
 		const option = document.createElement('option');
@@ -400,13 +401,13 @@ export function updateSavedSelect()
 	if (savedNames.length) {
 		const remove = document.createElement('option');
 		remove.value = REMOVE_SAVED;
-		remove.textContent = 'Remove…';
+		remove.textContent = t('Remove…');
 		select.appendChild(remove);
 	}
 	select.disabled = !savedNames.length;
 	select.value = '';
 	if (info && info.savedName)
-		select.title = `Load Graph State (current: ${info.savedName})`;
+		select.title = t('Load Graph State (current: {0})', info.savedName);
 }
 
 

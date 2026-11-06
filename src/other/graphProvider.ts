@@ -5,6 +5,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 
 import { escapeHtml } from './html';
+import { l10nAttribute } from './webviewL10n';
 import { variables } from './variables';
 import {
 	FilterAction, GraphFilters, GraphInfo, GraphKey, GraphMessageFromSandbox, GraphMessageToSandbox,
@@ -133,7 +134,7 @@ export class GraphProvider
 			&& variables.graphTreeProvider?.isRootArch(labelOf(root))) {
 			const answer = await vscode.window.showWarningMessage(
 				`${graphLabel(graphName)} on the architecture '${rootLabel}' covers the whole project and can take minutes to draw.`,
-				{ modal: true }, 'Draw');
+				{ modal: true }, vscode.l10n.t('Draw'));
 			if (answer !== 'Draw')
 				return;
 		}
@@ -439,7 +440,7 @@ export const graphNotifications: { [method: string]: (params: any) => unknown } 
 	exported: (params: { path: string, error: string, legend?: boolean }) => {
 		const what = params.legend ? 'legend' : 'graph';
 		if (params.error)
-			vscode.window.showErrorMessage(`Failed to save ${what} "${params.path}": ${params.error}`);
+			vscode.window.showErrorMessage(vscode.l10n.t('Failed to save {0} "{1}": {2}', what, params.path, params.error));
 		else
 			vscode.window.setStatusBarMessage(`${params.legend ? 'Legend' : 'Graph'} saved to ${params.path}`, 3000);
 	},
@@ -487,32 +488,32 @@ async function showDiff(params: GraphKey & { left: { label: string, text: string
 async function printGraph(svg: string, title: string)
 {
 	const scale = await vscode.window.showQuickPick([
-		{ label: 'Fit to one page', percent: 0 },
-		{ label: 'Actual size (over as many pages as it takes)', percent: 100 },
-		{ label: 'Scale…', percent: -1 },
-	], { title: 'Print Graph: scale' });
+		{ label: vscode.l10n.t('Fit to one page'), percent: 0 },
+		{ label: vscode.l10n.t('Actual size (over as many pages as it takes)'), percent: 100 },
+		{ label: vscode.l10n.t('Scale…'), percent: -1 },
+	], { title: vscode.l10n.t('Print Graph: scale') });
 	if (!scale)
 		return;
 	let percent = scale.percent;
 	if (percent < 0) {
-		const typed = await vscode.window.showInputBox({ title: 'Print Graph: scale', prompt: 'Percent of the graph\'s size',
-			value: '100', validateInput: v => Number(v) > 0 && Number(v) <= 1000 ? undefined : 'Enter a percent from 1 to 1000' });
+		const typed = await vscode.window.showInputBox({ title: vscode.l10n.t('Print Graph: scale'), prompt: vscode.l10n.t('Percent of the graph\'s size'),
+			value: '100', validateInput: v => Number(v) > 0 && Number(v) <= 1000 ? undefined : vscode.l10n.t('Enter a percent from 1 to 1000') });
 		if (!typed)
 			return;
 		percent = Number(typed);
 	}
-	const orientation = await vscode.window.showQuickPick(['Landscape', 'Portrait'], { title: 'Print Graph: page' });
+	const orientation = await vscode.window.showQuickPick([vscode.l10n.t('Landscape'), vscode.l10n.t('Portrait')], { title: vscode.l10n.t('Print Graph: page') });
 	if (!orientation)
 		return;
-	const marks = await vscode.window.showQuickPick(['Page border', 'Page numbers'],
-		{ title: 'Print Graph: page markers', canPickMany: true });
+	const marks = await vscode.window.showQuickPick([vscode.l10n.t('Page border'), vscode.l10n.t('Page numbers')],
+		{ title: vscode.l10n.t('Print Graph: page markers'), canPickMany: true });
 	if (!marks)
 		return;
 	const file = path.join(os.tmpdir(), `understand-graph-${Date.now()}.html`);
 	const size = percent === 0 ? 'svg{width:100%;height:auto;max-height:100vh}'
 		: `svg{width:auto;height:auto;zoom:${percent / 100}}`;
-	const border = marks.includes('Page border') ? 'border:0.5pt solid #000;' : '';
-	const numbers = marks.includes('Page numbers') ? '@bottom-center{content:counter(page) " / " counter(pages)}' : '';
+	const border = marks.includes(vscode.l10n.t('Page border')) ? 'border:0.5pt solid #000;' : '';
+	const numbers = marks.includes(vscode.l10n.t('Page numbers')) ? '@bottom-center{content:counter(page) " / " counter(pages)}' : '';
 	const page = `<!DOCTYPE html><html><head><meta charset='utf-8'><title>${escapeHtml(title)}</title>`
 		+ `<style>@page{size:${orientation.toLowerCase()};margin:10mm;${border}${numbers}}body{margin:0;background:#fff;print-color-adjust:exact}svg{display:block}${size}</style></head>`
 		+ `<body onload='window.print()'>${svg}</body></html>`;
@@ -529,7 +530,7 @@ async function showApiCommand(params: { script: string })
 	await vscode.env.clipboard.writeText(params.script);
 	const document = await vscode.workspace.openTextDocument({ language: 'python', content: params.script });
 	await vscode.window.showTextDocument(document, { viewColumn: vscode.ViewColumn.Beside, preview: true });
-	vscode.window.setStatusBarMessage('API command copied to the clipboard', 3000);
+	vscode.window.setStatusBarMessage(vscode.l10n.t('API command copied to the clipboard'), 3000);
 }
 
 
@@ -565,7 +566,7 @@ export function openGraphWebview(viewType: string, title: string, script: string
 	<link rel='stylesheet' href='${uri('codicon.css')}'>
 </head>
 
-<body data-vscode-context='{"preventDefaultContextMenuItems":true}'>
+<body${l10nAttribute()} data-vscode-context='{"preventDefaultContextMenuItems":true}'>
 ${body}
 	<script src='${uri('views', `${script}.js`)}'></script>
 </body>
@@ -802,9 +803,9 @@ class Graph
 				break;
 			case 'copied':
 				if (message.ok)
-					vscode.window.setStatusBarMessage('Graph image copied', 3000);
+					vscode.window.setStatusBarMessage(vscode.l10n.t('Graph image copied'), 3000);
 				else
-					vscode.window.showErrorMessage(`Failed to copy the graph image: ${message.error ?? 'the clipboard refused it'}`);
+					vscode.window.showErrorMessage(vscode.l10n.t('Failed to copy the graph image: {0}', message.error ?? 'the clipboard refused it'));
 				break;
 			case 'clickedLink':
 				// A label's entity link selects that entity, as in the GUI
@@ -856,12 +857,12 @@ class Graph
 			case 'copyName':
 			case 'copyLongName':
 				await vscode.env.clipboard.writeText(message.text ?? '');
-				vscode.window.setStatusBarMessage(`Copied ${message.text ?? ''}`, 3000);
+				vscode.window.setStatusBarMessage(vscode.l10n.t('Copied {0}', message.text ?? ''), 3000);
 				return;
 			case 'annotate':
 				// At the entity's definition, where the server picks the entity
 				if (textDocument && position)
-					await openNewAnnotationForm({ kind: 'auto', textDocument, position }, message.text || 'New annotation');
+					await openNewAnnotationForm({ kind: 'auto', textDocument, position }, message.text || vscode.l10n.t('New annotation'));
 				return;
 			case 'annotateArch':
 				if (message.text)
@@ -926,17 +927,17 @@ class Graph
 		type Candidates = { entities: RelationCandidate[], total: number };
 		// Open at once and busy: the first question reads the whole project
 		const pick = vscode.window.createQuickPick<vscode.QuickPickItem & { uniqueName: string }>();
-		pick.title = `Select a second entity for [${graphLabel(this.graphName)} : ${this.label}]`;
+		pick.title = vscode.l10n.t('Select a second entity for [{0} : {1}]', graphLabel(this.graphName), this.label);
 		pick.matchOnDescription = true;
 		pick.matchOnDetail = true;
 		pick.busy = true;
-		pick.placeholder = 'Finding the entities this graph can relate to…';
+		pick.placeholder = vscode.l10n.t('Finding the entities this graph can relate to…');
 		const show = (answer: Candidates) => {
 			// The server has already matched on the long name too
 			pick.items = answer.entities.map(e => ({ label: e.name, description: e.kind, detail: e.longName, uniqueName: e.uniqueName, alwaysShow: true }));
 			pick.placeholder = answer.total > answer.entities.length
 				? `${answer.entities.length} of ${answer.total.toLocaleString()} shown: type to narrow`
-				: 'Type to filter';
+				: vscode.l10n.t('Type to filter');
 			pick.busy = false;
 		};
 
@@ -972,7 +973,7 @@ class Graph
 		}
 		if (!first.total) {
 			pick.hide();
-			vscode.window.showInformationMessage('No entity can be the second entity of this relationship graph');
+			vscode.window.showInformationMessage(vscode.l10n.t('No entity can be the second entity of this relationship graph'));
 			return;
 		}
 		// Unless something typed meanwhile has already been answered
@@ -1019,8 +1020,8 @@ class Graph
 		switch (message.action) {
 			case 'saveImage': {
 				// The GUI's formats, which the server writes from the legend
-				const result = await pathToSave(['png', 'jpg', 'svg', { extension: 'vdx', name: 'Visio XML' },
-					{ extension: 'vsdx', name: 'Visio' }, { extension: 'dot', name: 'Graphviz DOT' }]);
+				const result = await pathToSave(['png', 'jpg', 'svg', { extension: 'vdx', name: vscode.l10n.t('Visio XML') },
+					{ extension: 'vsdx', name: 'Visio' }, { extension: 'dot', name: vscode.l10n.t('Graphviz DOT') }]);
 				if (result)
 					this.send('export', { path: result.uri.fsPath, legend: true });
 				return;
@@ -1031,22 +1032,22 @@ class Graph
 			case 'theme':
 				if (message.modified) {
 					const choice = await vscode.window.showWarningMessage(
-						'The current theme has unsaved changes. Switching themes discards them.',
-						{ modal: true }, 'Save and Switch', 'Discard and Switch');
+						vscode.l10n.t('The current theme has unsaved changes. Switching themes discards them.'),
+						{ modal: true }, vscode.l10n.t('Save and Switch'), vscode.l10n.t('Discard and Switch'));
 					if (!choice) {
 						// The legend's theme list already shows the choice; put it back
 						if (this.info)
 							this.postMessage({ method: 'updateInfo', info: this.info });
 						return;
 					}
-					if (choice === 'Save and Switch')
+					if (choice === vscode.l10n.t('Save and Switch'))
 						this.send('legend', { action: 'save' });
 				}
 				break;
 			case 'newTheme':
 			case 'renameTheme': {
 				const name = await vscode.window.showInputBox({
-					prompt: message.action === 'newTheme' ? 'Name for the new graph theme' : 'New name for the graph theme',
+					prompt: message.action === 'newTheme' ? vscode.l10n.t('Name for the new graph theme') : vscode.l10n.t('New name for the graph theme'),
 					value: typeof message.value === 'string' ? message.value : '',
 				});
 				if (!name)
@@ -1056,20 +1057,20 @@ class Graph
 			}
 			case 'removeTheme': {
 				const choice = await vscode.window.showWarningMessage(
-					'Remove this graph theme?', { modal: true }, 'Remove');
+					vscode.l10n.t('Remove this graph theme?'), { modal: true }, vscode.l10n.t('Remove'));
 				if (choice !== 'Remove')
 					return;
 				break;
 			}
 			case 'export': {
-				const uri = await vscode.window.showSaveDialog({ filters: { 'Graph theme': ['json'] }, title: 'Export Graph Theme' });
+				const uri = await vscode.window.showSaveDialog({ filters: { 'Graph theme': ['json'] }, title: vscode.l10n.t('Export Graph Theme') });
 				if (!uri)
 					return;
 				params.path = uri.fsPath;
 				break;
 			}
 			case 'import': {
-				const uris = await vscode.window.showOpenDialog({ filters: { 'Graph theme': ['json'] }, title: 'Import Graph Themes', canSelectMany: false });
+				const uris = await vscode.window.showOpenDialog({ filters: { 'Graph theme': ['json'] }, title: vscode.l10n.t('Import Graph Themes'), canSelectMany: false });
 				if (!uris || !uris.length)
 					return;
 				params.path = uris[0].fsPath;
@@ -1092,32 +1093,32 @@ class Graph
 
 		if (styleKind === 'metric') {
 			if (!kinds.canMetric) {
-				vscode.window.showInformationMessage('This graph has no metrics to color by');
+				vscode.window.showInformationMessage(vscode.l10n.t('This graph has no metrics to color by'));
 				return;
 			}
 			const metric = await vscode.window.showQuickPick(
 				kinds.metrics.map(m => ({ label: m.name, description: m.id, id: m.id })),
-				{ title: editing ? 'Edit Metric Color Scale' : 'Add Metric Color Scale', placeHolder: 'Metric' });
+				{ title: editing ? vscode.l10n.t('Edit Metric Color Scale') : vscode.l10n.t('Add Metric Color Scale'), placeHolder: vscode.l10n.t('Metric') });
 			if (!metric)
 				return;
-			const name = await vscode.window.showInputBox({ title: 'Name', value: editing?.name || metric.label });
+			const name = await vscode.window.showInputBox({ title: vscode.l10n.t('Name'), value: editing?.name || metric.label });
 			if (!name)
 				return;
 			const color = (prompt: string, value: string) => vscode.window.showInputBox({
 				title: prompt, value,
 				// The server's defaults are color names ("white"), which it reads as the GUI does
-				validateInput: v => /^(#[0-9a-f]{6}|[a-z]+)$/i.test(v.trim()) ? undefined : 'A color such as #3366cc or white',
+				validateInput: v => /^(#[0-9a-f]{6}|[a-z]+)$/i.test(v.trim()) ? undefined : vscode.l10n.t('A color such as #3366cc or white'),
 			});
-			const minColor = await color('Color for the lowest value', editing?.minColor || kinds.minColor);
+			const minColor = await color(vscode.l10n.t('Color for the lowest value'), editing?.minColor || kinds.minColor);
 			if (!minColor)
 				return;
-			const maxColor = await color('Color for the highest value', editing?.maxColor || kinds.maxColor);
+			const maxColor = await color(vscode.l10n.t('Color for the highest value'), editing?.maxColor || kinds.maxColor);
 			if (!maxColor)
 				return;
 			const range = await vscode.window.showInputBox({
-				title: 'Range',
-				prompt: 'Leave empty for an automatic range, or give "minimum, maximum"',
-				validateInput: v => !v.trim() || /^\s*-?[\d.]+\s*,\s*-?[\d.]+\s*$/.test(v) ? undefined : 'Two numbers, such as 0, 100',
+				title: vscode.l10n.t('Range'),
+				prompt: vscode.l10n.t('Leave empty for an automatic range, or give "minimum, maximum"'),
+				validateInput: v => !v.trim() || /^\s*-?[\d.]+\s*,\s*-?[\d.]+\s*$/.test(v) ? undefined : vscode.l10n.t('Two numbers, such as 0, 100'),
 			});
 			if (range === undefined)
 				return;
@@ -1135,21 +1136,21 @@ class Graph
 
 		const edge = styleKind === 'edge';
 		if (!(edge ? kinds.canEdge : kinds.canNode)) {
-			vscode.window.showInformationMessage(`This graph has no ${edge ? 'edge' : 'node'} styles to add`);
+			vscode.window.showInformationMessage(edge ? vscode.l10n.t('This graph has no edge styles to add') : vscode.l10n.t('This graph has no node styles to add'));
 			return;
 		}
 		const list = edge ? kinds.edge : kinds.node;
 		const other = { label: '$(edit) Type a kind string…', kindString: '' };
 		const kindPick = await vscode.window.showQuickPick(
 			[...list.map(k => ({ label: k.name, description: k.kind, kindString: k.kind })), other],
-			{ title: editing ? (edge ? 'Edit Edge Style' : 'Edit Node Style') : (edge ? 'New Edge Style' : 'New Node Style'),
-				placeHolder: edge ? 'Reference Kind' : 'Entity Kind' });
+			{ title: editing ? (edge ? vscode.l10n.t('Edit Edge Style') : vscode.l10n.t('Edit Node Style')) : (edge ? vscode.l10n.t('New Edge Style') : vscode.l10n.t('New Node Style')),
+				placeHolder: edge ? vscode.l10n.t('Reference Kind') : vscode.l10n.t('Entity Kind') });
 		if (!kindPick)
 			return;
 		let kind = kindPick.kindString;
 		if (kindPick === other) {
 			kind = await vscode.window.showInputBox({
-				title: edge ? 'Reference kind string' : 'Entity kind string', value: editing?.rule ?? '' }) ?? '';
+				title: edge ? vscode.l10n.t('Reference kind string') : vscode.l10n.t('Entity kind string'), value: editing?.rule ?? '' }) ?? '';
 			if (!kind)
 				return;
 		}
@@ -1171,17 +1172,17 @@ class Graph
 		if (!name) {
 			if (message.action === 'save') {
 				name = await vscode.window.showInputBox({
-					prompt: 'Name for this graph state',
+					prompt: vscode.l10n.t('Name for this graph state'),
 					value: this.savedName,
 				});
 			}
 			else if (names.length) {
 				name = await vscode.window.showQuickPick(names, {
-					title: message.action === 'load' ? 'Load Graph State' : 'Remove Graph State',
+					title: message.action === 'load' ? vscode.l10n.t('Load Graph State') : vscode.l10n.t('Remove Graph State'),
 				});
 			}
 			else {
-				vscode.window.showInformationMessage('This graph has no saved states');
+				vscode.window.showInformationMessage(vscode.l10n.t('This graph has no saved states'));
 				return;
 			}
 		}
@@ -1189,7 +1190,7 @@ class Graph
 			return;
 		if (message.action === 'save' && names.includes(name)) {
 			const choice = await vscode.window.showWarningMessage(
-				`Replace the saved graph state "${name}"?`, { modal: true }, 'Replace');
+				vscode.l10n.t('Replace the saved graph state "{0}"?', name), { modal: true }, vscode.l10n.t('Replace'));
 			if (choice !== 'Replace')
 				return;
 		}
@@ -1206,7 +1207,7 @@ class Graph
 	async save()
 	{
 		const names: { [extension: string]: string } = {
-			vdx: 'Visio XML', vsdx: 'Visio', dot: 'Graphviz DOT', pu: 'PlantUML' };
+			vdx: vscode.l10n.t('Visio XML'), vsdx: 'Visio', dot: vscode.l10n.t('Graphviz DOT'), pu: 'PlantUML' };
 		const more = (this.info?.exportFormats ?? []).filter(f => f !== 'svg');
 		const result = await pathToSave(['svg', 'jpg', 'png', ...more.map(f => ({ extension: f, name: names[f] ?? f.toUpperCase() }))]);
 		if (!result)
@@ -1292,17 +1293,17 @@ class Graph
 async function editFilter(filters: GraphFilters, filter: GraphFilters['filters'][number])
 	: Promise<GraphFilters['filters'][number] | undefined>
 {
-	const text = await vscode.window.showInputBox({ title: 'Graphic Filter Editor', prompt: 'Filter Text', value: filter.text });
+	const text = await vscode.window.showInputBox({ title: vscode.l10n.t('Graphic Filter Editor'), prompt: vscode.l10n.t('Filter Text'), value: filter.text });
 	if (!text)
 		return;
 	const criteria = await vscode.window.showQuickPick(
 		filters.criteria.map(c => ({ label: c.name, id: c.id, picked: c.id === filter.criteria })),
-		{ title: 'Filter Criteria' });
+		{ title: vscode.l10n.t('Filter Criteria') });
 	if (!criteria)
 		return;
 	const action = await vscode.window.showQuickPick(
 		filters.actions.map(a => ({ label: a.name, id: a.id, picked: a.id === filter.action })),
-		{ title: 'Filter Action' });
+		{ title: vscode.l10n.t('Filter Action') });
 	if (!action)
 		return;
 	return { text, criteria: criteria.id, action: action.id };
@@ -1313,8 +1314,8 @@ async function saveFile(path: string, content: Buffer)
 {
 	try {
 		await fsPromises.writeFile(path, content);
-		vscode.window.setStatusBarMessage(`Graph saved to ${path}`, 3000);
+		vscode.window.setStatusBarMessage(vscode.l10n.t('Graph saved to {0}', path), 3000);
 	} catch (error) {
-		vscode.window.showErrorMessage(`Failed to save graph "${path}": ${error}`);
+		vscode.window.showErrorMessage(vscode.l10n.t('Failed to save graph "{0}": {1}', path, String(error)));
 	}
 }

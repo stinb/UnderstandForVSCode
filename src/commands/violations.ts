@@ -82,7 +82,7 @@ async function listConfigFiles(): Promise<vscode.Uri[] | null>
 {
 	const path = databasePath();
 	if (!path) {
-		vscode.window.showWarningMessage('No Understand project is open');
+		vscode.window.showWarningMessage(vscode.l10n.t('No Understand project is open'));
 		return null;
 	}
 	const dir = vscode.Uri.file(path + '/codecheck/configs');
@@ -97,7 +97,7 @@ async function listConfigFiles(): Promise<vscode.Uri[] | null>
 		.map(([name]) => vscode.Uri.joinPath(dir, name));
 	if (files.length === 0) {
 		vscode.window.showInformationMessage(
-			'The project has no CodeCheck configurations yet — create one in Understand (Checks → Select Checks)');
+			vscode.l10n.t('The project has no CodeCheck configurations yet — create one in Understand (Checks → Select Checks)'));
 		return null;
 	}
 	return files;
@@ -116,7 +116,7 @@ async function loadConfig(uri: vscode.Uri): Promise<ConfigFile | null>
 		const text = new TextDecoder().decode(await vscode.workspace.fs.readFile(uri));
 		return { uri, json: JSON.parse(text) };
 	} catch {
-		vscode.window.showErrorMessage(`Could not read ${uri.fsPath}`);
+		vscode.window.showErrorMessage(vscode.l10n.t('Could not read {0}', uri.fsPath));
 		return null;
 	}
 }
@@ -141,7 +141,7 @@ async function pickConfig(): Promise<ConfigFile | null>
 		return configs[0];
 	const picked = await vscode.window.showQuickPick(
 		configs.map(c => c.json.name || c.uri.path.split('/').pop() || ''),
-		{ placeHolder: 'CodeCheck configuration' });
+		{ placeHolder: vscode.l10n.t('CodeCheck configuration') });
 	if (picked === undefined)
 		return null;
 	return configs.find(c => (c.json.name || c.uri.path.split('/').pop()) === picked) ?? null;
@@ -183,7 +183,7 @@ function clickedPath(resource?: vscode.Uri | { filePath?: string }): string | un
 async function excludePath(fsPath: string)
 {
 	if (!databasePath()) {
-		vscode.window.showWarningMessage('No Understand project is open');
+		vscode.window.showWarningMessage(vscode.l10n.t('No Understand project is open'));
 		return;
 	}
 
@@ -205,7 +205,7 @@ async function excludePath(fsPath: string)
 		return;
 	}
 	vscode.window.showInformationMessage(
-		`Excluded "${name}" from ${config.json.name} — its stored violations are removed, and new runs skip it`);
+		vscode.l10n.t('Excluded "{0}" from {1} — its stored violations are removed, and new runs skip it', name ?? '', config.json.name ?? ''));
 }
 
 
@@ -213,7 +213,7 @@ export async function excludeFromCodeCheck(resource?: vscode.Uri | { filePath?: 
 {
 	const fsPath = clickedPath(resource);
 	if (!fsPath) {
-		vscode.window.showWarningMessage('Right-click a file or folder in the Explorer, or a file in the Violations views, to exclude it');
+		vscode.window.showWarningMessage(vscode.l10n.t('Right-click a file or folder in the Explorer, or a file in the Violations views, to exclude it'));
 		return;
 	}
 	await excludePath(fsPath);
@@ -226,7 +226,7 @@ export async function excludeFolderFromCodeCheck(resource?: vscode.Uri | { fileP
 {
 	const fsPath = clickedPath(resource);
 	if (!fsPath) {
-		vscode.window.showWarningMessage('Right-click a file in one of the Violations views to exclude its folder');
+		vscode.window.showWarningMessage(vscode.l10n.t('Right-click a file in one of the Violations views to exclude its folder'));
 		return;
 	}
 
@@ -244,7 +244,7 @@ export async function excludeFolderFromCodeCheck(resource?: vscode.Uri | { fileP
 		folder = folder.substring(0, folder.lastIndexOf('/'));
 	}
 	if (folders.length === 0) {
-		vscode.window.showWarningMessage('The file has no folder inside the project to exclude');
+		vscode.window.showWarningMessage(vscode.l10n.t('The file has no folder inside the project to exclude'));
 		return;
 	}
 
@@ -254,7 +254,7 @@ export async function excludeFolderFromCodeCheck(resource?: vscode.Uri | { fileP
 			description: f,
 			folder: f,
 		})),
-		{ placeHolder: 'Folder to exclude from CodeCheck (nearest first)' });
+		{ placeHolder: vscode.l10n.t('Folder to exclude from CodeCheck (nearest first)') });
 	if (picked)
 		await excludePath(picked.folder);
 }
@@ -283,7 +283,7 @@ export async function editExcludedPaths()
 	const items = excludes.map(prefix => `$(trash) ${prefix}`).concat(addLabel);
 	const picked = await vscode.window.showQuickPick(items, {
 		placeHolder: excludes.length
-			? `Excluded paths in ${config.json.name} — pick one to remove, or add`
+			? vscode.l10n.t('Excluded paths in {0} — pick one to remove, or add', config.json.name ?? '')
 			: `${config.json.name} excludes nothing yet — add a path prefix`,
 	});
 	if (picked === undefined)
@@ -291,7 +291,7 @@ export async function editExcludedPaths()
 
 	if (picked === addLabel) {
 		const prefix = await vscode.window.showInputBox({
-			prompt: 'Path prefix to exclude, matched against each file\'s project-relative path (as Understand stores it)',
+			prompt: vscode.l10n.t('Path prefix to exclude, matched against each file\'s project-relative path (as Understand stores it)'),
 			placeHolder: 'workspace\\src\\lib\\',
 		});
 		if (!prefix)
@@ -313,7 +313,7 @@ export async function editExcludedPaths()
 		invalidateFileStatus();
 		vscode.window.showInformationMessage(answer?.alreadyExcluded
 			? `"${prefix.trim()}" was already excluded from ${config.json.name}${coveredBy(answer, prefix.trim())} — nothing changed`
-			: `Excluded "${prefix.trim()}" from ${config.json.name}`);
+			: vscode.l10n.t('Excluded "{0}" from {1}', prefix.trim(), config.json.name ?? ''));
 		return;
 	}
 
@@ -332,11 +332,11 @@ export async function editExcludedPaths()
 		// still covers everything it did and the files stay excluded.
 		const keptBy: string | undefined = answer?.keptBy;
 		vscode.window.showInformationMessage(keptBy
-			? `Removed "${prefix}" from ${config.json.name}, but "${keptBy}" still excludes the same files — nothing changes until that entry is removed too`
+			? vscode.l10n.t('Removed "{0}" from {1}, but "{2}" still excludes the same files — nothing changes until that entry is removed too', prefix, config.json.name ?? '', keptBy)
 			: `"${prefix}" is no longer excluded from ${config.json.name}`);
 		return;
 	}
-	const analyze = 'Analyze Changed Files';
+	const analyze = vscode.l10n.t('Analyze Changed Files');
 	// Removing an exclusion cannot restore violations by itself: the files
 	// are unchanged on disk, so only an analysis re-checks them (sti #3508 1.6).
 	const chosen = await vscode.window.showInformationMessage(

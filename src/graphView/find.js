@@ -4,6 +4,7 @@
 import { focusOnGraph, toolButton } from './util.js';
 import { replaceSelection } from './selection.js';
 import { graphCenterOf, nodeSelector, focusNode } from './view.js';
+import { t } from './l10n.js';
 
 
 /** @type {Element[]} */
@@ -200,8 +201,8 @@ export function appendFindTools(toolbar)
 	const find = document.createElement('input');
 	find.id = 'find';
 	find.type = 'search';
-	find.placeholder = 'Find';
-	find.title = 'Find text in the graph (Enter: next, Shift+Enter: previous)';
+	find.placeholder = t('Find');
+	find.title = t('Find text in the graph (Enter: next, Shift+Enter: previous)');
 	// The page turns VS Code's Cut/Copy/Paste menu off; a text box has it
 	find.dataset.vscodeContext = '{"preventDefaultContextMenuItems":false}';
 	find.oninput = () => {
@@ -226,7 +227,7 @@ export function appendFindTools(toolbar)
 		}
 	};
 	toolbar.appendChild(find);
-	for (const [icon, title, id] of [['case-sensitive', 'Case Sensitive', 'findCase'], ['whole-word', 'Whole Words', 'findWords']]) {
+	for (const [icon, title, id] of [['case-sensitive', t('Case Sensitive'), 'findCase'], ['whole-word', t('Whole Words'), 'findWords']]) {
 		const button = toolButton(icon, title, () => {
 			if (id === 'findCase')
 				findCase = !findCase;
@@ -240,9 +241,9 @@ export function appendFindTools(toolbar)
 	const findCount = document.createElement('span');
 	findCount.id = 'findCount';
 	toolbar.appendChild(findCount);
-	toolbar.appendChild(toolButton('arrow-up', 'Find Previous', () => stepFind(-1), 'findPrev'));
-	toolbar.appendChild(toolButton('arrow-down', 'Find Next', () => stepFind(1), 'findNext'));
-	toolbar.appendChild(toolButton('list-selection', 'Select All Results', selectFindResults, 'findSelectAll'));
+	toolbar.appendChild(toolButton('arrow-up', t('Find Previous'), () => stepFind(-1), 'findPrev'));
+	toolbar.appendChild(toolButton('arrow-down', t('Find Next'), () => stepFind(1), 'findNext'));
+	toolbar.appendChild(toolButton('list-selection', t('Select All Results'), selectFindResults, 'findSelectAll'));
 }
 
 
@@ -267,7 +268,7 @@ function updateFindCount()
 	if (!query)
 		count.textContent = '';
 	else if (!findMatches.length)
-		count.textContent = 'No results';
+		count.textContent = t('No results');
 	else
 		count.textContent = `${findIndex + 1} of ${findMatches.length}`;
 }

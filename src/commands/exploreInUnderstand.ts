@@ -18,8 +18,8 @@ export async function newProject()
 		canSelectFiles: false,
 		canSelectFolders: true,
 		canSelectMany: false,
-		openLabel: 'Select',
-		title: 'Root directory of your source code',
+		openLabel: vscode.l10n.t('Select'),
+		title: vscode.l10n.t('Root directory of your source code'),
 	});
 	if (!uris || uris.length !== 1)
 		return;

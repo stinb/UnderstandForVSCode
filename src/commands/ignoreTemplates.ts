@@ -1,3 +1,4 @@
+import { l10n } from 'vscode';
 import { variables } from '../other/variables';
 import { draftForm, openFieldEditor } from '../other/fieldEditor';
 import { AnnotationTemplate } from '../types/annotation';
@@ -36,6 +37,6 @@ export async function ignoreViolationWithDetails(arg: IgnoreArg)
 	// anchor names (see saveForm in fieldEditor.ts); its annotation sits on
 	// the violation's line, which is what the Metadata is expanded for. The
 	// template is picked on the form itself.
-	openFieldEditor(await draftForm(`Ignore ${arg.violationsToIgnore.id}`, templates, starting,
+	openFieldEditor(await draftForm(l10n.t('Ignore {0}', arg.violationsToIgnore.id), templates, starting,
 		{ kind: 'ignore', ...arg }, { filePath: arg.filePath, line: arg.violationsToIgnore.line }));
 }

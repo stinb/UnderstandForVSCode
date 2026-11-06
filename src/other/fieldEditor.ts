@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { annotationForm, confirmRetype } from '../commands/editAnnotationFields';
 import { openAnnotation, showLocation } from '../commands/openAnnotation';
 import { escapeHtml } from './html';
+import { l10nAttribute } from './webviewL10n';
 import { variables } from './variables';
 import { AnnotationMessageFromSandbox, AnnotationTemplate, FormAnchor, FormMessage, FormSaveMessage } from '../types/annotation';
 import { CheckMessage, ConfigurationMessage } from '../types/check';
@@ -158,7 +159,7 @@ export function openFieldEditor(message: PanelMessage)
 		+ `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${cspSource}; script-src ${cspSource}; style-src ${cspSource};">`
 		+ `<link rel='stylesheet' href='${asset('views', 'annotations.css')}'>`
 		+ `<link rel='stylesheet' href='${asset('codicon.css')}'>`
-		+ '</head><body class="popup"><div></div>'
+		+ `</head><body class="popup"${l10nAttribute()}><div></div>`
 		+ `<script src="${asset('views', 'markdown-it.min.js')}"></script>`
 		+ `<script src="${asset('views', 'templateRules.js')}"></script>`
 		+ `<script src="${asset('views', 'annotations.js')}"></script>`
@@ -302,7 +303,7 @@ async function saveForm(message: FormSaveMessage): Promise<SaveOutcome>
 		return { ok: true };
 	} catch (error) {
 		vscode.window.showErrorMessage(error instanceof Error
-			? error.message : 'Failed to save the annotation');
+			? error.message : vscode.l10n.t('Failed to save the annotation'));
 		return { ok: false };
 	}
 }

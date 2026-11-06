@@ -70,7 +70,7 @@ async function resolve(annotation: Annotated): Promise<Annotated | undefined>
 		};
 	} catch (error) {
 		vscode.window.showErrorMessage(error instanceof Error
-			? error.message : 'Failed to load the annotation');
+			? error.message : vscode.l10n.t('Failed to load the annotation'));
 		return undefined;
 	}
 }
@@ -85,7 +85,7 @@ type EditorOptions = { readOnly?: boolean, focusLabel?: string };
 export async function editAnnotationFields(annotated: Annotated | undefined, options: EditorOptions = {})
 {
 	if (!annotated || !annotated.id) {
-		vscode.window.showErrorMessage('Select an annotation to edit');
+		vscode.window.showErrorMessage(vscode.l10n.t('Select an annotation to edit'));
 		return;
 	}
 	const form = await annotationForm(annotated, options);
@@ -113,7 +113,7 @@ export async function annotationForm(annotated: Annotated, options: EditorOption
 		template = await fetchTemplate(annotation.templateId);
 		if (!template) {
 			vscode.window.showErrorMessage(
-				`The template for this annotation is no longer in the project.`);
+				vscode.l10n.t('The template for this annotation is no longer in the project.'));
 			return undefined;
 		}
 	}
@@ -203,8 +203,8 @@ export async function confirmRetype(id: string, templateId: string): Promise<boo
 	if (!lost.length)
 		return true;
 	const answer = await vscode.window.showWarningMessage(
-		`Changing template discards ${lost.join(', and ')}.`,
-		{ modal: true }, 'Change Template');
+		vscode.l10n.t('Changing template discards {0}.', lost.join(', and ')),
+		{ modal: true }, vscode.l10n.t('Change Template'));
 	return answer === 'Change Template';
 }
 
@@ -231,7 +231,7 @@ function locationOf(annotation: Annotated): FormLocation | undefined
 export async function retypeAnnotation(annotation: Annotated | undefined)
 {
 	if (!annotation || !annotation.id) {
-		vscode.window.showErrorMessage('Select an annotation to retype');
+		vscode.window.showErrorMessage(vscode.l10n.t('Select an annotation to retype'));
 		return;
 	}
 	// A new name rather than a reassignment: the narrowing has to hold inside
@@ -248,10 +248,10 @@ export async function retypeAnnotation(annotation: Annotated | undefined)
 			...templates
 				.filter(t => t.id !== atn.templateId)
 				.map(t => ({ label: t.name, id: t.id })),
-			{ label: 'Freeform (no template)', id: '' },
+			{ label: vscode.l10n.t('Freeform (no template)'), id: '' },
 		],
 		{ placeHolder: atn.templateName
-			? `Change from "${atn.templateName}" to` : 'Use template' });
+			? vscode.l10n.t('Change from "{0}" to', atn.templateName) : vscode.l10n.t('Use template') });
 	if (picked === undefined)
 		return;
 
@@ -264,7 +264,7 @@ export async function retypeAnnotation(annotation: Annotated | undefined)
 		});
 	} catch (error) {
 		vscode.window.showErrorMessage(error instanceof Error
-			? error.message : 'Failed to change the template');
+			? error.message : vscode.l10n.t('Failed to change the template'));
 	}
 }
 

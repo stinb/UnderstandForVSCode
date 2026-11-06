@@ -48,7 +48,7 @@ export async function annotateLine(uri?: vscode.Uri, line?: number)
 	if (uri === undefined || line === undefined) {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
-			vscode.window.showErrorMessage('Open a file to annotate a line in it');
+			vscode.window.showErrorMessage(vscode.l10n.t('Open a file to annotate a line in it'));
 			return;
 		}
 		uri = editor.document.uri;
@@ -61,5 +61,5 @@ export async function annotateLine(uri?: vscode.Uri, line?: number)
 			textDocument: { uri: uri.toString() },
 			position: { line, character: 0 },
 		},
-		'New annotation');
+		vscode.l10n.t('New annotation'));
 }

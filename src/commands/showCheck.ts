@@ -23,11 +23,11 @@ export async function showCheck(arg?: string | { checkId?: string, fromConfigura
 	const id = typeof arg === 'string' ? arg : arg?.checkId;
 	const from = typeof arg === 'object' ? arg?.fromConfiguration : undefined;
 	if (!id) {
-		vscode.window.showErrorMessage('Select a violation to show its check');
+		vscode.window.showErrorMessage(vscode.l10n.t('Select a violation to show its check'));
 		return;
 	}
 	if (!isCheckId(id)) {
-		vscode.window.showInformationMessage('This is a compiler error or warning, not a check violation.');
+		vscode.window.showInformationMessage(vscode.l10n.t('This is a compiler error or warning, not a check violation.'));
 		return;
 	}
 	let check: CheckInfo;
@@ -35,7 +35,7 @@ export async function showCheck(arg?: string | { checkId?: string, fromConfigura
 		check = await variables.languageClient.sendRequest('understand/check', { id });
 	} catch (error) {
 		vscode.window.showErrorMessage(error instanceof Error
-			? error.message : `Failed to load the check ${id}`);
+			? error.message : vscode.l10n.t('Failed to load the check {0}', id));
 		return;
 	}
 	openFieldEditor({ method: 'check', title: check.name, check, ...(from ? { from } : {}) });
@@ -76,8 +76,8 @@ export class CheckCodeActionProvider implements vscode.CodeActionProvider
 			if (!id || seen.has(id))
 				continue;
 			seen.add(id);
-			const action = new vscode.CodeAction(`Show check ${id}`, vscode.CodeActionKind.QuickFix);
-			action.command = { command: 'understand.checks.show', title: 'Show Check', arguments: [id] };
+			const action = new vscode.CodeAction(vscode.l10n.t('Show check {0}', id), vscode.CodeActionKind.QuickFix);
+			action.command = { command: 'understand.checks.show', title: vscode.l10n.t('Show Check'), arguments: [id] };
 			action.diagnostics = [diagnostic];
 			actions.push(action);
 		}

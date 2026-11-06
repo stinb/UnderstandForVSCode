@@ -6,6 +6,7 @@ import { goToLocUrl, nodeElement } from './util.js';
 import { nodeIdOf, labelOwnerOf, applySelection, replaceSelection, toggle, selectNode } from './selection.js';
 import { suppressNextClick, consumeDragClick } from './drags.js';
 import { peekOn, peekNodeId, showPeek, hidePeek } from './peek.js';
+import { t } from './l10n.js';
 
 
 // A click selects and syncs, as Understand's does; it opens nothing. With
@@ -118,7 +119,7 @@ export function onMouseEnterNode(e)
 
 	switch (url.protocol) {
 		case 'entity:': {
-			container.title = 'See entity';
+			container.title = t('See entity');
 			break;
 		}
 		case 'loc:': {
@@ -127,17 +128,17 @@ export function onMouseEnterNode(e)
 			if (match) {
 				const line = url.searchParams.get('line');
 				if (line !== null)
-					container.title = `Go to ${match[0]} at line ${line}`;
+					container.title = t('Go to {0} at line {1}', match[0], line);
 				else
-					container.title = `Go to ${match[0]}`;
+					container.title = t('Go to {0}', match[0]);
 			}
 			else {
-				container.title = 'Go to code';
+				container.title = t('Go to code');
 			}
 			break;
 		}
 		case 'arch:': {
-			container.title = `Graph ${decodeURIComponent(url.pathname)}`;
+			container.title = t('Graph {0}', decodeURIComponent(url.pathname));
 			break;
 		}
 	}

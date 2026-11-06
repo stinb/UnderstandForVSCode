@@ -10,10 +10,10 @@ import { variables } from '../other/variables';
 
 
 const LOCAL_MODEL_CHOICES = [
-	{ id: 'qwen-fast',      filename: 'Qwen3-1.7B-Q4_K_M.gguf',          label: 'Qwen3-1.7B (1.0 GB) — Best balance of quality and speed' },
-	{ id: 'qwen-medium',    filename: 'Qwen3-4B-Q4_K_M.gguf',            label: 'Qwen3-4B (2.3 GB) — Better reasoning with modest resource cost' },
-	{ id: 'qwen-accurate',  filename: 'Qwen3-8B-Q4_K_M.gguf',            label: 'Qwen3-8B (4.7 GB) — Stronger code understanding for larger projects' },
-	{ id: 'granite-medium', filename: 'granite-4.0-micro-Q4_K_M.gguf',   label: 'Granite4-Micro (3B parameters) (2.0 GB) — US-origin option, balanced choice' },
+	{ id: 'qwen-fast',      filename: 'Qwen3-1.7B-Q4_K_M.gguf',          label: vscode.l10n.t('Qwen3-1.7B (1.0 GB) — Best balance of quality and speed') },
+	{ id: 'qwen-medium',    filename: 'Qwen3-4B-Q4_K_M.gguf',            label: vscode.l10n.t('Qwen3-4B (2.3 GB) — Better reasoning with modest resource cost') },
+	{ id: 'qwen-accurate',  filename: 'Qwen3-8B-Q4_K_M.gguf',            label: vscode.l10n.t('Qwen3-8B (4.7 GB) — Stronger code understanding for larger projects') },
+	{ id: 'granite-medium', filename: 'granite-4.0-micro-Q4_K_M.gguf',   label: vscode.l10n.t('Granite4-Micro (3B parameters) (2.0 GB) — US-origin option, balanced choice') },
 ];
 
 const PROVIDERS = [
@@ -53,12 +53,12 @@ function parseUndAiServer(serverStr: string): { host: string; port: number }
 
 function networkErrMsg(e: unknown): string
 {
-	if (!(e instanceof Error)) return 'Connection failed';
+	if (!(e instanceof Error)) return vscode.l10n.t('Connection failed');
 	const m = e.message;
-	if (m.includes('ENOTFOUND') || m.includes('getaddrinfo')) return 'Host not found';
-	if (m.includes('ECONNREFUSED'))                           return 'Connection refused';
-	if (m.includes('ETIMEDOUT') || m.includes('TimeoutError') || m.toLowerCase().includes('abort')) return 'Connection timed out';
-	return 'Connection failed';
+	if (m.includes('ENOTFOUND') || m.includes('getaddrinfo')) return vscode.l10n.t('Host not found');
+	if (m.includes('ECONNREFUSED'))                           return vscode.l10n.t('Connection refused');
+	if (m.includes('ETIMEDOUT') || m.includes('TimeoutError') || m.toLowerCase().includes('abort')) return vscode.l10n.t('Connection timed out');
+	return vscode.l10n.t('Connection failed');
 }
 
 
@@ -69,8 +69,8 @@ function testTcpConnection(host: string, port: number): Promise<string>
 		socket.setTimeout(5000);
 		const done = (err: string) => { socket.destroy(); resolve(err); };
 		socket.connect(port, host, () => done(''));
-		socket.on('error', () => done(`Failed to connect to ${host}:${port} - make sure it's running`));
-		socket.on('timeout', () => done(`Failed to connect to ${host}:${port} - make sure it's running`));
+		socket.on('error', () => done(vscode.l10n.t('Failed to connect to {0}:{1} - make sure it\'s running', host, port)));
+		socket.on('timeout', () => done(vscode.l10n.t('Failed to connect to {0}:{1} - make sure it\'s running', host, port)));
 	});
 }
 
@@ -137,7 +137,7 @@ async function requestModels(
 		// -- must arrive before this generic one.
 		setTimeout(() => {
 			if (pendingModels.delete(requestId))
-				resolve({ models: [], error: 'No response from the Understand server.' });
+				resolve({ models: [], error: vscode.l10n.t('No response from the Understand server.') });
 		}, 15000);
 	});
 
@@ -169,7 +169,7 @@ export function editProviderSettings(context: vscode.ExtensionContext)
 
 	panel = vscode.window.createWebviewPanel(
 		'understandAiProviderSettings',
-		'Edit Understand AI Provider',
+		vscode.l10n.t('Edit Understand AI Provider'),
 		vscode.ViewColumn.Active,
 		{ retainContextWhenHidden: true },
 	);
@@ -308,7 +308,7 @@ export function editProviderSettings(context: vscode.ExtensionContext)
 				const result = await vscode.window.showOpenDialog({
 					canSelectMany: false,
 					filters: { 'GGUF Files': ['gguf'] },
-					title: 'Select GGUF Model File',
+					title: vscode.l10n.t('Select GGUF Model File'),
 				});
 				if (result?.length)
 					webview.postMessage({ command: 'browseResult', path: result[0].fsPath });
@@ -352,8 +352,8 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
 		`<option value="${escapeHtml(m.id)}"${m.id === localActiveModelId ? ' selected' : ''}>${escapeHtml(m.label)}</option>`
 	).join('\n\t\t\t');
 
-	const feeText = 'Connecting to this AI service may result in charges billed by the service provider. I acknowledge that I am responsible for any fees incurred. All background AI services will be turned off.';
-	const dataText = 'I acknowledge that Understand does not control what external services do with my data.';
+	const feeText = vscode.l10n.t('Connecting to this AI service may result in charges billed by the service provider. I acknowledge that I am responsible for any fees incurred. All background AI services will be turned off.');
+	const dataText = vscode.l10n.t('I acknowledge that Understand does not control what external services do with my data.');
 
 	function ackRow(dataId: string, feeRowId: string, feeId: string, hasFee: boolean, feeVisible: boolean) {
 		const feeDisplay = feeVisible ? '' : ' style="display:none"';
@@ -416,7 +416,7 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
 <body>
 
 <div class="row">
-  <label for="provider">Provider:</label>
+  <label for="provider">${escapeHtml(vscode.l10n.t('Provider:'))}</label>
   <select id="provider">
     ${providerOptions}
   </select>
@@ -428,20 +428,20 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
 <div id="sec-local" class="section">
   <div class="radio-row">
     <input type="radio" id="localUseModel" name="localMode"${localIsModel ? ' checked' : ''}>
-    <label for="localUseModel">Model:</label>
+    <label for="localUseModel">${escapeHtml(vscode.l10n.t('Model:'))}</label>
     <select id="localModelSelect"${localIsModel ? '' : ' disabled'}>
       ${localModelOptions}
     </select>
-    <a href="#" id="modelHelp" class="help-link" title="Learn more about available models">?</a>
+    <a href="#" id="modelHelp" class="help-link" title="${escapeHtml(vscode.l10n.t('Learn more about available models'))}">?</a>
   </div>
   <div class="radio-row">
     <input type="radio" id="localUseCustom" name="localMode"${localIsModel ? '' : ' checked'}>
-    <label for="localUseCustom">Custom GGUF File:</label>
+    <label for="localUseCustom">${escapeHtml(vscode.l10n.t('Custom GGUF File:'))}</label>
     <input type="text" id="localModelPath" value="${escapeHtml(localCustomPath)}"${localIsModel ? ' disabled' : ''}>
     <button type="button" id="browse"${localIsModel ? ' disabled' : ''}>...</button>
   </div>
   <div class="row">
-    <label for="localContextWindowSize">Context Window Size:</label>
+    <label for="localContextWindowSize">${escapeHtml(vscode.l10n.t('Context Window Size:'))}</label>
     <input type="number" id="localContextWindowSize" value="${escapeHtml(String(s.localContextWindowSize))}" min="1024" step="1024">
   </div>
 </div>
@@ -449,7 +449,7 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
 <!-- Understand Remote -->
 <div id="sec-remote" class="section">
   <div class="row">
-    <label for="remoteServer">Server:</label>
+    <label for="remoteServer">${escapeHtml(vscode.l10n.t('Server:'))}</label>
     <input type="text" id="remoteServer" value="${escapeHtml(s.remoteServer)}" placeholder="123.123.123.123:56767">
   </div>
 </div>
@@ -457,18 +457,18 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
 <!-- LM Studio -->
 <div id="sec-lmstudio" class="section">
   <div class="row">
-    <label for="lmStudioServer">Server:</label>
+    <label for="lmStudioServer">${escapeHtml(vscode.l10n.t('Server:'))}</label>
     <input type="text" id="lmStudioServer" value="${escapeHtml(s.lmStudioServer)}">
   </div>
   <div class="row">
-    <label for="lmStudioModel">Model:</label>
+    <label for="lmStudioModel">${escapeHtml(vscode.l10n.t('Model:'))}</label>
     <select id="lmStudioModel">
-      ${s.lmStudioModel ? `<option value="${escapeHtml(s.lmStudioModel)}">${escapeHtml(s.lmStudioModel)}</option>` : '<option value="">(fetching models...)</option>'}
+      ${s.lmStudioModel ? `<option value="${escapeHtml(s.lmStudioModel)}">${escapeHtml(s.lmStudioModel)}</option>` : `<option value="">${escapeHtml(vscode.l10n.t('(fetching models...)'))}</option>`}
     </select>
   </div>
   <div id="lmStudioModelManualRow" class="row" style="display:none">
-    <label>Model (manual):</label>
-    <input type="text" id="lmStudioModelManual" placeholder="Enter model name manually">
+    <label>${escapeHtml(vscode.l10n.t('Model (manual):'))}</label>
+    <input type="text" id="lmStudioModelManual" placeholder="${escapeHtml(vscode.l10n.t('Enter model name manually'))}">
   </div>
   <div class="ack-row">
     <input type="checkbox" id="lmStudioData"${s.lmStudioData ? ' checked' : ''}>
@@ -479,18 +479,18 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
 <!-- Ollama -->
 <div id="sec-ollama" class="section">
   <div class="row">
-    <label for="ollamaServer">Server:</label>
+    <label for="ollamaServer">${escapeHtml(vscode.l10n.t('Server:'))}</label>
     <input type="text" id="ollamaServer" value="${escapeHtml(s.ollamaServer)}">
   </div>
   <div class="row">
-    <label for="ollamaModel">Model:</label>
+    <label for="ollamaModel">${escapeHtml(vscode.l10n.t('Model:'))}</label>
     <select id="ollamaModel">
-      ${s.ollamaModel ? `<option value="${escapeHtml(s.ollamaModel)}">${escapeHtml(s.ollamaModel)}</option>` : '<option value="">(fetching models...)</option>'}
+      ${s.ollamaModel ? `<option value="${escapeHtml(s.ollamaModel)}">${escapeHtml(s.ollamaModel)}</option>` : `<option value="">${escapeHtml(vscode.l10n.t('(fetching models...)'))}</option>`}
     </select>
   </div>
   <div id="ollamaModelManualRow" class="row" style="display:none">
-    <label>Model (manual):</label>
-    <input type="text" id="ollamaModelManual" placeholder="Enter model name manually">
+    <label>${escapeHtml(vscode.l10n.t('Model (manual):'))}</label>
+    <input type="text" id="ollamaModelManual" placeholder="${escapeHtml(vscode.l10n.t('Enter model name manually'))}">
   </div>
   <div class="ack-row">
     <input type="checkbox" id="ollamaData"${s.ollamaData ? ' checked' : ''}>
@@ -501,22 +501,22 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
 <!-- ChatGPT -->
 <div id="sec-chatgpt" class="section">
   <div class="row">
-    <label for="chatGPTServer">Server:</label>
+    <label for="chatGPTServer">${escapeHtml(vscode.l10n.t('Server:'))}</label>
     <input type="text" id="chatGPTServer" value="${escapeHtml(s.chatGPTServer)}">
   </div>
   <div class="row">
-    <label for="chatGPTApiKey">API Key:</label>
+    <label for="chatGPTApiKey">${escapeHtml(vscode.l10n.t('API Key:'))}</label>
     <input type="password" id="chatGPTApiKey" value="${escapeHtml(s.chatGPTApiKey)}">
   </div>
   <div class="row">
-    <label for="chatGPTModel">Model:</label>
-    <select id="chatGPTModel">
-      ${s.chatGPTModel ? `<option value="${escapeHtml(s.chatGPTModel)}">${escapeHtml(s.chatGPTModel)}</option>` : '<option value="">(enter API key above)</option>'}
+    <label for="chatGPTModel">${escapeHtml(vscode.l10n.t('Model:'))}</label>
+    <select id="chatGPTModel" data-placeholder="${escapeHtml(vscode.l10n.t('(enter API key above)'))}">
+      ${s.chatGPTModel ? `<option value="${escapeHtml(s.chatGPTModel)}">${escapeHtml(s.chatGPTModel)}</option>` : `<option value="">${escapeHtml(vscode.l10n.t('(enter API key above)'))}</option>`}
     </select>
   </div>
   <div id="chatGPTModelManualRow" class="row" style="display:none">
-    <label>Model (manual):</label>
-    <input type="text" id="chatGPTModelManual" placeholder="Enter model name manually">
+    <label>${escapeHtml(vscode.l10n.t('Model (manual):'))}</label>
+    <input type="text" id="chatGPTModelManual" placeholder="${escapeHtml(vscode.l10n.t('Enter model name manually'))}">
   </div>
   <div class="ack-row">
     <input type="checkbox" id="chatGPTData"${s.chatGPTData ? ' checked' : ''}>
@@ -531,22 +531,22 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
 <!-- Claude -->
 <div id="sec-claude" class="section">
   <div class="row">
-    <label for="claudeServer">Server:</label>
+    <label for="claudeServer">${escapeHtml(vscode.l10n.t('Server:'))}</label>
     <input type="text" id="claudeServer" value="${escapeHtml(s.claudeServer)}">
   </div>
   <div class="row">
-    <label for="claudeApiKey">API Key:</label>
+    <label for="claudeApiKey">${escapeHtml(vscode.l10n.t('API Key:'))}</label>
     <input type="password" id="claudeApiKey" value="${escapeHtml(s.claudeApiKey)}">
   </div>
   <div class="row">
-    <label for="claudeModel">Model:</label>
-    <select id="claudeModel">
-      ${s.claudeModel ? `<option value="${escapeHtml(s.claudeModel)}">${escapeHtml(s.claudeModel)}</option>` : '<option value="">(enter API key above)</option>'}
+    <label for="claudeModel">${escapeHtml(vscode.l10n.t('Model:'))}</label>
+    <select id="claudeModel" data-placeholder="${escapeHtml(vscode.l10n.t('(enter API key above)'))}">
+      ${s.claudeModel ? `<option value="${escapeHtml(s.claudeModel)}">${escapeHtml(s.claudeModel)}</option>` : `<option value="">${escapeHtml(vscode.l10n.t('(enter API key above)'))}</option>`}
     </select>
   </div>
   <div id="claudeModelManualRow" class="row" style="display:none">
-    <label>Model (manual):</label>
-    <input type="text" id="claudeModelManual" placeholder="Enter model name manually">
+    <label>${escapeHtml(vscode.l10n.t('Model (manual):'))}</label>
+    <input type="text" id="claudeModelManual" placeholder="${escapeHtml(vscode.l10n.t('Enter model name manually'))}">
   </div>
   <div class="ack-row">
     <input type="checkbox" id="claudeData"${s.claudeData ? ' checked' : ''}>
@@ -561,22 +561,22 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
 <!-- Gemini -->
 <div id="sec-gemini" class="section">
   <div class="row">
-    <label for="geminiServer">Server:</label>
+    <label for="geminiServer">${escapeHtml(vscode.l10n.t('Server:'))}</label>
     <input type="text" id="geminiServer" value="${escapeHtml(s.geminiServer)}">
   </div>
   <div class="row">
-    <label for="geminiApiKey">API Key:</label>
+    <label for="geminiApiKey">${escapeHtml(vscode.l10n.t('API Key:'))}</label>
     <input type="password" id="geminiApiKey" value="${escapeHtml(s.geminiApiKey)}">
   </div>
   <div class="row">
-    <label for="geminiModel">Model:</label>
-    <select id="geminiModel">
-      ${s.geminiModel ? `<option value="${escapeHtml(s.geminiModel)}">${escapeHtml(s.geminiModel)}</option>` : '<option value="">(enter API key above)</option>'}
+    <label for="geminiModel">${escapeHtml(vscode.l10n.t('Model:'))}</label>
+    <select id="geminiModel" data-placeholder="${escapeHtml(vscode.l10n.t('(enter API key above)'))}">
+      ${s.geminiModel ? `<option value="${escapeHtml(s.geminiModel)}">${escapeHtml(s.geminiModel)}</option>` : `<option value="">${escapeHtml(vscode.l10n.t('(enter API key above)'))}</option>`}
     </select>
   </div>
   <div id="geminiModelManualRow" class="row" style="display:none">
-    <label>Model (manual):</label>
-    <input type="text" id="geminiModelManual" placeholder="Enter model name manually">
+    <label>${escapeHtml(vscode.l10n.t('Model (manual):'))}</label>
+    <input type="text" id="geminiModelManual" placeholder="${escapeHtml(vscode.l10n.t('Enter model name manually'))}">
   </div>
   <div class="ack-row">
     <input type="checkbox" id="geminiData"${s.geminiData ? ' checked' : ''}>
@@ -591,22 +591,22 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
 <!-- Grok -->
 <div id="sec-grok" class="section">
   <div class="row">
-    <label for="grokServer">Server:</label>
+    <label for="grokServer">${escapeHtml(vscode.l10n.t('Server:'))}</label>
     <input type="text" id="grokServer" value="${escapeHtml(s.grokServer)}">
   </div>
   <div class="row">
-    <label for="grokApiKey">API Key:</label>
+    <label for="grokApiKey">${escapeHtml(vscode.l10n.t('API Key:'))}</label>
     <input type="password" id="grokApiKey" value="${escapeHtml(s.grokApiKey)}">
   </div>
   <div class="row">
-    <label for="grokModel">Model:</label>
-    <select id="grokModel">
-      ${s.grokModel ? `<option value="${escapeHtml(s.grokModel)}">${escapeHtml(s.grokModel)}</option>` : '<option value="">(enter API key above)</option>'}
+    <label for="grokModel">${escapeHtml(vscode.l10n.t('Model:'))}</label>
+    <select id="grokModel" data-placeholder="${escapeHtml(vscode.l10n.t('(enter API key above)'))}">
+      ${s.grokModel ? `<option value="${escapeHtml(s.grokModel)}">${escapeHtml(s.grokModel)}</option>` : `<option value="">${escapeHtml(vscode.l10n.t('(enter API key above)'))}</option>`}
     </select>
   </div>
   <div id="grokModelManualRow" class="row" style="display:none">
-    <label>Model (manual):</label>
-    <input type="text" id="grokModelManual" placeholder="Enter model name manually">
+    <label>${escapeHtml(vscode.l10n.t('Model (manual):'))}</label>
+    <input type="text" id="grokModelManual" placeholder="${escapeHtml(vscode.l10n.t('Enter model name manually'))}">
   </div>
   <div class="ack-row">
     <input type="checkbox" id="grokData"${s.grokData ? ' checked' : ''}>
@@ -621,22 +621,22 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
 <!-- Other -->
 <div id="sec-other" class="section">
   <div class="row">
-    <label for="otherServer">Server:</label>
+    <label for="otherServer">${escapeHtml(vscode.l10n.t('Server:'))}</label>
     <input type="text" id="otherServer" value="${escapeHtml(s.otherServer)}">
   </div>
   <div class="row">
-    <label for="otherApiKey">API Key:</label>
-    <input type="password" id="otherApiKey" value="${escapeHtml(s.otherApiKey)}" placeholder="Optional">
+    <label for="otherApiKey">${escapeHtml(vscode.l10n.t('API Key:'))}</label>
+    <input type="password" id="otherApiKey" value="${escapeHtml(s.otherApiKey)}" placeholder="${escapeHtml(vscode.l10n.t('Optional'))}">
   </div>
   <div class="row">
-    <label for="otherModel">Model:</label>
-    <select id="otherModel">
-      ${s.otherModel ? `<option value="${escapeHtml(s.otherModel)}">${escapeHtml(s.otherModel)}</option>` : '<option value="">(enter server above)</option>'}
+    <label for="otherModel">${escapeHtml(vscode.l10n.t('Model:'))}</label>
+    <select id="otherModel" data-placeholder="${escapeHtml(vscode.l10n.t('(enter server above)'))}">
+      ${s.otherModel ? `<option value="${escapeHtml(s.otherModel)}">${escapeHtml(s.otherModel)}</option>` : `<option value="">${escapeHtml(vscode.l10n.t('(enter server above)'))}</option>`}
     </select>
   </div>
   <div id="otherModelManualRow" class="row" style="display:none">
-    <label>Model (manual):</label>
-    <input type="text" id="otherModelManual" placeholder="Enter model name manually">
+    <label>${escapeHtml(vscode.l10n.t('Model (manual):'))}</label>
+    <input type="text" id="otherModelManual" placeholder="${escapeHtml(vscode.l10n.t('Enter model name manually'))}">
   </div>
   <div class="ack-row">
     <input type="checkbox" id="otherData"${s.otherData ? ' checked' : ''}>
@@ -651,8 +651,8 @@ function buildHtml(webview: vscode.Webview, s: ReturnType<typeof vscode.workspac
 <p id="globalError" class="error" style="display:none"></p>
 
 <div class="buttons">
-  <button type="button" class="secondary" id="cancel">Cancel</button>
-  <button type="button" id="save">OK</button>
+  <button type="button" class="secondary" id="cancel">${escapeHtml(vscode.l10n.t('Cancel'))}</button>
+  <button type="button" id="save">${escapeHtml(vscode.l10n.t('OK'))}</button>
 </div>
 
 <script nonce="${nonce}">
@@ -700,9 +700,9 @@ function validate() {
 
   if (provider === 'Understand Remote') {
     if (!(document.getElementById('remoteServer')?.value ?? '').trim())
-      errorMsg = 'Host name or IP address required';
+      errorMsg = vscode.l10n.t('Host name or IP address required');
     else if (remoteVerifying)
-      errorMsg = 'Verifying Provider...';
+      errorMsg = vscode.l10n.t('Verifying Provider...');
     else
       errorMsg = remoteVerifyError;
   } else if (provider !== 'Understand Local') {
@@ -718,7 +718,7 @@ function validate() {
     const vs = verifyState[provider];
     if (vs) {
       if (vs.verifying)
-        errorMsg = 'Verifying Provider...';
+        errorMsg = vscode.l10n.t('Verifying Provider...');
       else if (vs.error === 'Authentication required')
         errorMsg = vs.error;
       else if (vs.error)
@@ -737,17 +737,17 @@ function validate() {
       };
       const selectId = modelSelectMap[provider];
       if (selectId && !(val(modelManualMap[provider]) || val(selectId)).trim())
-        errorMsg = 'Enter a model name to continue.';
+        errorMsg = vscode.l10n.t('Enter a model name to continue.');
     }
     if (!errorMsg) {
       const cfg = feeConfig[provider];
       const dataId = cfg ? cfg.dataId : dataOnlyConfig[provider];
       if (dataId && !document.getElementById(dataId)?.checked) {
-        errorMsg = 'Agree to the acknowledgments to use this provider.';
+        errorMsg = vscode.l10n.t('Agree to the acknowledgments to use this provider.');
       } else if (cfg) {
         const feeRow = document.getElementById(cfg.feeRowId);
         if (feeRow && feeRow.style.display !== 'none' && !document.getElementById(cfg.feeId)?.checked)
-          errorMsg = 'Agree to the acknowledgments to use this provider.';
+          errorMsg = vscode.l10n.t('Agree to the acknowledgments to use this provider.');
       }
     }
   }
@@ -905,7 +905,7 @@ function populateChatGPTModels(models) {
   select.innerHTML = '';
   if (models.length === 0) {
     const opt = document.createElement('option');
-    opt.value = current; opt.textContent = current || '(enter API key above)';
+    opt.value = current; opt.textContent = current || select.dataset.placeholder || '(enter API key above)';
     select.appendChild(opt);
   } else {
     const list = (current && !models.includes(current)) ? [current, ...models] : models;
@@ -947,7 +947,7 @@ function populateClaudeModels(models) {
   select.innerHTML = '';
   if (models.length === 0) {
     const opt = document.createElement('option');
-    opt.value = current; opt.textContent = current || '(enter API key above)';
+    opt.value = current; opt.textContent = current || select.dataset.placeholder || '(enter API key above)';
     select.appendChild(opt);
   } else {
     const list = (current && !models.includes(current)) ? [current, ...models] : models;
@@ -977,7 +977,7 @@ function populateGeminiModels(models) {
   select.innerHTML = '';
   if (models.length === 0) {
     const opt = document.createElement('option');
-    opt.value = current; opt.textContent = current || '(enter API key above)';
+    opt.value = current; opt.textContent = current || select.dataset.placeholder || '(enter API key above)';
     select.appendChild(opt);
   } else {
     const list = (current && !models.includes(current)) ? [current, ...models] : models;
@@ -1007,7 +1007,7 @@ function populateGrokModels(models) {
   select.innerHTML = '';
   if (models.length === 0) {
     const opt = document.createElement('option');
-    opt.value = current; opt.textContent = current || '(enter API key above)';
+    opt.value = current; opt.textContent = current || select.dataset.placeholder || '(enter API key above)';
     select.appendChild(opt);
   } else {
     const list = (current && !models.includes(current)) ? [current, ...models] : models;
@@ -1037,7 +1037,7 @@ function populateOtherModels(models) {
   select.innerHTML = '';
   if (models.length === 0) {
     const opt = document.createElement('option');
-    opt.value = current; opt.textContent = current || '(enter server above)';
+    opt.value = current; opt.textContent = current || select.dataset.placeholder || '(enter server above)';
     select.appendChild(opt);
   } else {
     const list = (current && !models.includes(current)) ? [current, ...models] : models;

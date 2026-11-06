@@ -1,7 +1,7 @@
 {
 	"name": "understand",
-	"displayName": "Understand",
-	"description": "The Software Developer's Multi-Tool",
+	"displayName": "%extension.displayName%",
+	"description": "%extension.description%",
 	"version": "1.3.0",
 	"publisher": "scitools",
 	"license": "MIT",
@@ -34,7 +34,7 @@
 	"contributes": {
 		"icons": {
 			"understand-annotation": {
-				"description": "Understand annotation (bubble with ellipsis)",
+				"description": "%icon.understand-annotation.description%",
 				"default": {
 					"fontPath": "./res/understand-icons.ttf",
 					"fontCharacter": "\\E001"
@@ -44,7 +44,7 @@
 		"colors": [
 			{
 				"id": "understand.annotationRuler",
-				"description": "Overview ruler mark on a line with an Understand annotation",
+				"description": "%color.understand.annotationRuler.description%",
 				"defaults": {
 					"dark": "#3794ff",
 					"light": "#3794ff",
@@ -54,7 +54,7 @@
 			},
 			{
 				"id": "understand.annotationRulerIgnore",
-				"description": "Overview ruler mark on a line with an Understand annotation that ignores a violation",
+				"description": "%color.understand.annotationRulerIgnore.description%",
 				"defaults": {
 					"dark": "editorWarning.foreground",
 					"light": "editorWarning.foreground",
@@ -64,7 +64,7 @@
 			},
 			{
 				"id": "understand.annotationRulerIncomplete",
-				"description": "Overview ruler mark on a line with an Understand annotation that still lacks a required field",
+				"description": "%color.understand.annotationRulerIncomplete.description%",
 				"defaults": {
 					"dark": "editorError.foreground",
 					"light": "editorError.foreground",
@@ -76,30 +76,30 @@
 		"viewsWelcome": [
 			{
 				"view": "understandInfo",
-				"contents": "Click a function, variable, or type name in the editor and its attributes appear here."
+				"contents": "%welcome.understandInfo.1%"
 			},
 			{
 				"view": "understandAnnotationBrowser",
-				"contents": "Every annotation in the project — notes and ignored violations — grouped by file, author, template, or date.\nUse Group Annotations By... in this view's title bar to regroup."
+				"contents": "%welcome.understandAnnotationBrowser.1%"
 			},
 			{
 				"view": "understandViolationsList",
-				"contents": "The project's analysis errors and warnings, and every violation the background CodeChecks found, grouped by file, check, severity, or entity.\nAnalyze the project to fill it, use Group Violations By... in this view's title bar to regroup, and the filter button to show only the current file's.",
+				"contents": "%welcome.understandViolationsList.1%",
 				"when": "!understand.violationsListed"
 			},
 			{
 				"view": "understandViolationsList",
-				"contents": "This project has no analysis errors or warnings.\nYour license does not include CodeCheck, so this view lists only what analysis finds.",
+				"contents": "%welcome.understandViolationsList.2%",
 				"when": "understand.violationsListed && understand.violationsListScope != file && !understandCodeCheckLicensed"
 			},
 			{
 				"view": "understandViolationsList",
-				"contents": "This project has no violations.\nThis view lists what Understand's background CodeChecks find. To turn them on, open the project in Understand, choose Checks > Select Checks, pick a configuration, and turn on Run in Background. Violations appear here after the next analysis.\n[How to run CodeCheck in the background](https://docs.scitools.com/help/codecheck/background-checks.html)",
+				"contents": "%welcome.understandViolationsList.3%",
 				"when": "understand.violationsListed && understand.violationsListScope != file && understandCodeCheckLicensed"
 			},
 			{
 				"view": "understandViolationsList",
-				"contents": "The current file has no violations.\nUse the filter button in this view's title bar to show the whole project's.",
+				"contents": "%welcome.understandViolationsList.4%",
 				"when": "understand.violationsListed && understand.violationsListScope == file"
 			}
 		],
@@ -112,502 +112,502 @@
 		"commands": [
 			{
 				"command": "understand.annotations.groupBy",
-				"title": "Group Annotations By...",
-				"category": "Understand: Annotations",
+				"title": "%command.understand.annotations.groupBy.title%",
+				"category": "%category.Understand.Annotations%",
 				"icon": "$(group-by-ref-type)"
 			},
 			{
 				"command": "understand.ignoreViolationWithDetails",
-				"title": "Ignore Violation with Details...",
-				"category": "Understand: Violations"
+				"title": "%command.understand.ignoreViolationWithDetails.title%",
+				"category": "%category.Understand.Violations%"
 			},
 			{
 				"command": "understand.violations.excludeFromCodeCheck",
-				"title": "Exclude from CodeCheck",
-				"category": "Understand: Violations"
+				"title": "%command.understand.violations.excludeFromCodeCheck.title%",
+				"category": "%category.Understand.Violations%"
 			},
 			{
 				"command": "understand.violations.excludeFolderFromCodeCheck",
-				"title": "Exclude Folder from CodeCheck",
-				"category": "Understand: Violations"
+				"title": "%command.understand.violations.excludeFolderFromCodeCheck.title%",
+				"category": "%category.Understand.Violations%"
 			},
 			{
 				"command": "understand.violations.editExcludedPaths",
-				"title": "Edit CodeCheck Excluded Paths",
-				"category": "Understand: Violations"
+				"title": "%command.understand.violations.editExcludedPaths.title%",
+				"category": "%category.Understand.Violations%"
 			},
 			{
 				"command": "understand.violations.groupBy",
-				"title": "Group Violations By...",
-				"category": "Understand: Violations",
+				"title": "%command.understand.violations.groupBy.title%",
+				"category": "%category.Understand.Violations%",
 				"icon": "$(group-by-ref-type)"
 			},
 			{
 				"command": "understand.violations.showCurrentFile",
-				"title": "Show Only This File's Violations",
-				"category": "Understand: Violations",
+				"title": "%command.understand.violations.showCurrentFile.title%",
+				"category": "%category.Understand.Violations%",
 				"icon": "$(filter)"
 			},
 			{
 				"command": "understand.violations.showAllFiles",
-				"title": "Show Every File's Violations",
-				"category": "Understand: Violations",
+				"title": "%command.understand.violations.showAllFiles.title%",
+				"category": "%category.Understand.Violations%",
 				"icon": "$(filter-filled)"
 			},
 			{
 				"command": "understand.ai.editProviderSettings",
-				"title": "Edit Understand AI Provider Settings",
-				"category": "Understand: AI"
+				"title": "%command.understand.ai.editProviderSettings.title%",
+				"category": "%category.Understand.AI%"
 			},
 			{
 				"command": "understand.ai.copyChat",
-				"title": "Copy AI Chat",
-				"category": "Understand: AI",
+				"title": "%command.understand.ai.copyChat.title%",
+				"category": "%category.Understand.AI%",
 				"icon": "$(copy)"
 			},
 			{
 				"command": "understand.ai.deleteAllMessages",
-				"title": "Delete All Messages",
-				"category": "Understand: AI",
+				"title": "%command.understand.ai.deleteAllMessages.title%",
+				"category": "%category.Understand.AI%",
 				"icon": "$(trash)"
 			},
 			{
 				"command": "understand.ai.generateAiOverview",
-				"title": "Generate AI Overview",
-				"category": "Understand: AI"
+				"title": "%command.understand.ai.generateAiOverview.title%",
+				"category": "%category.Understand.AI%"
 			},
 			{
 				"command": "understand.ai.generateAutomatically",
-				"title": "Generate AI Overviews Automatically",
-				"category": "Understand: AI",
+				"title": "%command.understand.ai.generateAutomatically.title%",
+				"category": "%category.Understand.AI%",
 				"icon": "$(sparkle)"
 			},
 			{
 				"command": "understand.ai.generateOnClick",
-				"title": "Generate AI Overviews Only When Clicked",
-				"category": "Understand: AI",
+				"title": "%command.understand.ai.generateOnClick.title%",
+				"category": "%category.Understand.AI%",
 				"icon": "$(sparkle-filled)"
 			},
 			{
 				"command": "understand.ai.regenerateAiOverview",
-				"title": "Regenerate AI Overview",
-				"category": "Understand: AI"
+				"title": "%command.understand.ai.regenerateAiOverview.title%",
+				"category": "%category.Understand.AI%"
 			},
 			{
 				"command": "understand.ai.saveChat",
-				"title": "Save AI Chat",
-				"category": "Understand: AI",
+				"title": "%command.understand.ai.saveChat.title%",
+				"category": "%category.Understand.AI%",
 				"icon": "$(save)"
 			},
 			{
 				"command": "understand.ai.stopAiGeneration",
-				"title": "Stop AI Generation",
-				"category": "Understand: AI"
+				"title": "%command.understand.ai.stopAiGeneration.title%",
+				"category": "%category.Understand.AI%"
 			},
 			{
 				"command": "understand.analysis.analyzeAllFiles",
-				"title": "Analyze All Files",
-				"category": "Understand: Analysis"
+				"title": "%command.understand.analysis.analyzeAllFiles.title%",
+				"category": "%category.Understand.Analysis%"
 			},
 			{
 				"command": "understand.analysis.analyzeChangedFiles",
-				"title": "Analyze Changed Files",
-				"category": "Understand: Analysis"
+				"title": "%command.understand.analysis.analyzeChangedFiles.title%",
+				"category": "%category.Understand.Analysis%"
 			},
 			{
 				"command": "understand.analysis.analyzeCurrentFile",
-				"title": "Analyze This File",
-				"category": "Understand: Analysis"
+				"title": "%command.understand.analysis.analyzeCurrentFile.title%",
+				"category": "%category.Understand.Analysis%"
 			},
 			{
 				"command": "understand.analysis.stopAnalyzingFiles",
-				"title": "Stop Analyzing Files",
-				"category": "Understand: Analysis"
+				"title": "%command.understand.analysis.stopAnalyzingFiles.title%",
+				"category": "%category.Understand.Analysis%"
 			},
 			{
 				"command": "understand.exploreInUnderstand.currentFile",
-				"title": "Explore File in Understand",
-				"category": "Understand: Explore in Understand"
+				"title": "%command.understand.exploreInUnderstand.currentFile.title%",
+				"category": "%category.Understand.Explore.in.Understand%"
 			},
 			{
 				"command": "understand.exploreInUnderstand.newProject",
-				"title": "New Project",
-				"category": "Understand: Explore in Understand"
+				"title": "%command.understand.exploreInUnderstand.newProject.title%",
+				"category": "%category.Understand.Explore.in.Understand%"
 			},
 			{
 				"command": "understand.annotations.addAnnotation",
-				"title": "Add Annotation",
-				"category": "Understand: Annotations",
+				"title": "%command.understand.annotations.addAnnotation.title%",
+				"category": "%category.Understand.Annotations%",
 				"icon": "$(add)"
 			},
 			{
 				"command": "understand.annotations.deleteAnnotation",
-				"title": "Delete",
-				"category": "Understand: Annotations"
+				"title": "%command.understand.annotations.deleteAnnotation.title%",
+				"category": "%category.Understand.Annotations%"
 			},
 			{
 				"command": "understand.annotations.deleteSelected",
-				"title": "Delete Selected Annotations",
-				"category": "Understand: Annotations",
+				"title": "%command.understand.annotations.deleteSelected.title%",
+				"category": "%category.Understand.Annotations%",
 				"icon": "$(trash)",
 				"enablement": "understand.annotationBrowserSelected"
 			},
 			{
 				"command": "understand.annotations.startEditingAnnotation",
-				"title": "Edit Text",
-				"category": "Understand: Annotations"
+				"title": "%command.understand.annotations.startEditingAnnotation.title%",
+				"category": "%category.Understand.Annotations%"
 			},
 			{
 				"command": "understand.graphs.options",
-				"title": "Options",
-				"category": "Understand: Graphs",
+				"title": "%command.understand.graphs.options.title%",
+				"category": "%category.Understand.Graphs%",
 				"icon": "$(settings)"
 			},
 			{
 				"command": "understand.graphs.save",
-				"title": "Save",
-				"category": "Understand: Graphs",
+				"title": "%command.understand.graphs.save.title%",
+				"category": "%category.Understand.Graphs%",
 				"icon": "$(save)"
 			},
 			{
 				"command": "understand.graphs.copyImage",
-				"title": "Copy Image To Clipboard",
-				"category": "Understand: Graphs",
+				"title": "%command.understand.graphs.copyImage.title%",
+				"category": "%category.Understand.Graphs%",
 				"icon": "$(copy)"
 			},
 			{
 				"command": "understand.graphs.undo",
-				"title": "Undo Graph Change",
-				"category": "Understand: Graphs",
+				"title": "%command.understand.graphs.undo.title%",
+				"category": "%category.Understand.Graphs%",
 				"icon": "$(discard)"
 			},
 			{
 				"command": "understand.graphs.redo",
-				"title": "Redo Graph Change",
-				"category": "Understand: Graphs",
+				"title": "%command.understand.graphs.redo.title%",
+				"category": "%category.Understand.Graphs%",
 				"icon": "$(redo)"
 			},
 			{
 				"command": "understand.graphs.saveState",
-				"title": "Save Graph State",
-				"category": "Understand: Graphs",
+				"title": "%command.understand.graphs.saveState.title%",
+				"category": "%category.Understand.Graphs%",
 				"icon": "$(save-as)"
 			},
 			{
 				"command": "understand.graphs.loadState",
-				"title": "Load Graph State",
-				"category": "Understand: Graphs",
+				"title": "%command.understand.graphs.loadState.title%",
+				"category": "%category.Understand.Graphs%",
 				"icon": "$(folder-opened)"
 			},
 			{
 				"command": "understand.graphs.removeSaved",
-				"title": "Remove Saved Graph",
-				"category": "Understand: Graphs",
+				"title": "%command.understand.graphs.removeSaved.title%",
+				"category": "%category.Understand.Graphs%",
 				"icon": "$(trash)"
 			},
 			{
 				"command": "understand.graphs.treemap",
-				"title": "Metrics Treemap",
-				"category": "Understand: Graphs",
+				"title": "%command.understand.graphs.treemap.title%",
+				"category": "%category.Understand.Graphs%",
 				"icon": "$(layout)"
 			},
 			{
 				"command": "understand.graphs.zoomIn",
-				"title": "Zoom In",
-				"category": "Understand: Graphs",
+				"title": "%command.understand.graphs.zoomIn.title%",
+				"category": "%category.Understand.Graphs%",
 				"icon": "$(zoom-in)"
 			},
 			{
 				"command": "understand.graphs.zoomOut",
-				"title": "Zoom Out",
-				"category": "Understand: Graphs",
+				"title": "%command.understand.graphs.zoomOut.title%",
+				"category": "%category.Understand.Graphs%",
 				"icon": "$(zoom-out)"
 			},
 			{
 				"command": "understand.graphs.findPrevious",
-				"title": "Find Previous",
-				"category": "Understand: Graphs",
+				"title": "%command.understand.graphs.findPrevious.title%",
+				"category": "%category.Understand.Graphs%",
 				"icon": "$(arrow-up)"
 			},
 			{
 				"command": "understand.metrics.documentation",
-				"title": "Documentation",
-				"category": "Understand: Metrics",
+				"title": "%command.understand.metrics.documentation.title%",
+				"category": "%category.Understand.Metrics%",
 				"icon": "$(info)"
 			},
 			{
 				"command": "understand.metrics.copyApiName",
-				"title": "Copy API Name",
-				"category": "Understand: Metrics View",
+				"title": "%command.understand.metrics.copyApiName.title%",
+				"category": "%category.Understand.Metrics.View%",
 				"icon": "$(json)"
 			},
 			{
 				"command": "understand.metrics.copyFriendlyNameAndValue",
-				"title": "Copy Friendly Name and Value",
-				"category": "Understand: Metrics View",
+				"title": "%command.understand.metrics.copyFriendlyNameAndValue.title%",
+				"category": "%category.Understand.Metrics.View%",
 				"icon": "$(copy)"
 			},
 			{
 				"command": "understand.references.findAllImplementations",
-				"title": "Find All Implementations",
-				"category": "Understand: References"
+				"title": "%command.understand.references.findAllImplementations.title%",
+				"category": "%category.Understand.References%"
 			},
 			{
 				"command": "understand.references.findAllReferences",
-				"title": "Find All References",
-				"category": "Understand: References"
+				"title": "%command.understand.references.findAllReferences.title%",
+				"category": "%category.Understand.References%"
 			},
 			{
 				"command": "understand.references.goToDeclaration",
-				"title": "Go to Declaration",
-				"category": "Understand: References"
+				"title": "%command.understand.references.goToDeclaration.title%",
+				"category": "%category.Understand.References%"
 			},
 			{
 				"command": "understand.references.goToDefinition",
-				"title": "Go to Definition",
-				"category": "Understand: References"
+				"title": "%command.understand.references.goToDefinition.title%",
+				"category": "%category.Understand.References%"
 			},
 			{
 				"command": "understand.references.goToImplementations",
-				"title": "Go to Implementations",
-				"category": "Understand: References"
+				"title": "%command.understand.references.goToImplementations.title%",
+				"category": "%category.Understand.References%"
 			},
 			{
 				"command": "understand.references.goToReferences",
-				"title": "Go to References",
-				"category": "Understand: References"
+				"title": "%command.understand.references.goToReferences.title%",
+				"category": "%category.Understand.References%"
 			},
 			{
 				"command": "understand.references.goToTypeDefinition",
-				"title": "Go to Type Definition",
-				"category": "Understand: References"
+				"title": "%command.understand.references.goToTypeDefinition.title%",
+				"category": "%category.Understand.References%"
 			},
 			{
 				"command": "understand.references.peekDeclaration",
-				"title": "Peek Declaration",
-				"category": "Understand: References"
+				"title": "%command.understand.references.peekDeclaration.title%",
+				"category": "%category.Understand.References%"
 			},
 			{
 				"command": "understand.references.peekDefinition",
-				"title": "Peek Definition",
-				"category": "Understand: References"
+				"title": "%command.understand.references.peekDefinition.title%",
+				"category": "%category.Understand.References%"
 			},
 			{
 				"command": "understand.references.peekImplementations",
-				"title": "Peek Implementations",
-				"category": "Understand: References"
+				"title": "%command.understand.references.peekImplementations.title%",
+				"category": "%category.Understand.References%"
 			},
 			{
 				"command": "understand.references.peekReferences",
-				"title": "Peek References",
-				"category": "Understand: References"
+				"title": "%command.understand.references.peekReferences.title%",
+				"category": "%category.Understand.References%"
 			},
 			{
 				"command": "understand.references.peekTypeDefinition",
-				"title": "Peek Type Definition",
-				"category": "Understand: References"
+				"title": "%command.understand.references.peekTypeDefinition.title%",
+				"category": "%category.Understand.References%"
 			},
 			{
 				"command": "understand.referencesView.dismissEntity",
-				"title": "Dismiss Entity",
-				"category": "Understand: References View",
+				"title": "%command.understand.referencesView.dismissEntity.title%",
+				"category": "%category.Understand.References.View%",
 				"icon": "$(close)"
 			},
 			{
 				"command": "understand.referencesView.goToReference",
-				"title": "Go to Reference",
-				"category": "Understand: References View"
+				"title": "%command.understand.referencesView.goToReference.title%",
+				"category": "%category.Understand.References.View%"
 			},
 			{
 				"command": "understand.referencesView.pinEntity",
-				"title": "Pin Entity",
-				"category": "Understand: References View",
+				"title": "%command.understand.referencesView.pinEntity.title%",
+				"category": "%category.Understand.References.View%",
 				"icon": "$(pin)"
 			},
 			{
 				"command": "understand.settings.showSettings",
-				"title": "Settings",
-				"category": "Understand"
+				"title": "%command.understand.settings.showSettings.title%",
+				"category": "%category.Understand%"
 			},
 			{
 				"command": "understand.settings.showSettingsProject",
-				"title": "Settings: Project",
-				"category": "Understand"
+				"title": "%command.understand.settings.showSettingsProject.title%",
+				"category": "%category.Understand%"
 			},
 			{
 				"command": "understand.settings.showSettingsMetricsView",
-				"title": "Settings: Metrics View",
+				"title": "%command.understand.settings.showSettingsMetricsView.title%",
 				"shortTitle": "Settings",
-				"category": "Understand",
+				"category": "%category.Understand%",
 				"icon": "$(gear)"
 			},
 			{
 				"command": "understand.settings.showSettingsReferencesView",
-				"title": "Settings: References View",
+				"title": "%command.understand.settings.showSettingsReferencesView.title%",
 				"shortTitle": "Settings",
-				"category": "Understand",
+				"category": "%category.Understand%",
 				"icon": "$(gear)"
 			},
 			{
 				"command": "understand.violations.fix",
-				"title": "Fix",
-				"category": "Understand: Violations"
+				"title": "%command.understand.violations.fix.title%",
+				"category": "%category.Understand.Violations%"
 			},
 			{
 				"command": "understand.violations.goToNextViolationInAllFiles",
-				"title": "Go to Next Violation in All Files (Error/Warning/Info)",
-				"category": "Understand: Violations"
+				"title": "%command.understand.violations.goToNextViolationInAllFiles.title%",
+				"category": "%category.Understand.Violations%"
 			},
 			{
 				"command": "understand.violations.goToNextViolationInCurrentFile",
-				"title": "Go to Next Violation in Current File (Error/Warning/Info)",
-				"category": "Understand: Violations"
+				"title": "%command.understand.violations.goToNextViolationInCurrentFile.title%",
+				"category": "%category.Understand.Violations%"
 			},
 			{
 				"command": "understand.violations.goToPreviousViolationInAllFiles",
-				"title": "Go to Previous Violation in All Files (Error/Warning/Info)",
-				"category": "Understand: Violations"
+				"title": "%command.understand.violations.goToPreviousViolationInAllFiles.title%",
+				"category": "%category.Understand.Violations%"
 			},
 			{
 				"command": "understand.violations.goToPreviousViolationInCurrentFile",
-				"title": "Go to Previous Violation in Current File (Error/Warning/Info)",
-				"category": "Understand: Violations"
+				"title": "%command.understand.violations.goToPreviousViolationInCurrentFile.title%",
+				"category": "%category.Understand.Violations%"
 			},
 			{
 				"command": "understand.violations.ignore",
-				"title": "Ignore",
-				"category": "Understand: Violations"
+				"title": "%command.understand.violations.ignore.title%",
+				"category": "%category.Understand.Violations%"
 			},
 			{
 				"command": "understand.violations.toggleVisibilityAndFocus",
-				"title": "Toggle Visibility and Focus",
-				"category": "Understand: Violations"
+				"title": "%command.understand.violations.toggleVisibilityAndFocus.title%",
+				"category": "%category.Understand.Violations%"
 			},
 			{
 				"command": "understand.violationsView.goToLocation",
-				"title": "Go to Location",
-				"category": "Understand: Violations View"
+				"title": "%command.understand.violationsView.goToLocation.title%",
+				"category": "%category.Understand.Violations.View%"
 			},
 			{
 				"command": "understand.annotateLine",
-				"title": "Annotate This Line",
-				"category": "Understand"
+				"title": "%command.understand.annotateLine.title%",
+				"category": "%category.Understand%"
 			},
 			{
 				"command": "understand.gutter.annotate",
-				"title": "Annotate This Line",
-				"category": "Understand: Annotations"
+				"title": "%command.understand.gutter.annotate.title%",
+				"category": "%category.Understand.Annotations%"
 			},
 			{
 				"command": "understand.gutter.open",
-				"title": "Open Annotation",
-				"category": "Understand: Annotations"
+				"title": "%command.understand.gutter.open.title%",
+				"category": "%category.Understand.Annotations%"
 			},
 			{
 				"command": "understand.gutter.delete",
-				"title": "Delete Annotation",
-				"category": "Understand: Annotations"
+				"title": "%command.understand.gutter.delete.title%",
+				"category": "%category.Understand.Annotations%"
 			},
 			{
 				"command": "understand.annotations.openNextOnLine",
-				"title": "Open Next Annotation on Line",
-				"category": "Understand: Annotations"
+				"title": "%command.understand.annotations.openNextOnLine.title%",
+				"category": "%category.Understand.Annotations%"
 			},
 			{
 				"command": "understand.annotations.open",
-				"title": "Open Annotation",
-				"category": "Understand: Annotations"
+				"title": "%command.understand.annotations.open.title%",
+				"category": "%category.Understand.Annotations%"
 			},
 			{
 				"command": "understand.annotations.editFields",
-				"title": "Edit Fields",
-				"category": "Understand"
+				"title": "%command.understand.annotations.editFields.title%",
+				"category": "%category.Understand%"
 			},
 			{
 				"command": "understand.annotations.retype",
-				"title": "Change Template...",
-				"category": "Understand"
+				"title": "%command.understand.annotations.retype.title%",
+				"category": "%category.Understand%"
 			},
 			{
 				"command": "understand.annotations.attachMedia",
-				"title": "Attach File...",
-				"category": "Understand"
+				"title": "%command.understand.annotations.attachMedia.title%",
+				"category": "%category.Understand%"
 			},
 			{
 				"command": "understand.annotations.openMedia",
-				"title": "Open Attachment",
-				"category": "Understand"
+				"title": "%command.understand.annotations.openMedia.title%",
+				"category": "%category.Understand%"
 			},
 			{
 				"command": "understand.annotateArchitecture",
-				"title": "Annotate Architecture Node...",
-				"category": "Understand"
+				"title": "%command.understand.annotateArchitecture.title%",
+				"category": "%category.Understand%"
 			},
 			{
 				"command": "understand.annotations.openFromBrowser",
-				"title": "Open Annotation",
-				"category": "Understand: Annotations"
+				"title": "%command.understand.annotations.openFromBrowser.title%",
+				"category": "%category.Understand.Annotations%"
 			},
 			{
 				"command": "understand.violations.open",
-				"title": "Open Violation",
-				"category": "Understand: Violations"
+				"title": "%command.understand.violations.open.title%",
+				"category": "%category.Understand.Violations%"
 			},
 			{
 				"command": "understand.violations.ignoreInline",
-				"title": "Ignore Violation Inline",
-				"category": "Understand: Violations"
+				"title": "%command.understand.violations.ignoreInline.title%",
+				"category": "%category.Understand.Violations%"
 			},
 			{
 				"command": "understand.violations.ignoreWithAnnotation",
-				"title": "Ignore Violation",
-				"category": "Understand: Violations"
+				"title": "%command.understand.violations.ignoreWithAnnotation.title%",
+				"category": "%category.Understand.Violations%"
 			},
 			{
 				"command": "understand.annotations.openFieldFromBrowser",
-				"title": "Edit Field",
-				"category": "Understand: Annotations"
+				"title": "%command.understand.annotations.openFieldFromBrowser.title%",
+				"category": "%category.Understand.Annotations%"
 			},
 			{
 				"command": "understand.annotations.showCurrentFile",
-				"title": "Show Only This File's Annotations",
-				"category": "Understand: Annotations",
+				"title": "%command.understand.annotations.showCurrentFile.title%",
+				"category": "%category.Understand.Annotations%",
 				"icon": "$(filter)"
 			},
 			{
 				"command": "understand.annotations.showAllFiles",
-				"title": "Show Every File's Annotations",
-				"category": "Understand: Annotations",
+				"title": "%command.understand.annotations.showAllFiles.title%",
+				"category": "%category.Understand.Annotations%",
 				"icon": "$(filter-filled)"
 			},
 			{
 				"command": "understand.annotations.showIncomplete",
-				"title": "Show Only Annotations Missing a Required Field",
-				"category": "Understand: Annotations",
+				"title": "%command.understand.annotations.showIncomplete.title%",
+				"category": "%category.Understand.Annotations%",
 				"icon": "$(warning)"
 			},
 			{
 				"command": "understand.annotations.showComplete",
-				"title": "Show Complete Annotations Too",
-				"category": "Understand: Annotations",
+				"title": "%command.understand.annotations.showComplete.title%",
+				"category": "%category.Understand.Annotations%",
 				"icon": "$(check-all)"
 			},
 			{
 				"command": "understand.checks.show",
-				"title": "Show Check",
-				"category": "Understand: Violations",
+				"title": "%command.understand.checks.show.title%",
+				"category": "%category.Understand.Violations%",
 				"icon": "$(book)"
 			},
 			{
 				"command": "understand.checks.showConfiguration",
-				"title": "Show CodeCheck Configuration Checks",
-				"category": "Understand: Violations",
+				"title": "%command.understand.checks.showConfiguration.title%",
+				"category": "%category.Understand.Violations%",
 				"icon": "$(checklist)"
 			}
 		],
 		"configuration": [
 			{
-				"title": "Understand",
+				"title": "%config.Understand.title%",
 				"properties": {
 					"understand.ai.chatSize": {
 						"type": "string",
@@ -616,22 +616,22 @@
 							"Full",
 							"Half"
 						],
-						"description": "Open a chat with full width or half width"
+						"description": "%config.understand.ai.chatSize.description%"
 					},
 					"understand.aiView.enabled": {
 						"type": "boolean",
 						"default": true,
-						"description": "Show content of the AI view"
+						"description": "%config.understand.aiView.enabled.description%"
 					},
 					"understand.aiView.automaticallyGenerate": {
 						"type": "boolean",
 						"default": false,
-						"description": "Generate an AI Overview for every card the AI Overview view shows, as Understand's AI Overview window does, instead of waiting for a click. The view's title bar toggles this."
+						"description": "%config.understand.aiView.automaticallyGenerate.description%"
 					},
 					"understand.analysis.automaticallyAnalyze": {
 						"type": "boolean",
 						"default": true,
-						"description": "Automatically analyze on project open, file save/create/delete"
+						"description": "%config.understand.analysis.automaticallyAnalyze.description%"
 					},
 					"understand.hover": {
 						"type": "object",
@@ -639,71 +639,71 @@
 						"additionalProperties": {
 							"type": "string"
 						},
-						"markdownDescription": "Text to show in the hover for each kind of entity, in place of the declaration Understand writes. Each key is a kind filter, spelled the way kind filters are everywhere else: `Function` matches every language, `Python Function` narrows to one, a comma separates alternatives and `~` excludes. Where more than one key matches, the narrowest one wins, so `Python Function` beats `Function`; a kind no key matches keeps the built-in declaration. The text may use `{name}`, `{longname}`, `{kind}`, `{type}`, `{parameters}` and `{value}`; a placeholder the entity has nothing for comes out empty. The result is shown as code in the file's language, so it is coloured as code even when it is not.",
+						"markdownDescription": "%config.understand.hover.markdownDescription%",
 						"scope": "window"
 					},
 					"understand.annotations.enabled": {
 						"type": "boolean",
 						"default": true,
-						"description": "Show annotations in VS Code: the gutter icons and scrollbar marks, the hover and Annotate lens, the Annotations view, and the annotation menu items. Off hides all of them without touching the annotations themselves."
+						"description": "%config.understand.annotations.enabled.description%"
 					},
 					"understand.annotations.gutterIcons": {
 						"type": "boolean",
 						"default": true,
-						"description": "Mark annotated lines with an icon in the gutter and on the scrollbar. Off leaves the annotations, the hover and the Annotations view in place."
+						"description": "%config.understand.annotations.gutterIcons.description%"
 					},
 					"understand.annotationBrowser.enabled": {
 						"type": "boolean",
 						"default": true,
-						"description": "Show the Annotations view, every annotation in the project"
+						"description": "%config.understand.annotationBrowser.enabled.description%"
 					},
 					"understand.fileDecorations.enabled": {
 						"type": "boolean",
 						"default": true,
-						"description": "Mark each file name with its Understand status: a badge in the explorer, on the editor tab and in Open Editors for a project file that needs analyzing, and a muted colour for a file that is not in the project"
+						"description": "%config.understand.fileDecorations.enabled.description%"
 					},
 					"understand.violationsView.enabled": {
 						"type": "boolean",
 						"default": true,
-						"description": "Show content of the Violations view"
+						"description": "%config.understand.violationsView.enabled.description%"
 					},
 					"understand.files.watch": {
 						"type": "string",
 						"default": "**",
-						"markdownDescription": "[Glob pattern](https://aka.ms/vscode-glob-patterns) of files to watch, to notify the server when they are changed/created/deleted, for example `**/src/**/*.{c,h}`"
+						"markdownDescription": "%config.understand.files.watch.markdownDescription%"
 					},
 					"understand.infoView.enabled": {
 						"type": "boolean",
 						"default": true,
-						"description": "Show content of the Info view"
+						"description": "%config.understand.infoView.enabled.description%"
 					},
 					"understand.graphsView.enabled": {
 						"type": "boolean",
 						"default": true,
-						"description": "Show content of the Graphs view"
+						"description": "%config.understand.graphsView.enabled.description%"
 					},
 					"understand.graphs.reuseTab": {
 						"type": "boolean",
 						"default": false,
-						"description": "Open a graph in the active graph tab instead of a new one, as the graph window's Reuse checkbox does"
+						"description": "%config.understand.graphs.reuseTab.description%"
 					},
 					"understand.license.code": {
 						"type": "string",
 						"default": "",
 						"scope": "machine-overridable",
-						"description": "License code for the language server, passed to it as the UNDERSTAND_LICENSE_CODE environment variable: used for this server only and never written to the shared license configuration. Intended for containers and other environments where running `und -setlicensecode` is inconvenient",
+						"description": "%config.understand.license.code.description%",
 						"ignoreSync": true
 					},
 					"understand.license.deregisterOnExit": {
 						"type": "boolean",
 						"default": false,
 						"scope": "machine-overridable",
-						"description": "When the language server stops, release this machine's installation of the license code on the license server. Combine with the license code setting in a container so that an exiting container never leaves a license registered",
+						"description": "%config.understand.license.deregisterOnExit.description%",
 						"ignoreSync": true
 					},
 					"understand.metricsView.disabledMetrics": {
 						"type": "array",
-						"markdownDescription": "API names of [metrics](https://support.scitools.com/support/solutions/articles/70000582223-what-metrics-does-understand-have-) to hide (example: AvgCountLine). By default, the Git metrics: they read the repository's whole history, which takes minutes on a large one.",
+						"markdownDescription": "%config.understand.metricsView.disabledMetrics.markdownDescription%",
 						"items": {
 							"type": "string"
 						},
@@ -725,11 +725,11 @@
 					"understand.metricsView.enabled": {
 						"type": "boolean",
 						"default": true,
-						"description": "Show content of the Metrics view"
+						"description": "%config.understand.metricsView.enabled.description%"
 					},
 					"understand.project.path": {
 						"type": "string",
-						"description": "Absolute path of the Understand project (PROJECT_NAME.und folder, most likely should be configured in Workspace/Folder Settings)",
+						"description": "%config.understand.project.path.description%",
 						"ignoreSync": true
 					},
 					"understand.project.pathFindingMethod": {
@@ -739,12 +739,12 @@
 							"Automatic",
 							"Manual"
 						],
-						"description": "Either allow the language server to find the Understand project automatically, or manually set it once"
+						"description": "%config.understand.project.pathFindingMethod.description%"
 					},
 					"understand.referencesView.enabled": {
 						"type": "boolean",
 						"default": true,
-						"description": "Show content of the References view"
+						"description": "%config.understand.referencesView.enabled.description%"
 					},
 					"understand.referencesView.organization": {
 						"type": "string",
@@ -754,15 +754,15 @@
 							"Flat"
 						],
 						"enumDescriptions": [
-							"Grouped by files (entity > files > references)",
-							"Ungrouped (entity > references)"
+							"%config.understand.referencesView.organization.enum.0%",
+							"%config.understand.referencesView.organization.enum.1%"
 						],
-						"description": "How the references are grouped"
+						"description": "%config.understand.referencesView.organization.description%"
 					},
 					"understand.referencesView.preserveFocus": {
 						"type": "boolean",
 						"default": true,
-						"description": "Enable to keep focus on the References view, otherwise focus on the editor"
+						"description": "%config.understand.referencesView.preserveFocus.description%"
 					},
 					"understand.server.communicationProtocol": {
 						"type": "string",
@@ -771,19 +771,19 @@
 							"Named Pipe",
 							"TCP Socket"
 						],
-						"description": "Way to communicate with the language server"
+						"description": "%config.understand.server.communicationProtocol.description%"
 					},
 					"understand.server.communicationTcpPort": {
 						"type": "number",
 						"default": 6789,
 						"minimum": 0,
 						"maximum": 65535,
-						"description": "TCP port used if the communication protocol is TCP socket"
+						"description": "%config.understand.server.communicationTcpPort.description%"
 					},
 					"understand.server.executable": {
 						"type": "string",
 						"default": "",
-						"description": "Command or full path of `userver`, the Understand Language server",
+						"description": "%config.understand.server.executable.description%",
 						"ignoreSync": true
 					},
 					"understand.trace.server": {
@@ -795,17 +795,17 @@
 							"Compact",
 							"Verbose"
 						],
-						"description": "Log trace for communication with the language server"
+						"description": "%config.understand.trace.server.description%"
 					},
 					"understand.violations.hover.detailedDescription": {
 						"type": "boolean",
 						"default": true,
-						"description": "Preview the detailed description of a violation when the mouse hovers on it in the editor"
+						"description": "%config.understand.violations.hover.detailedDescription.description%"
 					}
 				}
 			},
 			{
-				"title": "Understand: AI",
+				"title": "%config.Understand.AI.title%",
 				"properties": {
 					"understand.AI.provider": {
 						"type": "string",
@@ -821,8 +821,8 @@
 							"Grok (xAI)",
 							"Other"
 						],
-						"markdownDescription": "AI provider. [⚙ Edit Understand AI Provider Settings](command:understand.ai.editProviderSettings)",
-						"description": "AI provider."
+						"markdownDescription": "%config.understand.AI.provider.markdownDescription%",
+						"description": "%config.understand.AI.provider.description%"
 					}
 				}
 			}
@@ -1407,7 +1407,7 @@
 				{
 					"icon": "res/logoMonochrome.svg",
 					"id": "understand",
-					"title": "Understand"
+					"title": "%viewsContainer.understand.title%"
 				}
 			]
 		},
@@ -1416,14 +1416,14 @@
 				{
 					"icon": "$(sparkle)",
 					"id": "understandAi",
-					"name": "AI Overview",
+					"name": "%view.understandAi.name%",
 					"type": "webview",
 					"when": "understandAiLicensed"
 				},
 				{
 					"icon": "$(comment-unresolved)",
 					"id": "understandAnnotationBrowser",
-					"name": "Annotations",
+					"name": "%view.understandAnnotationBrowser.name%",
 					"type": "tree",
 					"visibility": "collapsed",
 					"when": "config.understand.annotations.enabled && config.understand.annotationBrowser.enabled"
@@ -1431,13 +1431,13 @@
 				{
 					"icon": "$(type-hierarchy)",
 					"id": "understandGraphs",
-					"name": "Graphs",
+					"name": "%view.understandGraphs.name%",
 					"type": "tree"
 				},
 				{
 					"icon": "$(info)",
 					"id": "understandInfo",
-					"name": "API Info",
+					"name": "%view.understandInfo.name%",
 					"type": "tree",
 					"visibility": "collapsed",
 					"when": "config.understand.infoView.enabled && understandApiLicensed"
@@ -1445,20 +1445,20 @@
 				{
 					"icon": "$(pulse)",
 					"id": "understandMetrics",
-					"name": "Metrics",
+					"name": "%view.understandMetrics.name%",
 					"type": "tree",
 					"when": "understandExportLicensed"
 				},
 				{
 					"icon": "$(symbol-reference)",
 					"id": "understandReferences",
-					"name": "References",
+					"name": "%view.understandReferences.name%",
 					"type": "tree"
 				},
 				{
 					"icon": "$(warning)",
 					"id": "understandViolationsList",
-					"name": "Violations",
+					"name": "%view.understandViolationsList.name%",
 					"type": "tree",
 					"visibility": "collapsed",
 					"when": "config.understand.violationsView.enabled"

@@ -22,6 +22,7 @@ import { hideMenu, showNodeMenu, showEdgeMenu, onContextMenu } from './menus.js'
 import { placeFirstLegend, drawLegend } from './legend.js';
 import { updateMinimap, onMinimapPointerDown } from './minimap.js';
 import { exportableSvg, saveRaster, copyImage } from './images.js';
+import { t } from './l10n.js';
 
 
 /**
@@ -67,7 +68,7 @@ function onAborted()
 		return;
 	const text = document.createElement('p');
 	text.className = 'graphMessage';
-	text.textContent = 'Cancelled. Change an option to draw the graph, or close the tab.';
+	text.textContent = t('Cancelled. Change an option to draw the graph, or close the tab.');
 	container.append(text);
 }
 

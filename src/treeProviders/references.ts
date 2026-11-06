@@ -1,3 +1,4 @@
+import { l10n } from 'vscode';
 import {
 	commands,
 	EventEmitter,
@@ -169,7 +170,7 @@ class RefItem extends TreeItem
 		const uri = Uri.parse(data.uri);
 
 		this.command = {
-			title: 'Go to Reference',
+			title: l10n.t('Go to Reference'),
 			command: 'understand.referencesView.goToReference',
 			arguments: [uri, data.line, data.character],
 		};

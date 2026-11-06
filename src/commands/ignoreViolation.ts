@@ -51,7 +51,7 @@ async function applyIgnore(
 	const action = (actions ?? []).find(a => a.command?.command === wanted.command
 		&& (a.command.arguments?.[0] as { [key: string]: { id?: string } } | undefined)?.[wanted.key]?.id === id);
 	if (!action) {
-		vscode.window.showErrorMessage(`No ignore is offered for ${id} on this line`);
+		vscode.window.showErrorMessage(vscode.l10n.t('No ignore is offered for {0} on this line', id));
 		return;
 	}
 	if (action.edit) {

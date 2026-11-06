@@ -5,6 +5,7 @@ import { vscode } from './state.js';
 import { cssEscape } from './util.js';
 import { drawNodeActionButtons } from './selection.js';
 import { updateToolbar } from './toolbar.js';
+import { t } from './l10n.js';
 
 
 /**
@@ -87,7 +88,7 @@ export function drawOptions(options)
 	levels.id = 'quickLevels';
 	quick.appendChild(levels);
 	if (levelOptionIds.length)
-		for (const [step, icon, text] of /** @type {const} */ ([[1, 'chevron-up', 'Increase Level'], [-1, 'chevron-down', 'Decrease Level']])) {
+		for (const [step, icon, text] of /** @type {const} */ ([[1, 'chevron-up', t('Increase Level')], [-1, 'chevron-down', t('Decrease Level')]])) {
 			const button = document.createElement('button');
 			button.className = 'tool quickLevel';
 			button.id = step > 0 ? 'quickIncreaseLevel' : 'quickDecreaseLevel';
@@ -485,7 +486,7 @@ function sendChangeDelayed(id, value)
 function updateNumberRange(label, input, min, max)
 {
 	if (min > max) {
-		const placeholder = 'Disabled';
+		const placeholder = t('Disabled');
 		label.title = placeholder;
 		input.disabled = true;
 		input.min = '0';

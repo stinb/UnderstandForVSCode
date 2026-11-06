@@ -7,6 +7,7 @@ import { optionsMenuItems } from './options.js';
 import { nodeIdOf, showAllHidden, selectNode, selectAll, invertSelection, postAction } from './selection.js';
 import { filterMenuItems } from './filters.js';
 import { undoStep, canUndo, canRedo } from './view.js';
+import { t } from './l10n.js';
 
 
 /**
@@ -173,7 +174,7 @@ export function colorMenuItem(label, current, onPick, inheritable)
 				items.push({ label: color, color, checked: (current || '').toLowerCase() === color, onClick: () => onPick(color) });
 			items.push({ separator: true });
 			items.push({
-				label: 'Select Color…',
+				label: t('Select Color…'),
 				onClick: () => {
 					const input = document.createElement('input');
 					input.type = 'color';
@@ -218,7 +219,7 @@ function nodeMenuItems(actions, ids, target, suggestions)
 	// The graph's options, as the GUI's node menu has them under "Graph"
 	const options = optionsMenuItems();
 	if (options.length)
-		items.push({ label: 'Graph', children: options }, { separator: true });
+		items.push({ label: t('Graph'), children: options }, { separator: true });
 	for (const action of actions)
 		items.push({
 			label: action.text,
@@ -252,32 +253,32 @@ function targetMenuItems(target)
 	const items = [];
 	const go = (/** @type {import('../types/graph').GraphLocation} */ loc) => () => goToLocation(loc.path, loc.line, loc.column);
 	if (target.source)
-		items.push({ label: 'Go To Source', onClick: go(target.source) });
+		items.push({ label: t('Go To Source'), onClick: go(target.source) });
 	if (target.definition)
-		items.push({ label: 'Go To Definition', onClick: go(target.definition) });
+		items.push({ label: t('Go To Definition'), onClick: go(target.definition) });
 	const decl = target.declaration;
 	const def = target.definition;
 	if (decl && !(def && def.path === decl.path && def.line === decl.line))
-		items.push({ label: 'Go To Declaration', onClick: go(decl) });
+		items.push({ label: t('Go To Declaration'), onClick: go(decl) });
 	const uniqueName = target.uniqueName;
 	if (uniqueName) {
 		const post = (/** @type {import('../types/graph').TargetCommand['command']} */ command,
 			/** @type {Partial<import('../types/graph').TargetCommand>} */ extra = {}) =>
 			() => vscode.postMessage(Object.assign({ method: /** @type {'target'} */ ('target'), command, uniqueName }, extra));
-		items.push({ label: 'View Information', onClick: post('info') });
-		items.push({ label: 'AI Overview', onClick: post('ai') });
-		items.push({ label: 'Generate AI Overview', onClick: post('generateAi') });
-		items.push({ label: 'Find References', onClick: post('references') });
-		items.push({ label: 'Show Metrics', onClick: post('metrics') });
-		items.push({ label: 'Find in Files', onClick: post('findInFiles', { text: target.name || '' }) });
+		items.push({ label: t('View Information'), onClick: post('info') });
+		items.push({ label: t('AI Overview'), onClick: post('ai') });
+		items.push({ label: t('Generate AI Overview'), onClick: post('generateAi') });
+		items.push({ label: t('Find References'), onClick: post('references') });
+		items.push({ label: t('Show Metrics'), onClick: post('metrics') });
+		items.push({ label: t('Find in Files'), onClick: post('findInFiles', { text: target.name || '' }) });
 		if (target.definition) {
 			items.push({ separator: true });
-			items.push({ label: 'Annotate…', onClick: post('annotate', { location: target.definition, text: target.name }) });
-			items.push({ label: 'Explore in Understand', onClick: post('explore', { location: target.definition }) });
+			items.push({ label: t('Annotate…'), onClick: post('annotate', { location: target.definition, text: target.name }) });
+			items.push({ label: t('Explore in Understand'), onClick: post('explore', { location: target.definition }) });
 		}
 		items.push({ separator: true });
-		items.push({ label: 'Copy Name', onClick: post('copyName', { text: target.name || '' }) });
-		items.push({ label: 'Copy Full Name', onClick: post('copyLongName', { text: target.longName || '' }) });
+		items.push({ label: t('Copy Name'), onClick: post('copyName', { text: target.name || '' }) });
+		items.push({ label: t('Copy Full Name'), onClick: post('copyLongName', { text: target.longName || '' }) });
 	}
 	if (target.arch) {
 		const arch = target.arch;
@@ -289,7 +290,7 @@ function targetMenuItems(target)
 	const root = uniqueName || (target.arch ? `arch:${target.arch}` : '');
 	if (root && target.graphs && target.graphs.length) {
 		items.push({
-			label: 'Graphical Views',
+			label: t('Graphical Views'),
 			children: target.graphs.map(graphName => ({
 				label: graphLabel(graphName),
 				onClick: () => vscode.postMessage({ method: 'target', command: 'graph', uniqueName: root, graphName }),
@@ -337,34 +338,34 @@ function graphMenuItems()
 		return filterMenuItems();
 	const hiddenCount = (info && info.hidden && info.hidden.length) || 0;
 	items.push({
-		label: hiddenCount ? `Show All Hidden Nodes (${hiddenCount})` : 'Show All Hidden Nodes',
+		label: hiddenCount ? t('Show All Hidden Nodes ({0})', hiddenCount) : t('Show All Hidden Nodes'),
 		disabled: !hiddenCount,
 		onClick: showAllHidden,
 	});
 	if (hiddenCount && info && info.hidden) {
 		items.push({
-			label: 'Show Hidden Node',
+			label: t('Show Hidden Node'),
 			children: info.hidden.map(h => ({ label: h.name.trim() || h.id, onClick: () => postAction('hide', [h.id], false) })),
 		});
 	}
-	items.push({ label: 'Clear All Highlighted Edges', disabled: !(info && info.highlights), onClick: () => postAction('clearHighlights') });
+	items.push({ label: t('Clear All Highlighted Edges'), disabled: !(info && info.highlights), onClick: () => postAction('clearHighlights') });
 	items.push({
-		label: 'Hide Nodes With No Highlighted Edges',
+		label: t('Hide Nodes With No Highlighted Edges'),
 		checked: !!(info && info.hideUnhighlightedNodes),
 		onClick: () => postAction('hideUnhighlightedNodes', undefined, !(info && info.hideUnhighlightedNodes)),
 	});
 	items.push({
-		label: 'Hide Unhighlighted Edges',
+		label: t('Hide Unhighlighted Edges'),
 		checked: !!(info && info.hideUnhighlightedEdges),
 		onClick: () => postAction('hideUnhighlightedEdges', undefined, !(info && info.hideUnhighlightedEdges)),
 	});
 	items.push({ separator: true });
-	items.push({ label: 'Inverse Selected Nodes', onClick: invertSelection });
-	items.push({ label: 'Select All Nodes', onClick: selectAll });
+	items.push({ label: t('Inverse Selected Nodes'), onClick: invertSelection });
+	items.push({ label: t('Select All Nodes'), onClick: selectAll });
 	items.push({ separator: true });
-	items.push({ label: 'Undo', disabled: !canUndo(), onClick: () => undoStep(-1) });
-	items.push({ label: 'Redo', disabled: !canRedo(), onClick: () => undoStep(1) });
-	items.push({ label: 'Restore Defaults', onClick: () => postAction('restoreDefaults') });
+	items.push({ label: t('Undo'), disabled: !canUndo(), onClick: () => undoStep(-1) });
+	items.push({ label: t('Redo'), disabled: !canRedo(), onClick: () => undoStep(1) });
+	items.push({ label: t('Restore Defaults'), onClick: () => postAction('restoreDefaults') });
 	const filters = filterMenuItems();
 	if (filters.length)
 		items.push({ separator: true }, ...filters);

@@ -5,6 +5,7 @@ import { info } from './state.js';
 import { postAction } from './selection.js';
 import { onMessage } from './main.js';
 import { focusOnGraph } from './util.js';
+import { t } from './l10n.js';
 
 
 // A draw that takes longer than this shows the layout overlay
@@ -57,7 +58,7 @@ export function onDrawing()
 			overlay.appendChild(text);
 			const view = document.createElement('button');
 			view.id = 'viewDrawing';
-			view.textContent = 'View';
+			view.textContent = t('View');
 			view.hidden = true;
 			view.onclick = () => {
 				const draw = waitingDraw;
@@ -71,7 +72,7 @@ export function onDrawing()
 			overlay.appendChild(view);
 			const cancel = document.createElement('button');
 			cancel.id = 'cancelDrawing';
-			cancel.textContent = 'Cancel';
+			cancel.textContent = t('Cancel');
 			cancel.onclick = () => {
 				postAction('abort');
 				hideDrawing();
@@ -101,8 +102,8 @@ function showLayoutDone(/** @type {boolean} */ done)
 	const text = document.getElementById('drawingText');
 	if (text)
 		text.textContent = done
-			? `The layout took over ${delayLoadSeconds()} s and is now complete. Click View to show the graph.`
-			: 'Calculating ideal graph layout…';
+			? t('The layout took over {0} s and is now complete. Click View to show the graph.', delayLoadSeconds())
+			: t('Calculating ideal graph layout…');
 }
 
 

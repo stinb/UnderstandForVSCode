@@ -1,4 +1,11 @@
 // @ts-check
+// The extension's translated strings for this page, read from <body data-l10n>
+const l10nTable = (() => { try { return JSON.parse(document.body.dataset.l10n || '{}'); } catch { return {}; } })();
+function t(text, ...args) {
+	const s = l10nTable[text] || text;
+	return s.replace(/\{(\d+)\}/g, (_, i) => String(args[i] ?? ''));
+}
+
 'use strict';
 
 /**
@@ -193,7 +200,7 @@ function drawCrumbs()
 		button.onclick = () => { path = to; render(); };
 		crumbs.appendChild(button);
 	};
-	addCrumb(data.group || 'Project', []);
+	addCrumb(data.group || t('Project'), []);
 	for (let d = 0; d < path.length; d++) {
 		if (!node.children || !node.children[path[d]])
 			break;

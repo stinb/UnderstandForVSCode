@@ -75,7 +75,7 @@ export async function removeSaved(item?: { saved?: { name: string, graphName: st
 	if (!saved)
 		return;
 	const choice = await vscode.window.showWarningMessage(
-		`Remove the saved graph state "${saved.name}"?`, { modal: true }, 'Remove');
+		vscode.l10n.t('Remove the saved graph state "{0}"?', saved.name), { modal: true }, vscode.l10n.t('Remove'));
 	if (choice !== 'Remove')
 		return;
 	variables.languageClient.sendNotification('understand/graphs/state', {

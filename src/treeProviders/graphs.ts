@@ -1,3 +1,4 @@
+import { l10n } from 'vscode';
 import {
 	EventEmitter,
 	ThemeIcon,
@@ -62,10 +63,10 @@ export class GraphTreeProvider implements TreeDataProvider<Item>
 			const gui = variables.guiLicensed;
 			const saved = this.visible(this.saved);
 			if (gui) {
-				items.push(new SectionItem('Project Graphs', 'project', this.projectGraphs.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None));
+				items.push(new SectionItem(l10n.t('Project Graphs'), 'project', this.projectGraphs.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None));
 				items.push(new SectionItem('Architectures', 'archs', this.archs.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None));
 			}
-			items.push(new SectionItem('Saved Graphs', 'saved', saved.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None));
+			items.push(new SectionItem(l10n.t('Saved Graphs'), 'saved', saved.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None));
 			if (gui && variables.exportLicensed)
 				items.push(new TreemapItem());
 			return items;
@@ -196,7 +197,7 @@ class GraphItem extends TreeItem
 		super(graphLabel(name));
 		this.contextValue = 'understandGraph';
 		this.command = {
-			title: 'Go to Graph',
+			title: l10n.t('Go to Graph'),
 			command: 'understand.graphs.view',
 			arguments: uniqueName === undefined ? [name] : [name, uniqueName, label],
 		};
@@ -251,7 +252,7 @@ class SavedItem extends TreeItem
 		this.description = `${graphLabel(saved.graphName)}: ${saved.rootName}`;
 		this.iconPath = new ThemeIcon('save');
 		this.command = {
-			title: 'Load Saved Graph',
+			title: l10n.t('Load Saved Graph'),
 			command: 'understand.graphs.view',
 			arguments: [saved.graphName, saved.uniqueName, saved.rootName, saved.name],
 		};
@@ -263,11 +264,11 @@ class TreemapItem extends TreeItem
 {
 	constructor()
 	{
-		super('Metrics Treemap');
+		super(l10n.t('Metrics Treemap'));
 		this.contextValue = 'understandGraphTreemap';
 		this.iconPath = new ThemeIcon('layout');
 		this.command = {
-			title: 'Metrics Treemap',
+			title: l10n.t('Metrics Treemap'),
 			command: 'understand.graphs.treemap',
 		};
 	}

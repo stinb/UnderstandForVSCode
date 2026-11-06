@@ -46,7 +46,7 @@ async function pickAnnotation(place: Place, verb: string): Promise<LineAnnotatio
 	const annotations = annotationsAt(place.uri, place.line);
 	if (annotations.length === 0) {
 		vscode.window.showInformationMessage(
-			`Line ${place.line + 1} has no annotation to ${verb}.`);
+			vscode.l10n.t('Line {0} has no annotation to {1}.', place.line + 1, verb));
 		return undefined;
 	}
 	if (annotations.length === 1)
@@ -59,7 +59,7 @@ async function pickAnnotation(place: Place, verb: string): Promise<LineAnnotatio
 			description: [annotation.templateName, annotation.author].filter(Boolean).join(' · '),
 			annotation,
 		})),
-		{ placeHolder: `Which annotation on line ${place.line + 1} to ${verb}` });
+		{ placeHolder: vscode.l10n.t('Which annotation on line {0} to {1}', place.line + 1, verb) });
 	return picked?.annotation;
 }
 

@@ -1,4 +1,11 @@
 // @ts-check
+// The extension's translated strings for this page, read from <body data-l10n>
+const l10nTable = (() => { try { return JSON.parse(document.body.dataset.l10n || '{}'); } catch { return {}; } })();
+function t(text, ...args) {
+	const s = l10nTable[text] || text;
+	return s.replace(/\{(\d+)\}/g, (_, i) => String(args[i] ?? ''));
+}
+
 'use strict';
 
 
@@ -96,7 +103,7 @@ function renderAiBody(parent, text)
 		details.className = 'thinking';
 		details.open = open;
 		const summary = document.createElement('summary');
-		summary.textContent = open ? 'Thinking…' : 'Thinking';
+		summary.textContent = open ? t('Thinking…') : t('Thinking');
 		details.append(summary);
 		const inner = document.createElement('div');
 		inner.className = 'thinkingBody';
@@ -137,7 +144,7 @@ function drawAi(sections)
 			if (emptyCardIds.length > 1) {
 				const buttonUi = document.createElement('button');
 				buttonUi.className = 'generateMany';
-				buttonUi.title = 'Generate AI overviews for everything in this section';
+				buttonUi.title = t('Generate AI overviews for everything in this section');
 				buttonUi.dataset.uniqueNames = JSON.stringify(emptyCardIds);
 				sectionHeaderUi.appendChild(buttonUi);
 
@@ -178,7 +185,7 @@ function drawAi(sections)
 			const chatButton = drawButton(buttonsUi, 'chat', 'codicon-comment-discussion', 'Start an AI chat about this');
 			const copyButton = drawButton(buttonsUi, 'copy', 'codicon-copy', 'Copy the AI overview');
 			drawButton(buttonsUi, 'regenerate', card.body ? 'codicon-refresh' : 'codicon-sparkle',
-				card.body ? 'Regenerate the AI overview' : 'Generate an AI overview');
+				card.body ? t('Regenerate the AI overview') : t('Generate an AI overview'));
 
 			if (card.body.length === 0) {
 				chatButton.classList.add('notDisplayed');
@@ -292,7 +299,7 @@ function handleClick(event)
 		if (!data.positionCharacter || !data.positionLine || !data.positionUri) {
 			vscode.postMessage({
 				method: 'error',
-				body: 'Failed to find the position of the annotation',
+				body: t('Failed to find the position of the annotation'),
 			});
 			return;
 		}
@@ -330,7 +337,7 @@ function handleClick(event)
 		const parent = getAnnotationParent(event.target);
 		if (!parent)
 			return;
-		navigator.clipboard.writeText(parent.dataset.body || 'Failed to copy text');
+		navigator.clipboard.writeText(parent.dataset.body || t('Failed to copy text'));
 	}
 }
 
@@ -433,7 +440,7 @@ function handleMessageEvent(event)
 			if (!annotation) {
 				vscode.postMessage({
 					method: 'error',
-					body: 'The entity is not declared in this file. This UI is not supported yet.',
+					body: t('The entity is not declared in this file. This UI is not supported yet.'),
 				});
 				break;
 			}
@@ -627,7 +634,7 @@ function buildField(field, values, onChange)
 		for (const option of offered)
 			select.append(new Option(option, option));
 		if (field.allowAdd)
-			select.append(new Option('New value…', kNewValue));
+			select.append(new Option(t('New value…'), kNewValue));
 		select.value = current;
 		select.onchange = () => {
 			if (select.value === kNewValue) {
@@ -659,7 +666,7 @@ function buildField(field, values, onChange)
 				delete values[field.key];
 			onChange(field.key);
 		};
-		item.append(check, document.createTextNode('Yes'));
+		item.append(check, document.createTextNode(t('Yes')));
 		row.append(item);
 		return row;
 	}
@@ -704,7 +711,7 @@ function newValueInput(field, values, onChange, row)
 {
 	const input = document.createElement('input');
 	input.type = 'text';
-	input.placeholder = 'New value';
+	input.placeholder = t('New value');
 	let done = false;
 	const commit = () => {
 		if (done)
@@ -806,7 +813,7 @@ function locationLine(message)
 		const file = document.createElement('a');
 		file.href = '#';
 		file.textContent = decodeURIComponent(where.uri.split(/[\\/]/).pop() || where.uri);
-		file.title = 'Show in the editor';
+		file.title = t('Show in the editor');
 		file.onclick = (event) => {
 			event.preventDefault();
 			event.stopPropagation();
@@ -883,7 +890,7 @@ function metadataBlock(message)
 	const block = document.createElement('div');
 	block.className = 'formMetadata';
 	const label = document.createElement('label');
-	label.textContent = message.mode === 'new' ? 'Metadata (updated and added on Create)' : 'Metadata';
+	label.textContent = message.mode === 'new' ? t('Metadata (updated and added on Create)') : t('Metadata');
 	const text = document.createElement('p');
 	appendWithMedia(text, message.metadata);
 	block.append(label, text);
@@ -917,7 +924,7 @@ function mediaNode(payload)
 		// Only the two schemes a browser would follow are linked; the webview
 		// hands those to the system browser.
 		if (!/^https?:\/\//i.test(id))
-			return `Link: ${id}`;
+			return t('Link: {0}', id);
 		a.href = id;
 		a.textContent = id;
 		return a;
@@ -927,7 +934,7 @@ function mediaNode(payload)
 	a.setAttribute('role', 'link');
 	a.tabIndex = 0;
 	a.className = 'attachment';
-	a.title = 'Open the attachment';
+	a.title = t('Open the attachment');
 	a.dataset.mediaId = id;
 	a.dataset.mediaName = name;
 	const icon = document.createElement('span');
@@ -995,8 +1002,8 @@ function recordTitle(message)
 {
 	const template = message.template;
 	if (message.mode === 'edit' && template)
-		return `Template: ${template.name}`;
-	return message.title || (template ? template.name : 'Note');
+		return t('Template: {0}', template.name);
+	return message.title || (template ? template.name : t('Note'));
 }
 
 
@@ -1062,7 +1069,7 @@ function renderCard(message)
 				label.append(star);
 			}
 			const value = document.createElement('span');
-			value.textContent = field.type === 'checkbox' ? 'Yes' : held.join(', ');
+			value.textContent = field.type === 'checkbox' ? t('Yes') : held.join(', ');
 			row.append(label, ' ', value);
 			row.onclick = () => edit(field.key);
 			record.append(row);
@@ -1085,7 +1092,7 @@ function renderCard(message)
 	buttons.className = 'formButtons';
 	const editButton = document.createElement('button');
 	editButton.className = 'edit';
-	editButton.textContent = 'Edit';
+	editButton.textContent = t('Edit');
 	editButton.onclick = (event) => {
 		event.preventDefault();
 		event.stopPropagation();
@@ -1104,12 +1111,12 @@ function renderCard(message)
 /** @param {number} severity */
 function severityText(severity)
 {
-	if (severity >= 100) return 'Urgent';
-	if (severity >= 75) return 'High';
-	if (severity >= 50) return 'Medium';
-	if (severity >= 25) return 'Low';
-	if (severity >= 0) return 'Informational';
-	return 'No severity';
+	if (severity >= 100) return t('Urgent');
+	if (severity >= 75) return t('High');
+	if (severity >= 50) return t('Medium');
+	if (severity >= 25) return t('Low');
+	if (severity >= 0) return t('Informational');
+	return t('No severity');
 }
 
 
@@ -1154,7 +1161,7 @@ function optionRow(option)
 			value.append(span);
 		}
 	} else if (option.kind === 'checkbox') {
-		value.textContent = option.value === true || option.value === 'true' ? 'On' : 'Off';
+		value.textContent = option.value === true || option.value === 'true' ? t('On') : t('Off');
 	} else {
 		value.textContent = inUse.join(', ');
 	}
@@ -1212,7 +1219,7 @@ function renderCheckCard(message)
 	about.append(cardRow('ID', check.id));
 	if (check.hierarchy && check.hierarchy.length > 1)
 		about.append(cardRow('Standard', check.hierarchy.slice(0, -1).join(' › ')));
-	about.append(cardRow('Default severity', severityText(check.defaultSeverity)));
+	about.append(cardRow(t('Default severity'), severityText(check.defaultSeverity)));
 	card.append(about);
 
 	const configs = check.configs || [];
@@ -1222,12 +1229,12 @@ function renderCheckCard(message)
 		// The configuration's name is the way to its card.
 		const title = document.createElement('p');
 		title.className = 'templateName';
-		title.append('Runs in ', cardLink(config.name, () =>
+		title.append(t('Runs in '), cardLink(config.name, () =>
 			vscode.postMessage({ method: 'showConfiguration', name: config.name })));
 		if (config.automatic)
 			title.append(' (in the background)');
 		section.append(title);
-		section.append(cardRow('Severity', severityText(config.severity)));
+		section.append(cardRow(t('Severity'), severityText(config.severity)));
 		for (const option of config.options || [])
 			section.append(optionRow(option));
 		card.append(section);
@@ -1235,7 +1242,7 @@ function renderCheckCard(message)
 	if (!configs.length) {
 		const none = document.createElement('p');
 		none.className = 'field checkConfig';
-		none.textContent = 'Not in any CodeCheck configuration';
+		none.textContent = t('Not in any CodeCheck configuration');
 		card.append(none);
 	}
 
@@ -1297,10 +1304,10 @@ function renderConfigurationCard(message)
 
 	const about = document.createElement('div');
 	about.className = 'template';
-	about.append(cardRow('Runs', configuration.automatic ? 'In the background' : 'On demand'));
+	about.append(cardRow(t('Runs'), configuration.automatic ? t('In the background') : t('On demand')));
 	const excludes = configuration.excludes || [];
 	if (excludes.length)
-		about.append(cardRow('Excludes', excludes.join(', ')));
+		about.append(cardRow(t('Excludes'), excludes.join(', ')));
 	card.append(about);
 
 	const checks = (configuration.checks || []).slice()
@@ -1336,7 +1343,7 @@ function renderConfigurationCard(message)
 	if (!checks.length) {
 		const none = document.createElement('p');
 		none.className = 'field';
-		none.textContent = 'No checks';
+		none.textContent = t('No checks');
 		section.append(none);
 	}
 	card.append(section);
@@ -1367,7 +1374,7 @@ function renderForm(message)
 
 	const save = document.createElement('button');
 	save.className = 'save';
-	save.textContent = message.mode === 'new' ? 'Create' : 'Save';
+	save.textContent = message.mode === 'new' ? t('Create') : t('Save');
 
 	// Rebuild every field that depends on the changed one, then theirs.
 	/** @param {string} key */
@@ -1428,7 +1435,7 @@ function renderForm(message)
 			: canonical(filled(values), null) !== heldFields);
 	const updateSave = () => {
 		save.disabled = !changed();
-		save.title = save.disabled ? 'Nothing has changed' : '';
+		save.title = save.disabled ? t('Nothing has changed') : '';
 	};
 	// Every control reports through its own handler first, then here -- the
 	// one place that decides whether Save is offered.
@@ -1456,7 +1463,7 @@ function renderForm(message)
 		const row = document.createElement('div');
 		row.className = 'formField formTemplate';
 		const label = document.createElement('label');
-		label.textContent = 'Template';
+		label.textContent = t('Template');
 		const select = document.createElement('select');
 		for (const offered of message.templates) {
 			const option = document.createElement('option');
@@ -1466,7 +1473,7 @@ function renderForm(message)
 		}
 		const none = document.createElement('option');
 		none.value = '';
-		none.textContent = 'Note (no template)';
+		none.textContent = t('Note (no template)');
 		select.append(none);
 		select.value = template ? template.id : '';
 		select.onchange = () => {
@@ -1517,7 +1524,7 @@ function renderForm(message)
 	if (!template && (message.mode === 'new' || message.body !== undefined)) {
 		bodyUi = document.createElement('textarea');
 		bodyUi.className = 'formBody';
-		bodyUi.placeholder = 'Note';
+		bodyUi.placeholder = t('Note');
 		bodyUi.value = message.body || '';
 		formUi.append(bodyUi);
 	}
@@ -1529,7 +1536,7 @@ function renderForm(message)
 	// Say so when picking a template has just dropped a typed note, rather
 	// than letting the text vanish without a word.
 	if (message.droppedNote) {
-		note.textContent = 'The note was removed: this template stamps its own'
+		note.textContent = t('The note was removed: this template stamps its own')
 			+ ' text, and a note cannot be kept alongside it.';
 		note.classList.remove('notDisplayed');
 	}
@@ -1538,7 +1545,7 @@ function renderForm(message)
 	buttons.className = 'formButtons';
 	const cancel = document.createElement('button');
 	cancel.className = 'cancel';
-	cancel.textContent = 'Cancel';
+	cancel.textContent = t('Cancel');
 	buttons.append(save, cancel);
 	formUi.append(buttons);
 	updateSave();
@@ -1561,8 +1568,8 @@ function renderForm(message)
 		header.className = 'cardHeader';
 		const p = document.createElement('p');
 		const b = document.createElement('b');
-		b.textContent = message.mode === 'new' ? 'New annotation'
-			: template ? 'Edit fields' : 'Edit text';
+		b.textContent = message.mode === 'new' ? t('New annotation')
+			: template ? t('Edit fields') : t('Edit text');
 		p.append(b);
 		header.append(p);
 		host.append(header, formUi);
@@ -1591,7 +1598,7 @@ function renderForm(message)
 		const missing = gaps().map(field => field.label);
 		markGaps();
 		if (missing.length && message.anchor && message.anchor.kind === 'ignore') {
-			note.textContent = `Required and still empty: ${missing.join(', ')}.`;
+			note.textContent = t('Required and still empty: {0}.', missing.join(', '));
 			note.classList.remove('notDisplayed');
 			return;
 		}
@@ -1610,7 +1617,7 @@ function renderForm(message)
 		// the annotation made or saved, or this form again when the server
 		// refused.
 		save.disabled = true;
-		save.textContent = message.mode === 'new' ? 'Creating…' : 'Saving…';
+		save.textContent = message.mode === 'new' ? t('Creating…') : t('Saving…');
 	};
 
 	cancel.onclick = (event) => {
@@ -1681,8 +1688,8 @@ function setUpFind()
 	const input = document.createElement('input');
 	input.type = 'text';
 	input.className = 'findInput';
-	input.placeholder = 'Find';
-	input.setAttribute('aria-label', 'Find');
+	input.placeholder = t('Find');
+	input.setAttribute('aria-label', t('Find'));
 	field.append(input);
 
 	const count = document.createElement('span');
@@ -1717,13 +1724,13 @@ function setUpFind()
 		b.setAttribute('aria-pressed', 'false');
 		return b;
 	};
-	field.append(toggle('matchCase', 'case-sensitive', 'Match Case'),
-		toggle('wholeWord', 'whole-word', 'Match Whole Word'),
-		toggle('regex', 'regex', 'Use Regular Expression'));
+	field.append(toggle('matchCase', 'case-sensitive', t('Match Case')),
+		toggle('wholeWord', 'whole-word', t('Match Whole Word')),
+		toggle('regex', 'regex', t('Use Regular Expression')));
 	bar.append(field, count,
-		button('findAction', 'arrow-up', 'Previous Match (Shift+Enter)', () => step(-1)),
-		button('findAction', 'arrow-down', 'Next Match (Enter)', () => step(1)),
-		button('findAction', 'close', 'Close (Escape)', close));
+		button('findAction', 'arrow-up', t('Previous Match (Shift+Enter)'), () => step(-1)),
+		button('findAction', 'arrow-down', t('Next Match (Enter)'), () => step(1)),
+		button('findAction', 'close', t('Close (Escape)'), close));
 	document.body.append(bar);
 
 	/** @returns {RegExp | null} null when the pattern does not compile */
@@ -1772,7 +1779,7 @@ function setUpFind()
 		const regex = input.value ? pattern() : null;
 		field.classList.toggle('invalid', !!input.value && !regex);
 		if (!regex) {
-			count.textContent = input.value ? 'Invalid' : '';
+			count.textContent = input.value ? t('Invalid') : '';
 			count.classList.toggle('none', !!input.value);
 			return;
 		}
@@ -1824,7 +1831,7 @@ function setUpFind()
 
 		count.classList.toggle('none', !matches.length);
 		if (!matches.length) {
-			count.textContent = 'No results';
+			count.textContent = t('No results');
 			return;
 		}
 		index = fromStart || previous < 0 ? 0 : Math.min(previous, matches.length - 1);

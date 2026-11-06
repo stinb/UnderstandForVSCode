@@ -1,3 +1,4 @@
+import { l10n } from 'vscode';
 import {
 	Command,
 	commands,
@@ -136,8 +137,7 @@ export class AnnotationTreeProvider implements TreeDataProvider<AnnotationNode>
 					{ select: true, focus: true });
 			} catch {
 				// The view cannot be brought up: its setting has it hidden.
-				window.showInformationMessage('Turn on the Annotations view '
-					+ '(understand.annotationBrowser.enabled) to show annotations there.');
+				window.showInformationMessage(l10n.t('Turn on the Annotations view (understand.annotationBrowser.enabled) to show annotations there.'));
 			}
 			return;
 		}
@@ -289,7 +289,7 @@ export class AnnotationTreeProvider implements TreeDataProvider<AnnotationNode>
 
 		if (this.truncated && this.scope === 'all') {
 			const notice = new AnnotationGroupItem(
-				`Showing a subset — ${this.total} annotations in the project`, []);
+				l10n.t('Showing a subset — {0} annotations in the project', this.total), []);
 			notice.collapsibleState = TreeItemCollapsibleState.None;
 			notice.iconPath = new ThemeIcon('info');
 			groups.unshift(notice);
@@ -339,12 +339,12 @@ export async function annotationsGroupBy()
 	// label is the display text; value is the stable key
 	const picked = await window.showQuickPick(
 		[
-			{ label: 'File', value: 'file' as AnnotationGroupBy },
-			{ label: 'Author', value: 'author' as AnnotationGroupBy },
-			{ label: 'Template', value: 'template' as AnnotationGroupBy },
-			{ label: 'Date', value: 'date' as AnnotationGroupBy },
+			{ label: l10n.t('File'), value: 'file' as AnnotationGroupBy },
+			{ label: l10n.t('Author'), value: 'author' as AnnotationGroupBy },
+			{ label: l10n.t('Template'), value: 'template' as AnnotationGroupBy },
+			{ label: l10n.t('Date'), value: 'date' as AnnotationGroupBy },
 		],
-		{ placeHolder: 'Group annotations by' });
+		{ placeHolder: l10n.t('Group annotations by') });
 	if (picked)
 		variables.annotationsTreeProvider.setGroupBy(picked.value);
 }
@@ -499,7 +499,7 @@ export class AnnotationItem extends TreeItem
 		// annotation has no fields to open, so its click ends in the editor.
 		this.command = {
 			command: 'understand.annotations.openFromBrowser',
-			title: 'Open Annotation',
+			title: l10n.t('Open Annotation'),
 			arguments: [this],
 		} as Command;
 	}
@@ -525,7 +525,7 @@ export class AnnotationFieldItem extends TreeItem
 		this.parent = parent;
 		this.command = {
 			command: 'understand.annotations.openFieldFromBrowser',
-			title: 'Edit Field',
+			title: l10n.t('Edit Field'),
 			arguments: [this],
 		} as Command;
 		this.description = field.value;
@@ -549,10 +549,10 @@ export class AnnotationRowDecorations implements FileDecorationProvider
 	provideFileDecoration(uri: Uri): FileDecoration | undefined
 	{
 		if (uri.scheme === kIncompleteScheme)
-			return new FileDecoration(undefined, 'A required field is still empty',
+			return new FileDecoration(undefined, l10n.t('A required field is still empty'),
 				new ThemeColor('errorForeground'));
 		if (uri.scheme === kIgnoreScheme)
-			return new FileDecoration(undefined, 'An ignored violation',
+			return new FileDecoration(undefined, l10n.t('An ignored violation'),
 				new ThemeColor('list.warningForeground'));
 		return undefined;
 	}

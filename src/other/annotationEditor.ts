@@ -137,16 +137,16 @@ export class AnnotateCodeLensProvider implements vscode.CodeLensProvider
 					// The icon glyph has no right bearing, so a plain space reads as
 					// none; the NBSP keeps a visible gap the renderer won't collapse.
 					title: existing === 1
-						? '$(understand-annotation)\u00A0 Annotation'
-						: `$(understand-annotation)\u00A0 ${existing} annotations`,
+						? `$(understand-annotation)\u00A0 ${vscode.l10n.t('Annotation')}`
+						: `$(understand-annotation)\u00A0 ${vscode.l10n.t('{0} annotations', existing)}`,
 					tooltip: existing === 1
-						? 'Open the annotation: its row in the Browser, its fields in the field editor'
-						: 'Open the annotations in turn, one per click',
+						? vscode.l10n.t('Open the annotation: its row in the Browser, its fields in the field editor')
+						: vscode.l10n.t('Open the annotations in turn, one per click'),
 					arguments: [{ lineNumber: line + 1, uri: document.uri }],
 				}),
 				new vscode.CodeLens(range, {
 					command: 'understand.annotateLine',
-					title: '$(understand-annotation)\u00A0 New Annotation',
+					title: `$(understand-annotation)\u00A0 ${vscode.l10n.t('New Annotation')}`,
 					arguments: [document.uri, line],
 				}),
 			];
@@ -154,7 +154,7 @@ export class AnnotateCodeLensProvider implements vscode.CodeLensProvider
 
 		return [new vscode.CodeLens(range, {
 			command: 'understand.annotateLine',
-			title: '$(understand-annotation)\u00A0 Annotate',
+			title: `$(understand-annotation)\u00A0 ${vscode.l10n.t('Annotate')}`,
 			arguments: [document.uri, line],
 		})];
 	}
@@ -179,14 +179,14 @@ export class AnnotateCodeLensProvider implements vscode.CodeLensProvider
 		return Array.from(at, ([id, where]) => [
 			new vscode.CodeLens(range, {
 				command: 'understand.violations.ignoreWithAnnotation',
-				title: `$(exclude)\u00A0 Ignore ${id}`,
-				tooltip: 'Ignore the violation with an annotation in the project, with a template',
+				title: `$(exclude)\u00A0 ${vscode.l10n.t('Ignore {0}', id)}`,
+				tooltip: vscode.l10n.t('Ignore the violation with an annotation in the project, with a template'),
 				arguments: [document.uri, where, id],
 			}),
 			new vscode.CodeLens(range, {
 				command: 'understand.violations.ignoreInline',
-				title: `$(exclude)\u00A0 Ignore ${id} Inline`,
-				tooltip: 'Ignore the violation with a UndCC_Line comment on the line',
+				title: `$(exclude)\u00A0 ${vscode.l10n.t('Ignore {0} Inline', id)}`,
+				tooltip: vscode.l10n.t('Ignore the violation with a UndCC_Line comment on the line'),
 				arguments: [document.uri, where, id],
 			}),
 		]).flat();

@@ -120,7 +120,7 @@ function mediaLink(media: Media): string
 	}
 	const icon = media.kind === 'img' ? '$(file-media)' : '$(file)';
 	return link(`${icon} ${escapeMarkdown(media.name)}`,
-		'understand.annotations.openMedia', [media.id, media.name], 'Open the attachment');
+		'understand.annotations.openMedia', [media.id, media.name], vscode.l10n.t('Open the attachment'));
 }
 
 
@@ -173,16 +173,16 @@ function actions(annotation: LineAnnotation): string
 	const id = [{ id: annotation.id }];
 	const parts = [
 		link('$(go-to-file) Open', 'understand.annotations.open', [annotation.id],
-			'Open the annotation'),
+			vscode.l10n.t('Open the annotation')),
 	];
 	if (annotation.templateName) {
 		parts.push(link('$(replace) Retype', 'understand.annotations.retype', id,
-			'Change the template'));
+			vscode.l10n.t('Change the template')));
 	}
 	parts.push(link('$(file-media) Attach', 'understand.annotations.attachMedia', id,
-		'Attach a file to the annotation'));
+		vscode.l10n.t('Attach a file to the annotation')));
 	parts.push(link('$(trash) Delete', 'understand.annotations.deleteAnnotation', id,
-		'Delete the annotation'));
+		vscode.l10n.t('Delete the annotation')));
 	return parts.join(' &nbsp;&middot;&nbsp; ');
 }
 
@@ -211,7 +211,7 @@ export function annotationHover(uri: vscode.Uri, line: number,
 
 	markdown.appendMarkdown('\n\n---\n\n'
 		+ link('$(add) Add Annotation', 'understand.annotateLine', [uri, line],
-			'Add an annotation on this line'));
+			vscode.l10n.t('Add an annotation on this line')));
 
 	return markdown;
 }
