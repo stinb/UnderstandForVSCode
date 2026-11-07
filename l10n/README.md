@@ -55,6 +55,31 @@ from `untranslated.<lang>.txt`. In the bundle the key is the English text and
 `{0}`, `{1}` are placeholders that must stay in the translation. Run the seeding
 script again afterwards: it keeps hand-written entries and refreshes the lists.
 
+## Adding a language
+
+VS Code finds the files by its language id, so a language needs nothing but
+its two files. For Korean:
+
+1. Create `package.nls.ko.json` and `l10n/bundle.l10n.ko.json`. Each is a JSON
+   object: the key is the `package.nls.json` key or the English text, the value
+   is the translation. Keys you leave out fall back to English.
+2. If Understand has that language, add it to `LANGS` in
+   `scripts/l10n/seed_from_qt.py`:
+
+   ```python
+   "ko": ["understand_ko.ts", "codecheck_ko.ts"],
+   ```
+
+   and run the script. A language whose Qt files have nothing finished gets no
+   files from the script; to get its `untranslated.ko.txt` anyway, create the
+   bundle file with one entry and run the script again.
+3. To run the language test for it, add the Marketplace language pack to
+   `PACKS` in `test/l10n/run.js`, for example
+   `ko: 'MS-CEINTL.vscode-language-pack-ko'`.
+
+userver needs no change: once the bundle exists the extension starts it with
+`--locale=ko`, and it loads `understand_ko.qm` if `conf/translations` has it.
+
 ## The language userver uses
 
 The extension starts userver with `--locale=<lang>` when it has a bundle for
