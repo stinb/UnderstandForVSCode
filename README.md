@@ -136,6 +136,16 @@ See [scitools.com/eula](https://scitools.com/eula) and also in Understand see He
 * Web Languages
 * [Details of supported languages](https://support.scitools.com/support/solutions/articles/70000582794-supported-languages)
 
+---
+
+### Use It in Your Language
+
+The extension shows its views, commands, messages and settings in VS Code's display language. To change it, run **Configure Display Language** from the Command Palette and install the language pack VS Code offers.
+
+* Japanese and Simplified Chinese are partly translated. Text not yet translated shows in English.
+* AI overviews and the other text the Understand language server writes come in the same language, if your Understand installation includes that language.
+* Metric, graph and entity kind names stay in English.
+
 
 ---
 ## Setup

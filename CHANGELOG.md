@@ -1,6 +1,7 @@
 # Change Log
 
 # [Unreleased]
+- Add: the extension shows its views, commands, messages and settings in VS Code's display language; Japanese and Simplified Chinese are partly translated, the rest stays in English, and AI overviews follow it when the installed Understand has that language (#58)
 - Add: a warning when the installed Understand is older than this extension needs, with a Download Understand button, instead of features failing without saying why (#55)
 - Fix: cancelling a graph's first draw leaves a "Cancelled" note in the tab instead of a spinner that never stops; cancelling a redraw keeps the drawing, as before
 - Fix: a graph that is still drawing is no longer started over when the cursor moves to another entity or the focus changes; before, a graph that took minutes could keep redrawing and never finish

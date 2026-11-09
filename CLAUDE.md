@@ -63,3 +63,12 @@ Bad:  `internal: save graph as raster or svg`
       (a feature users would want to hear about, hidden from the build notes)
 Bad:  `fix makefile`, `1.1.3`, `fix: bump lodash via npm audit fix`
       (build and release work shipped as build notes)
+
+## Text users see
+
+Every string the extension shows goes through VS Code's localization:
+`vscode.l10n.t()` in TypeScript, `t()` in webview scripts, and a `%key%` in
+package.json. Never show a bare English literal. Translators work in the
+`vscode/` folder of stinb/sti-translations, and the sync carries translations
+both ways, so a translation can be fixed in `package.nls.<lang>.json` or
+`l10n/bundle.l10n.<lang>.json` here too. `l10n/README.md` explains the sync.
