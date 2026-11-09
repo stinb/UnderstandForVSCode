@@ -34,13 +34,17 @@ protocol values, such as graph names or provider ids, stay literal.
 The translations are made in the `vscode/` folder of
 [stinb/sti-translations](https://github.com/stinb/sti-translations), next to
 Understand's own Qt files, on its `master` branch for this repository's `main` and
-its `japanese` branch for `japanese`. The language files here are copies: an edit
-made here is overwritten by the next sync, so translate in `vscode/`.
+its `japanese` branch for `japanese`. Translations go both ways, as Understand's
+do between sti and the translations repo: a translation fixed here reaches
+`vscode/`, and one made there comes back here. If both sides change the same
+string before a sync, the last push wins.
 
-Two GitHub workflows keep them in step, each moving one kind of file one way:
+Two GitHub workflows keep them in step:
 
-- `l10n-out.yml` runs on a push that changes strings. It runs the seeding script
-  against the translations repo and pushes `vscode/`: the English
+- `l10n-out.yml` runs on a push that changes strings or translations. It applies
+  the translations the push changed to `vscode/`, entry by entry so it keeps
+  whatever translators pushed there since the last sync, then runs the seeding
+  script against the translations repo and pushes `vscode/`: the English
   (`package.nls.json`, `bundle.l10n.json`), the translations with any new strings
   Understand's Qt files already translate, and `untranslated.<lang>.txt`, one line
   per string still missing: where it is used, the key, the English.
@@ -48,8 +52,8 @@ Two GitHub workflows keep them in step, each moving one kind of file one way:
   `notify-vscode.yml` asks for it) and copies `package.nls.<lang>.json` and
   `bundle.l10n*.json` here.
 
-Both commit with `[autosync]`, and `l10n-out.yml` skips those commits, so a sync
-never starts another. sti's own translation sync leaves `vscode/` alone. Both
+`l10n-in.yml` commits with `[autosync]`, and `l10n-out.yml` skips those commits,
+so a sync never starts another. sti's own translation sync leaves `vscode/` alone. Both
 workflows, and the translations repo's `notify-vscode.yml`, use the
 `SYNC_PAT` secret, the token sti's translation sync already uses, which needs
 Contents read and write on this repository and the translations repo.
@@ -75,7 +79,9 @@ nothing translated gets no files.
 Fill in `vscode/package.nls.<lang>.json` and `vscode/bundle.l10n.<lang>.json` in the
 translations repo, working from `vscode/untranslated.<lang>.txt`. In the bundle the
 key is the English text and `{0}`, `{1}` are placeholders that must stay in the
-translation. Pushing it brings the translations here and refreshes the list.
+translation. Pushing it brings the translations here; the list is refreshed the
+next time the extension's strings change. A translation can also be fixed in this
+repository's copies, and the sync carries it to `vscode/`.
 
 ## Adding a language
 

@@ -2,7 +2,8 @@ name: Sync strings → stinb/sti-translations
 
 # Translators work in the translations repo's vscode/ folder. This sends them the
 # English and the list of what is still untranslated, filling what Understand's
-# Qt files already translate. The translations come back through l10n-in.yml.
+# Qt files already translate, along with any translation edited here. The
+# translations come back through l10n-in.yml.
 on:
   push:
     # main feeds the translations repo's master, japanese its japanese branch
@@ -10,7 +11,8 @@ on:
     paths:
       - src/**
       - res/views/**
-      - package.nls.json
+      - package.nls*.json
+      - l10n/bundle.l10n.*.json
       - scripts/l10n/**
   workflow_dispatch:
 
@@ -25,6 +27,9 @@ jobs:
     if: "github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[autosync]')"
     steps:
       - uses: actions/checkout@v4
+        with:
+          # the commit before the push, to see which translations it edited
+          fetch-depth: 0
 
       - uses: actions/checkout@v4
         with:
@@ -34,7 +39,13 @@ jobs:
           path: translations-repo
 
       - name: Seed and push
+        env:
+          BEFORE: ${{ github.event.before }}
         run: |
+          # No commit before (a new branch, or a manual run): no edits to carry
+          if [ -n "$BEFORE" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            python3 -I scripts/l10n/push_edits.py . "$BEFORE" translations-repo
+          fi
           python3 -I scripts/l10n/seed_from_qt.py . translations-repo
           cd translations-repo
           git config user.name "github-actions[bot]"
