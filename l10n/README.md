@@ -26,43 +26,66 @@ shown in English.
   `package.nls.json`. Keys follow the pattern already there, for example
   `command.understand.analysis.analyzeAllFiles.title`.
 
-Then regenerate the English bundle list and reseed (next section). Strings that are
+Push it: the sync below sends the new English to the translators. Strings that are
 protocol values, such as graph names or provider ids, stay literal.
+
+## Where translators work
+
+The translations are made in the `vscode/` folder of
+[stinb/sti-translations](https://github.com/stinb/sti-translations), next to
+Understand's own Qt files, on its `master` branch for this repository's `main` and
+its `japanese` branch for `japanese`. The language files here are copies: an edit
+made here is overwritten by the next sync, so translate in `vscode/`.
+
+Two GitHub workflows keep them in step, each moving one kind of file one way:
+
+- `l10n-out.yml` runs on a push that changes strings. It runs the seeding script
+  against the translations repo and pushes `vscode/`: the English
+  (`package.nls.json`, `bundle.l10n.json`), the translations with any new strings
+  Understand's Qt files already translate, and `untranslated.<lang>.txt`, one line
+  per string still missing: where it is used, the key, the English.
+- `l10n-in.yml` runs when `vscode/` changes (the translations repo's
+  `notify-vscode.yml` asks for it) and copies `package.nls.<lang>.json` and
+  `bundle.l10n*.json` here.
+
+Both commit with `[autosync]`, and `l10n-out.yml` skips those commits, so a sync
+never starts another. sti's own translation sync leaves `vscode/` alone. Both
+workflows, and the translations repo's `notify-vscode.yml`, use the
+`SYNC_PAT` secret, the token sti's translation sync already uses, which needs
+Contents read and write on this repository and the translations repo.
 
 ## Seeding from Understand's translations
 
-Understand's own translations live in the `sti` repository as Qt files,
-`conf/translations/understand_<lang>.ts` and `codecheck_<lang>.ts`. The script
-below fills the extension's files with every string whose English they already
-translate, exactly or with a loose match (case, a trailing colon or ellipsis,
-Qt's `&` accelerators, `%1` placeholders against `{0}`):
+The seeding script fills every string whose English Understand's Qt files
+(`understand_<lang>.ts`, `codecheck_<lang>.ts`) already translate, exactly or with
+a loose match (case, a trailing colon or ellipsis, Qt's `&` accelerators, `%1`
+placeholders against `{0}`). It keeps every translation already in `vscode/` and
+only fills gaps. `l10n-out.yml` runs it; to run it by hand against a checkout of
+the translations repo:
 
 ```
-python -I scripts/l10n/seed_from_qt.py . C:/sti
+python -I scripts/l10n/seed_from_qt.py . <sti-translations>
 ```
 
-It rewrites `l10n/bundle.l10n.json` from the sources, writes
-`package.nls.<lang>.json` and `l10n/bundle.l10n.<lang>.json` for each language
-with matches, keeps anything a translator already put there, and lists what is
-still untranslated in `l10n/untranslated.<lang>.txt`, one line per string:
-where it is used, the key, the English. A language with nothing to seed gets no
-files.
+It also rewrites this repository's `l10n/bundle.l10n.json`. A language with
+nothing translated gets no files.
 
 ## Translating the rest
 
-Fill in `package.nls.<lang>.json` and `l10n/bundle.l10n.<lang>.json` by hand, or
-from `untranslated.<lang>.txt`. In the bundle the key is the English text and
-`{0}`, `{1}` are placeholders that must stay in the translation. Run the seeding
-script again afterwards: it keeps hand-written entries and refreshes the lists.
+Fill in `vscode/package.nls.<lang>.json` and `vscode/bundle.l10n.<lang>.json` in the
+translations repo, working from `vscode/untranslated.<lang>.txt`. In the bundle the
+key is the English text and `{0}`, `{1}` are placeholders that must stay in the
+translation. Pushing it brings the translations here and refreshes the list.
 
 ## Adding a language
 
 VS Code finds the files by its language id, so a language needs nothing but
 its two files. For Korean:
 
-1. Create `package.nls.ko.json` and `l10n/bundle.l10n.ko.json`. Each is a JSON
-   object: the key is the `package.nls.json` key or the English text, the value
-   is the translation. Keys you leave out fall back to English.
+1. Create `vscode/package.nls.ko.json` and `vscode/bundle.l10n.ko.json` in the
+   translations repo. Each is a JSON object: the key is the `package.nls.json` key
+   or the English text, the value is the translation. Keys you leave out fall back
+   to English.
 2. If Understand has that language, add it to `LANGS` in
    `scripts/l10n/seed_from_qt.py`:
 
@@ -70,9 +93,9 @@ its two files. For Korean:
    "ko": ["understand_ko.ts", "codecheck_ko.ts"],
    ```
 
-   and run the script. A language whose Qt files have nothing finished gets no
-   files from the script; to get its `untranslated.ko.txt` anyway, create the
-   bundle file with one entry and run the script again.
+   The next sync seeds it and writes its `untranslated.ko.txt`. A language with
+   nothing translated gets no files from the script; to get the list anyway,
+   create the bundle file with one entry.
 3. To run the language test for it, add the Marketplace language pack to
    `PACKS` in `test/l10n/run.js`, for example
    `ko: 'MS-CEINTL.vscode-language-pack-ko'`.

@@ -1,0 +1,56 @@
+name: Sync stinb/sti-translations → translations
+
+# The translations repo's notify-vscode.yml sends this when its vscode/ folder
+# changes. Only the translations come in: the English belongs to this repo and
+# goes out through l10n-out.yml.
+on:
+  repository_dispatch:
+    types: [sync-translations-to-vscode]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Translations branch, master or japanese
+        default: master
+
+concurrency:
+  group: sync-translations
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      FROM: ${{ (github.event.client_payload.branch || inputs.branch) == 'japanese' && 'japanese' || 'master' }}
+      TO: ${{ (github.event.client_payload.branch || inputs.branch) == 'japanese' && 'japanese' || 'main' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TO }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: stinb/sti-translations
+          ref: ${{ env.FROM }}
+          token: ${{ secrets.SYNC_PAT }}
+          path: translations-repo
+
+      - name: Copy and push
+        run: |
+          # package.nls.<lang>.json only: package.nls.json is this repo's English
+          cp translations-repo/vscode/package.nls.*.json .
+          cp translations-repo/vscode/bundle.l10n*.json l10n/
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.nls.*.json l10n/
+          if git diff --staged --quiet; then
+            echo "No changes."
+          else
+            ORIG_MSG=$(git -C translations-repo log -1 --format=%s)
+            ORIG_MSG=${ORIG_MSG% \[autosync\]}
+            case "$ORIG_MSG" in [Ii]nternal:*) ;; *) ORIG_MSG="internal: ${ORIG_MSG}" ;; esac
+            git commit -m "${ORIG_MSG} [autosync]"
+            git pull --rebase origin "$TO"
+            git push origin "HEAD:$TO"
+          fi

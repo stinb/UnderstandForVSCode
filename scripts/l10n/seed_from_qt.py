@@ -1,23 +1,26 @@
 """Seed the extension's translation files from Understand's Qt translations.
 
-  python -I seed_from_qt.py <ext root> <sti root>
+  python -I seed_from_qt.py <ext root> <sti-translations checkout>
 
 Reads package.nls.json and every l10n.t('...') key in src (TypeScript and the
 webview string table), then for each language looks the English up in
-conf/translations/understand_<lang>.ts and codecheck_<lang>.ts: exact match
-first, then a loose one (case, a trailing colon or ellipsis, '&' accelerators,
-Qt's %1 placeholders against {0}). Writes package.nls.<lang>.json and
-l10n/bundle.l10n.<lang>.json with the matches, keeping every entry a
-translator already put there (VS Code falls back to English for a missing
-key), l10n/bundle.l10n.json with every English key, and
-l10n/untranslated.<lang>.txt listing what still needs a translator."""
+understand_<lang>.ts and codecheck_<lang>.ts: exact match first, then a loose
+one (case, a trailing colon or ellipsis, '&' accelerators, Qt's %1
+placeholders against {0}). The translations live in the checkout's vscode/
+folder, where translators work: package.nls.<lang>.json and
+bundle.l10n.<lang>.json get the matches, keeping every entry a translator
+already put there (VS Code falls back to English for a missing key), next to
+the English (package.nls.json, bundle.l10n.json) and untranslated.<lang>.txt,
+the list of what still needs a translator. The extension's own
+l10n/bundle.l10n.json is rewritten with every English key."""
 import html
 import json
 import os
 import re
 import sys
 
-EXT, STI = sys.argv[1], sys.argv[2]
+EXT, QT = sys.argv[1], sys.argv[2]
+OUT = os.path.join(QT, "vscode")
 LANGS = {"ja": ["understand_ja.ts", "codecheck_ja.ts"],
          "zh-cn": ["understand_zh_CN.ts", "codecheck_zh_CN.ts"],
          "zh-tw": ["understand_zh_TW.ts", "codecheck_zh_TW.ts"]}
@@ -34,7 +37,7 @@ def norm(s):
 def load_qt(paths):
     exact, loose = {}, {}
     for p in paths:
-        full = os.path.join(STI, "conf", "translations", p)
+        full = os.path.join(QT, p)
         if not os.path.exists(full):
             continue
         t = open(full, encoding="utf-8").read()
@@ -86,15 +89,19 @@ def translate(english, exact, loose):
 nls = json.load(open(os.path.join(EXT, "package.nls.json"), encoding="utf-8"))
 keys = keys_from_src()
 os.makedirs(os.path.join(EXT, "l10n"), exist_ok=True)
-with open(os.path.join(EXT, "l10n", "bundle.l10n.json"), "w", encoding="utf-8", newline="\n") as f:
-    json.dump({k: k for k in keys}, f, ensure_ascii=False, indent="\t")
-    f.write("\n")
+os.makedirs(OUT, exist_ok=True)
+for path, english in ((os.path.join(EXT, "l10n", "bundle.l10n.json"), {k: k for k in keys}),
+                      (os.path.join(OUT, "bundle.l10n.json"), {k: k for k in keys}),
+                      (os.path.join(OUT, "package.nls.json"), nls)):
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        json.dump(english, f, ensure_ascii=False, indent="\t")
+        f.write("\n")
 
 report = {}
 for lang, files in LANGS.items():
     exact, loose = load_qt(files)
-    nls_path = os.path.join(EXT, "package.nls.%s.json" % lang)
-    bundle_path = os.path.join(EXT, "l10n", "bundle.l10n.%s.json" % lang)
+    nls_path = os.path.join(OUT, "package.nls.%s.json" % lang)
+    bundle_path = os.path.join(OUT, "bundle.l10n.%s.json" % lang)
     # A translator's own entries stay; the Qt files only fill the gaps
     out_nls = json.load(open(nls_path, encoding="utf-8")) if os.path.exists(nls_path) else {}
     out_bundle = json.load(open(bundle_path, encoding="utf-8")) if os.path.exists(bundle_path) else {}
@@ -122,7 +129,7 @@ for lang, files in LANGS.items():
             missing.append(("bundle", english, english))
     total = len(nls) + len(keys)
     report[lang] = {"strings": total, "kept": stats["kept"], "exact": stats["exact"], "loose": stats["loose"], "missing": len(missing)}
-    untranslated = os.path.join(EXT, "l10n", "untranslated.%s.txt" % lang)
+    untranslated = os.path.join(OUT, "untranslated.%s.txt" % lang)
     if not out_nls and not out_bundle:
         # nothing for this language: no empty files
         report[lang]["files"] = "none (nothing translated)"
