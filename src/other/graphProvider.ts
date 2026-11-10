@@ -53,6 +53,8 @@ export class GraphProvider
 	private keyToGraphs: Map<string, Graph[]> = new Map;
 
 	private entityName = '';
+	/** The graphs' names in the display language, as the server last listed them */
+	graphLabels: { [name: string]: string } = {};
 	private focusedGraph?: Graph = undefined;
 	private listedUniqueName = '';
 	private saved: SavedGraph[] = [];
@@ -133,7 +135,7 @@ export class GraphProvider
 		if (!savedName && root.startsWith(ARCH_PREFIX)
 			&& variables.graphTreeProvider?.isRootArch(labelOf(root))) {
 			const answer = await vscode.window.showWarningMessage(
-				`${graphLabel(graphName)} on the architecture '${rootLabel}' covers the whole project and can take minutes to draw.`,
+				vscode.l10n.t("{0} on the architecture '{1}' covers the whole project and can take minutes to draw.", graphLabel(graphName), rootLabel),
 				{ modal: true }, vscode.l10n.t('Draw'));
 			if (answer !== 'Draw')
 				return;
@@ -387,7 +389,7 @@ export class GraphProvider
 export function labelOf(uniqueName: string): string
 {
 	if (uniqueName === PROJECT_ROOT)
-		return 'Project';
+		return vscode.l10n.t('Project');
 	if (uniqueName.startsWith(ARCH_PREFIX))
 		return uniqueName.slice(ARCH_PREFIX.length);
 	// An entity's unique name starts with its long name ("@lns::f@k_Z…"),
@@ -442,7 +444,8 @@ export const graphNotifications: { [method: string]: (params: any) => unknown } 
 		if (params.error)
 			vscode.window.showErrorMessage(vscode.l10n.t('Failed to save {0} "{1}": {2}', what, params.path, params.error));
 		else
-			vscode.window.setStatusBarMessage(`${params.legend ? 'Legend' : 'Graph'} saved to ${params.path}`, 3000);
+			vscode.window.setStatusBarMessage(params.legend ? vscode.l10n.t('Legend saved to {0}', params.path)
+				: vscode.l10n.t('Graph saved to {0}', params.path), 3000);
 	},
 };
 
@@ -1140,7 +1143,7 @@ class Graph
 			return;
 		}
 		const list = edge ? kinds.edge : kinds.node;
-		const other = { label: '$(edit) Type a kind string…', kindString: '' };
+		const other = { label: vscode.l10n.t('$(edit) Type a kind string…'), kindString: '' };
 		const kindPick = await vscode.window.showQuickPick(
 			[...list.map(k => ({ label: k.name, description: k.kind, kindString: k.kind })), other],
 			{ title: editing ? (edge ? vscode.l10n.t('Edit Edge Style') : vscode.l10n.t('Edit Node Style')) : (edge ? vscode.l10n.t('New Edge Style') : vscode.l10n.t('New Node Style')),
@@ -1155,7 +1158,7 @@ class Graph
 				return;
 		}
 		const name = await vscode.window.showInputBox({
-			title: 'Name', value: editing?.label || (kindPick === other ? kind : kindPick.label) });
+			title: vscode.l10n.t('Name'), value: editing?.label || (kindPick === other ? kind : kindPick.label) });
 		if (!name)
 			return;
 		const params: { [key: string]: unknown } = { action: edge ? 'edgeStyle' : 'nodeStyle', name, kind };
@@ -1246,11 +1249,12 @@ class Graph
 	 * tab does not; the root's name after it (operator&&) is left as is. */
 	private title(): string
 	{
+		const name = graphLabel(this.info?.label ?? variables.graphProvider.graphLabels[this.graphName] ?? this.graphName);
 		const title = this.info?.title;
 		if (!title)
-			return `${graphLabel(this.graphName)} : ${this.label}`;
+			return `${name} : ${this.label}`;
 		return title.startsWith(this.graphName)
-			? graphLabel(this.graphName) + title.slice(this.graphName.length)
+			? name + title.slice(this.graphName.length)
 			: title;
 	}
 

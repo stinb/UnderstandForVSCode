@@ -21,6 +21,7 @@ type Arch = {
 type ArchListed = {
 	fullName: string,
 	graphs: string[],
+	labels?: { [name: string]: string },
 	children: Arch[],
 };
 
@@ -37,6 +38,7 @@ export class GraphTreeProvider implements TreeDataProvider<Item>
 {
 	private entityGraphs: GraphItem[] = [];
 	private projectGraphs: string[] = [];
+	private labels: { [name: string]: string } = {};
 	private archs: Arch[] = [];
 	private saved: SavedGraph[] = [];
 	private online = false;
@@ -64,7 +66,7 @@ export class GraphTreeProvider implements TreeDataProvider<Item>
 			const saved = this.visible(this.saved);
 			if (gui) {
 				items.push(new SectionItem(l10n.t('Project Graphs'), 'project', this.projectGraphs.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None));
-				items.push(new SectionItem('Architectures', 'archs', this.archs.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None));
+				items.push(new SectionItem(l10n.t('Architectures'), 'archs', this.archs.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None));
 			}
 			items.push(new SectionItem(l10n.t('Saved Graphs'), 'saved', saved.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None));
 			if (gui && variables.exportLicensed)
@@ -74,7 +76,7 @@ export class GraphTreeProvider implements TreeDataProvider<Item>
 		if (element instanceof SectionItem) {
 			switch (element.section) {
 				case 'project':
-					return this.projectGraphs.map(name => new GraphItem(name, PROJECT_ROOT, 'Project'));
+					return this.projectGraphs.map(name => new GraphItem(name, PROJECT_ROOT, l10n.t('Project'), this.labels[name]));
 				case 'archs':
 					return this.archs.map(arch => new ArchItem(arch));
 				case 'saved':
@@ -83,7 +85,7 @@ export class GraphTreeProvider implements TreeDataProvider<Item>
 		}
 		if (element instanceof ArchItem) {
 			const listed = await this.listArch(element.arch.fullName);
-			const items: Item[] = listed.graphs.map(name => new GraphItem(name, ARCH_PREFIX + element.arch.fullName, element.arch.fullName));
+			const items: Item[] = listed.graphs.map(name => new GraphItem(name, ARCH_PREFIX + element.arch.fullName, element.arch.fullName, listed.labels?.[name]));
 			for (const child of listed.children)
 				items.push(new ArchItem(child));
 			return items;
@@ -107,7 +109,8 @@ export class GraphTreeProvider implements TreeDataProvider<Item>
 		if (listed === this.listed)
 			return;
 		this.listed = listed;
-		this.entityGraphs = params.graphs.map(name => new GraphItem(name));
+		this.labels = params.labels ?? {};
+		this.entityGraphs = params.graphs.map(name => new GraphItem(name, undefined, undefined, this.labels[name]));
 		this.projectGraphs = params.project ?? [];
 		this.archs = params.archs ?? [];
 		this.online = params.project !== undefined;
@@ -184,6 +187,7 @@ export function setExportLicensed(on: boolean)
 export function handleUnderstandGraphsListed(params: Params)
 {
 	variables.graphProvider.setEntity(params.entityName, params.uniqueName, params.graphs, params.source);
+	variables.graphProvider.graphLabels = params.labels ?? {};
 	variables.graphTreeProvider.update(params);
 	// The list carries the project's graphs while the project is online
 	variables.graphProvider.setOnline(params.project !== undefined);
@@ -192,9 +196,9 @@ export function handleUnderstandGraphsListed(params: Params)
 
 class GraphItem extends TreeItem
 {
-	constructor(name: string, uniqueName?: string, label?: string)
+	constructor(name: string, uniqueName?: string, label?: string, display?: string)
 	{
-		super(graphLabel(name));
+		super(graphLabel(display ?? name));
 		this.contextValue = 'understandGraph';
 		this.command = {
 			title: l10n.t('Go to Graph'),
@@ -226,7 +230,7 @@ class SectionItem extends TreeItem
 		super(label, state);
 		this.contextValue = 'understandGraphSection';
 		if (state === TreeItemCollapsibleState.None)
-			this.description = 'none';
+			this.description = l10n.t('none');
 	}
 }
 
@@ -249,7 +253,7 @@ class SavedItem extends TreeItem
 	{
 		super(saved.name);
 		this.contextValue = 'understandGraphSaved';
-		this.description = `${graphLabel(saved.graphName)}: ${saved.rootName}`;
+		this.description = `${graphLabel(saved.graphLabel ?? saved.graphName)}: ${saved.rootName}`;
 		this.iconPath = new ThemeIcon('save');
 		this.command = {
 			title: l10n.t('Load Saved Graph'),
@@ -280,6 +284,8 @@ type Params = {
 	graphs: string[],
 	uniqueName: string,
 	project?: string[],
+	/** The graphs' names in the display language, by name */
+	labels?: { [name: string]: string },
 	archs?: Arch[],
 	/** The graph tab whose sync this list answers */
 	source?: string,

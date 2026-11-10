@@ -57,14 +57,14 @@ export type FilterSuggestion = { criteria: number, text: string, label: string }
 export type EdgeRef = GraphLocation & { text: string } | { separator: true };
 
 export type GraphThemes = {
-	list: { id: string, name: string }[],
+	list: { id: string, name: string, label?: string }[],
 	current: string,
 	editable: boolean,
 	isDefault: boolean,
 	canRestoreDefaults: boolean,
 	modified: boolean,
 	showUnused: boolean,
-	globalStyles: { id: string, name: string, enabled: boolean, kind: 'node' | 'edge' }[],
+	globalStyles: { id: string, name: string, label?: string, enabled: boolean, kind: 'node' | 'edge' }[],
 };
 
 export type GraphInfo = {
@@ -108,6 +108,8 @@ export type GraphInfo = {
 	legendShown?: boolean,
 	/** the display's title, as the GUI's window shows it */
 	title?: string,
+	/** the graph's name in the display language */
+	label?: string,
 };
 
 /** The peek's source pane: lines of a file from firstLine, start to end marked (1-based),
@@ -200,6 +202,8 @@ export type RelationCandidate = { name: string, longName: string, uniqueName: st
 export type SavedGraph = {
 	name: string,
 	graphName: string,
+	/** the graph's name in the display language */
+	graphLabel?: string,
 	rootName: string,
 	uniqueName: string,
 };

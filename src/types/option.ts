@@ -7,6 +7,8 @@ export type OptionCheckbox = {
 
 export type OptionCheckboxGroup = {
 	choices: string[],
+	/** the choices in the display language */
+	labels?: string[],
 	id: string,
 	kind: 'horizontalCheckbox' | 'verticalCheckbox',
 	text: string,
@@ -15,6 +17,8 @@ export type OptionCheckboxGroup = {
 
 export type OptionChoice = {
 	choices: string[],
+	/** the choices in the display language */
+	labels?: string[],
 	id: string,
 	kind: 'choice' | 'horizontalRadio' | 'verticalRadio',
 	text: string,

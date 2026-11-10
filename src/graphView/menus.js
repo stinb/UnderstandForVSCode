@@ -169,7 +169,7 @@ export function colorMenuItem(label, current, onPick, inheritable)
 			/** @type {MenuItem[]} */
 			const items = [];
 			if (inheritable)
-				items.push({ label: 'inherited', checked: !current, onClick: () => onPick('') });
+				items.push({ label: t('inherited'), checked: !current, onClick: () => onPick('') });
 			for (const color of colors)
 				items.push({ label: color, color, checked: (current || '').toLowerCase() === color, onClick: () => onPick(color) });
 			items.push({ separator: true });
@@ -282,9 +282,9 @@ function targetMenuItems(target)
 	}
 	if (target.arch) {
 		const arch = target.arch;
-		items.push({ label: 'Annotate Architecture…', onClick: () => vscode.postMessage({
+		items.push({ label: t('Annotate Architecture…'), onClick: () => vscode.postMessage({
 			method: 'target', command: 'annotateArch', uniqueName: `arch:${arch}`, text: arch }) });
-		items.push({ label: 'Copy Name', onClick: () => vscode.postMessage({
+		items.push({ label: t('Copy Name'), onClick: () => vscode.postMessage({
 			method: 'target', command: 'copyName', uniqueName: `arch:${arch}`, text: arch }) });
 	}
 	const root = uniqueName || (target.arch ? `arch:${target.arch}` : '');

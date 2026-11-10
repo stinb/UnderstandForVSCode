@@ -302,7 +302,7 @@ function legendEntryMenuItems(entry, index)
 	const choice = (/** @type {string} */ label, /** @type {string} */ key, /** @type {string[]} */ values) => ({
 		label,
 		children: () => [
-			{ label: 'inherited', checked: !attrs[key], onClick: () => set(key)('') },
+			{ label: t('inherited'), checked: !attrs[key], onClick: () => set(key)('') },
 			...values.map(v => ({ label: v, checked: attrs[key] === v, onClick: () => set(key)(v) })),
 		],
 	});
@@ -324,8 +324,8 @@ function legendEntryMenuItems(entry, index)
 		const id = entry.id;
 		const styleKind = entry.metric ? 'metric' : entry.kind === 'edge' ? 'edge' : 'node';
 		items.push({ separator: true });
-		items.push({ label: 'Edit…', onClick: () => vscode.postMessage({ method: 'legend', action: 'styleDialog', styleKind, entry }) });
-		items.push({ label: 'Delete Style', onClick: () => vscode.postMessage({ method: 'legend', action: 'removeStyle', id }) });
+		items.push({ label: t('Edit…'), onClick: () => vscode.postMessage({ method: 'legend', action: 'styleDialog', styleKind, entry }) });
+		items.push({ label: t('Delete Style'), onClick: () => vscode.postMessage({ method: 'legend', action: 'removeStyle', id }) });
 	}
 	return items;
 }
@@ -341,28 +341,31 @@ function legendMenuItems()
 	if (!info)
 		return items;
 	const post = (/** @type {import('../types/graph').LegendAction} */ m) => () => vscode.postMessage(m);
-	const currentName = themes ? (themes.list.find(t => t.id === themes.current) || { name: themes.current }).name : '';
+	const currentTheme = themes ? themes.list.find(theme => theme.id === themes.current) : undefined;
+	const currentName = currentTheme ? currentTheme.name : themes ? themes.current : '';
+	// Shown as the server translates it; the name itself stays the theme's
+	const currentLabel = currentTheme ? currentTheme.label ?? currentTheme.name : currentName;
 	if (themes && themes.editable) {
 		/** @type {MenuItem[]} */
-		const themeItems = themes.list.map(t => ({
-			label: t.name,
-			checked: t.id === themes.current,
-			onClick: post({ method: 'legend', action: 'theme', id: t.id, modified: themes.modified }),
+		const themeItems = themes.list.map(theme => ({
+			label: theme.label ?? theme.name,
+			checked: theme.id === themes.current,
+			onClick: post({ method: 'legend', action: 'theme', id: theme.id, modified: themes.modified }),
 		}));
 		themeItems.push({ separator: true });
-		themeItems.push({ label: 'New Theme…', onClick: post({ method: 'legend', action: 'newTheme', value: `Copy of ${currentName}` }) });
+		themeItems.push({ label: t('New Theme…'), onClick: post({ method: 'legend', action: 'newTheme', value: t('Copy of {0}', currentName) }) });
 		if (themes.isDefault)
-			themeItems.push({ label: `Restore Defaults for ${currentName}`, disabled: !themes.canRestoreDefaults, onClick: post({ method: 'legend', action: 'restoreDefaults' }) });
+			themeItems.push({ label: t('Restore Defaults for {0}', currentLabel), disabled: !themes.canRestoreDefaults, onClick: post({ method: 'legend', action: 'restoreDefaults' }) });
 		else {
-			themeItems.push({ label: `Rename ${currentName}…`, onClick: post({ method: 'legend', action: 'renameTheme', value: currentName }) });
-			themeItems.push({ label: `Remove ${currentName}`, onClick: post({ method: 'legend', action: 'removeTheme' }) });
+			themeItems.push({ label: t('Rename {0}…', currentLabel), onClick: post({ method: 'legend', action: 'renameTheme', value: currentName }) });
+			themeItems.push({ label: t('Remove {0}', currentLabel), onClick: post({ method: 'legend', action: 'removeTheme' }) });
 		}
-		themeItems.push({ label: `Export ${currentName}…`, onClick: post({ method: 'legend', action: 'export' }) });
+		themeItems.push({ label: t('Export {0}…', currentLabel), onClick: post({ method: 'legend', action: 'export' }) });
 		if (themes.modified)
-			themeItems.push({ label: `Save ${currentName}`, onClick: post({ method: 'legend', action: 'save' }) });
-		themeItems.push({ label: 'Import Themes…', onClick: post({ method: 'legend', action: 'import' }) });
+			themeItems.push({ label: t('Save {0}', currentLabel), onClick: post({ method: 'legend', action: 'save' }) });
+		themeItems.push({ label: t('Import Themes…'), onClick: post({ method: 'legend', action: 'import' }) });
 		items.push({ label: t('Theme'), children: themeItems });
-		items.push({ label: 'Show Unused Styles', checked: themes.showUnused, onClick: post({ method: 'legend', action: 'showUnused', value: !themes.showUnused }) });
+		items.push({ label: t('Show Unused Styles'), checked: themes.showUnused, onClick: post({ method: 'legend', action: 'showUnused', value: !themes.showUnused }) });
 		for (const kind of /** @type {const} */ (['node', 'edge'])) {
 			const globals = themes.globalStyles.filter(g => g.kind === kind);
 			if (!globals.length)
@@ -370,7 +373,7 @@ function legendMenuItems()
 			items.push({
 				label: kind === 'node' ? t('Global Node Styles') : t('Global Edge Styles'),
 				children: globals.map(g => ({
-					label: g.name,
+					label: g.label ?? g.name,
 					checked: g.enabled,
 					onClick: post({ method: 'legend', action: 'toggleGlobal', id: g.id, enabled: !g.enabled }),
 				})),
@@ -379,15 +382,15 @@ function legendMenuItems()
 		items.push({ separator: true });
 		// A metric color scale needs Export & Share Reports/Metrics
 		if (themes.metricScale !== false)
-			items.push({ label: 'Add Metric Color Scale…', onClick: post({ method: 'legend', action: 'styleDialog', styleKind: 'metric' }) });
-		items.push({ label: 'Add Node Style…', onClick: post({ method: 'legend', action: 'styleDialog', styleKind: 'node' }) });
-		items.push({ label: 'Add Edge Style…', onClick: post({ method: 'legend', action: 'styleDialog', styleKind: 'edge' }) });
+			items.push({ label: t('Add Metric Color Scale…'), onClick: post({ method: 'legend', action: 'styleDialog', styleKind: 'metric' }) });
+		items.push({ label: t('Add Node Style…'), onClick: post({ method: 'legend', action: 'styleDialog', styleKind: 'node' }) });
+		items.push({ label: t('Add Edge Style…'), onClick: post({ method: 'legend', action: 'styleDialog', styleKind: 'edge' }) });
 	}
 	// Any legend, as in the GUI, not only one whose styles can be edited
 	if (info.legend && info.legend.length) {
 		if (items.length)
 			items.push({ separator: true });
-		items.push({ label: 'Save Legend as Image…', onClick: post({ method: 'legend', action: 'saveImage' }) });
+		items.push({ label: t('Save Legend as Image…'), onClick: post({ method: 'legend', action: 'saveImage' }) });
 	}
 	items.push({ label: t('Hide Legend'), onClick: () => toggleLegend() });
 	return items;

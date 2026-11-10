@@ -307,7 +307,7 @@ export async function editExcludedPaths()
 			}]);
 		} catch (error) {
 			vscode.window.showWarningMessage(error instanceof Error
-				? error.message : `"${prefix.trim()}" could not be excluded`);
+				? error.message : vscode.l10n.t('"{0}" could not be excluded', prefix.trim()));
 			return;
 		}
 		invalidateFileStatus();
