@@ -437,14 +437,14 @@
 			{
 				"command": "understand.settings.showSettingsMetricsView",
 				"title": "%command.understand.settings.showSettingsMetricsView.title%",
-				"shortTitle": "Settings",
+				"shortTitle": "%command.understand.settings.showSettingsMetricsView.shortTitle%",
 				"category": "%category.Understand%",
 				"icon": "$(gear)"
 			},
 			{
 				"command": "understand.settings.showSettingsReferencesView",
 				"title": "%command.understand.settings.showSettingsReferencesView.title%",
-				"shortTitle": "Settings",
+				"shortTitle": "%command.understand.settings.showSettingsReferencesView.shortTitle%",
 				"category": "%category.Understand%",
 				"icon": "$(gear)"
 			},

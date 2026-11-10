@@ -99,7 +99,7 @@ export function drawOptions(options)
 	const advancedToggle = document.createElement('button');
 	advancedToggle.id = 'advancedToggle';
 	advancedToggle.className = 'tool on';
-	advancedToggle.innerHTML = "<span class='codicon codicon-settings'></span><span>Advanced</span>";
+	advancedToggle.innerHTML = `<span class='codicon codicon-settings'></span><span>${t('Advanced')}</span>`;
 	panel.appendChild(advancedToggle);
 	const optionsUi = document.createElement('div');
 	optionsUi.id = 'advancedOptions';
@@ -202,11 +202,12 @@ function drawOption(option, group)
 			const select = document.createElement('select');
 			select.dataset.id = option.id;
 			select.onchange = () => changed(option.id, select.value);
-			for (const choice of option.choices) {
+			option.choices.forEach((choice, i) => {
 				const optionUi = document.createElement('option');
-				optionUi.textContent = modifyText(choice);
+				optionUi.value = choice;
+				optionUi.textContent = modifyText(choiceLabel(option, i));
 				select.appendChild(optionUi);
-			}
+			});
 			select.value = option.value;
 			group.appendChild(labeledControl(option.text, select));
 			break;
@@ -239,7 +240,7 @@ function drawOption(option, group)
 			const checked = new Set(option.value);
 			const choices = () => Array.from(innerGroup.getElementsByTagName('input')).filter(i => i.checked).map(i => i.name);
 
-			for (const choice of option.choices) {
+			option.choices.forEach((choice, i) => {
 				const label = document.createElement('label');
 				innerGroup.appendChild(label);
 
@@ -251,9 +252,9 @@ function drawOption(option, group)
 				label.appendChild(input);
 
 				const labelText = document.createElement('span');
-				labelText.textContent = modifyText(choice);
+				labelText.textContent = modifyText(choiceLabel(option, i));
 				label.appendChild(labelText);
-			}
+			});
 			break;
 		}
 
@@ -337,6 +338,14 @@ export function canStepLevel(step)
 }
 
 
+/** A choice as the panel shows it: the server's translation when it sent one
+ * @param {{choices: string[], labels?: string[]}} option @param {number} i */
+function choiceLabel(option, i)
+{
+	return option.labels?.[i] ?? option.choices[i];
+}
+
+
 /** @param {string} text */
 function modifyText(text)
 {
@@ -385,8 +394,8 @@ export function optionsMenuItems()
 			case 'verticalRadio':
 				items.push({
 					label: modifyText(option.text),
-					children: option.choices.map(choice => ({
-						label: modifyText(choice), checked: option.value === choice, onClick: () => set(option.id, choice),
+					children: option.choices.map((choice, i) => ({
+						label: modifyText(choiceLabel(option, i)), checked: option.value === choice, onClick: () => set(option.id, choice),
 					})),
 				});
 				break;
@@ -394,8 +403,8 @@ export function optionsMenuItems()
 			case 'verticalCheckbox':
 				items.push({
 					label: modifyText(option.text),
-					children: option.choices.map(choice => ({
-						label: modifyText(choice),
+					children: option.choices.map((choice, i) => ({
+						label: modifyText(choiceLabel(option, i)),
 						checked: option.value.includes(choice),
 						onClick: () => set(option.id, option.value.includes(choice)
 							? option.value.filter(c => c !== choice) : [...option.value, choice]),

@@ -550,7 +550,7 @@ function openCommand(uri: string, range: LineRange): Command
 {
 	return {
 		command: 'understand.violations.open',
-		title: 'Open',
+		title: l10n.t('Open'),
 		arguments: [uri, range],
 	};
 }

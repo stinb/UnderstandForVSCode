@@ -102,7 +102,7 @@ export class AnnotationTreeProvider implements TreeDataProvider<AnnotationNode>
 			const rows = (element.fields ?? []).map(f => new AnnotationFieldItem(f, element));
 			if (element.templateName && rows.length)
 				rows.unshift(new AnnotationFieldItem(
-					{ label: 'Template', value: element.templateName }, element));
+					{ label: l10n.t('Template'), value: element.templateName }, element));
 			return rows;
 		}
 		return [];
