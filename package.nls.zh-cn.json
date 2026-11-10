@@ -24,5 +24,7 @@
 	"view.understandGraphs.name": "图形",
 	"view.understandMetrics.name": "度量",
 	"view.understandReferences.name": "引用",
-	"view.understandViolationsList.name": "违规项"
+	"view.understandViolationsList.name": "违规项",
+	"command.understand.settings.showSettingsMetricsView.shortTitle": "设置",
+	"command.understand.settings.showSettingsReferencesView.shortTitle": "设置"
 }

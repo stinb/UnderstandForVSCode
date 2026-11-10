@@ -24,5 +24,7 @@
 	"view.understandGraphs.name": "グラフ",
 	"view.understandMetrics.name": "メトリクス",
 	"view.understandReferences.name": "参照",
-	"view.understandViolationsList.name": "違反"
+	"view.understandViolationsList.name": "違反",
+	"command.understand.settings.showSettingsMetricsView.shortTitle": "設定",
+	"command.understand.settings.showSettingsReferencesView.shortTitle": "設定"
 }
