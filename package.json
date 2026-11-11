@@ -2,7 +2,7 @@
 	"name": "understand",
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
-	"version": "1.3.0",
+	"version": "1.3.1",
 	"publisher": "scitools",
 	"license": "MIT",
 	"repository": {
