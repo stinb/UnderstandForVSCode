@@ -29,7 +29,8 @@
 	"activationEvents": [
 		"workspaceContains:**/*.und/id.txt",
 		"onStartupFinished",
-		"onWebviewPanel:understandGraph"
+		"onWebviewPanel:understandGraph",
+		"onFileSystem:understand-zip"
 	],
 	"contributes": {
 		"icons": {
@@ -864,6 +865,10 @@
 				{
 					"command": "understand.ignoreViolationWithDetails",
 					"when": "false"
+				},
+				{
+					"command": "understand.analysis.analyzeCurrentFile",
+					"when": "resourceScheme != understand-zip"
 				},
 				{
 					"command": "understand.ai.generateAutomatically",

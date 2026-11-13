@@ -23,6 +23,7 @@ import { reportVisibility } from './viewVisibility';
 import { actuallyChangedTextEditorSelection, contexts, setContext } from './context';
 import { handleUnderstandGraphsListed, setExportLicensed, setGuiLicensed } from '../treeProviders/graphs';
 import { handleUnderstandMetricsListed } from '../treeProviders/metrics';
+import { zipScheme } from './zipFileSystem';
 import { handleUnderstandChangedReferences } from '../treeProviders/references';
 import { Section } from '../types/annotation';
 import { graphNotifications } from './graphProvider';
@@ -63,6 +64,7 @@ type AiTextEndParams = {
  */
 export const documentSelector = [
 	{ scheme: 'file' },
+	{ scheme: zipScheme },
 ];
 
 
@@ -108,7 +110,7 @@ function handleUnderstandLicenseLost(params: { message?: string })
 // notification this extension uses. Raise it when the extension starts using
 // one that older builds lack; a newer extension reaches users on older builds
 // through auto-update, and there they fail silently (#55).
-const minimumUnderstandBuild = 1267;
+const minimumUnderstandBuild = 1269;
 
 
 /** Warn once per start when the server is older than this extension needs. */
@@ -228,6 +230,7 @@ function getLanguageClientOptions(): lc.LanguageClientOptions
 			uriScheme: vscode.env.uriScheme, // 'vscode'
 			uriAuthority: 'scitools.understand',
 			deregisterOnExit: getBooleanFromConfig('understand.license.deregisterOnExit'),
+			zipScheme: true,
 		},
 	};
 }

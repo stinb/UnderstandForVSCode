@@ -4,6 +4,7 @@ import * as lc from 'vscode-languageclient/node';
 import { contexts, refreshFileStatus, setContext } from './context';
 import { invalidateFileStatus } from './fileDecorations';
 import { variables, } from './variables';
+import { zipScheme } from './zipFileSystem';
 
 
 /** Main state of the language server & client */
@@ -67,6 +68,35 @@ export interface FileStatus {
 
 let db = { path: '', state: DbState.Finding };
 
+/** The states after which the project won't be ready without the user acting */
+const notReadyStates = [DbState.NoProject, DbState.UnableToOpen, DbState.Empty,
+	DbState.Unresolved, DbState.WrongVersion];
+
+let resolvedWaiters: ((resolved: boolean) => void)[] = [];
+
+const projectResolved = new vscode.EventEmitter<void>();
+
+/** Fires each time the server reports the project resolved: when it opens and after every analysis */
+export const onDidResolveProject = projectResolved.event;
+
+/** Whether the server has the project open and resolved now */
+export function isProjectResolved(): boolean
+{
+	return db.state === DbState.Resolved && !!variables.languageClient?.isRunning();
+}
+
+/**
+ * True once the server has the project open and resolved, false when it says
+ * the project won't be. A zip file tab that VS Code restores at startup reads
+ * its text before the server has started (#5).
+ */
+export function whenProjectResolved(): Promise<boolean>
+{
+	if (isProjectResolved())
+		return Promise.resolve(true);
+	return new Promise((resolve) => resolvedWaiters.push(resolve));
+}
+
 
 /** The open project's resolved .und path, empty while none is open */
 export function databasePath(): string
@@ -79,6 +109,23 @@ let fileStatusBarItem: vscode.StatusBarItem;
 let entityStatusBarItem: vscode.StatusBarItem;
 let progressStatusBarItems = new Map<string, StatusBarItem>();
 
+// The main item's menu offers Analyze this file only outside a zip file, so
+// it is rebuilt when the active editor moves into or out of one
+let mainStatus: MainState | undefined;
+let menuBuiltForZip = false;
+
+function activeIsZip(): boolean
+{
+	return vscode.window.activeTextEditor?.document.uri.scheme === zipScheme;
+}
+
+/** Rebuild the main item's menu if the active editor crossed into or out of a zip file */
+export function refreshMainStatusForEditor()
+{
+	if (mainStatus !== undefined && activeIsZip() !== menuBuiltForZip)
+		changeMainStatus(mainStatus);
+}
+
 
 /**
  * Change the main status bar item
@@ -87,6 +134,8 @@ export function changeMainStatus(status: MainState)
 {
 	if (mainStatusBarItem === undefined)
 		createStatusBar();
+	mainStatus = status;
+	menuBuiltForZip = activeIsZip();
 
 	switch (status) {
 		case MainState.Connecting:
@@ -328,6 +377,16 @@ export function handleUnderstandChangedDatabaseState(params: Db)
 	db = params;
 	invalidateFileStatus();
 
+	const resolved = db.state === DbState.Resolved;
+	if (resolved || notReadyStates.includes(db.state)) {
+		const waiters = resolvedWaiters;
+		resolvedWaiters = [];
+		for (const resolve of waiters)
+			resolve(resolved);
+	}
+	if (resolved)
+		projectResolved.fire();
+
 	if (progressStatusBarItems.size === 0)
 		changeMainStatus(MainState.Ready);
 	else
@@ -389,7 +448,9 @@ function statusBarItemStatusAndCommands(status: MainState, title: string)
 				case DbState.Resolved:
 					enabledCommands.add('understand.analysis.analyzeAllFiles');
 					enabledCommands.add('understand.analysis.analyzeChangedFiles');
-					enabledCommands.add('understand.analysis.analyzeCurrentFile');
+					// A file inside a zip is analyzed with the project, never on its own
+					if (!activeIsZip())
+						enabledCommands.add('understand.analysis.analyzeCurrentFile');
 					enabledCommands.add('understand.settings.showSettingsProject');
 					break;
 				default:

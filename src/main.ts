@@ -15,6 +15,7 @@ import { onDidChangeConfiguration } from './other/config';
 import { UnderstandHoverProvider } from './other/hover';
 import { documentSelector, startLsp, stopLsp, } from './other/languageClient';
 import { UnderstandUriHandler } from './other/uriHandler';
+import { ZipFileSystem, zipScheme } from './other/zipFileSystem';
 import { variables } from './other/variables';
 import { activateAnnotationDecorations, refreshAnnotationDecorations } from './other/annotationDecorations';
 import { AnnotateCodeLensProvider, AnnotationHoverProvider } from './other/annotationEditor';
@@ -196,6 +197,10 @@ export async function activate(context: vscode.ExtensionContext)
 
 		// The violation-descriptions URI every diagnostic links to: the check card
 		vscode.window.registerUriHandler(new UnderstandUriHandler()),
+
+		// The read-only text of a file inside a zip, such as the JDK's src.zip (#5)
+		vscode.workspace.registerFileSystemProvider(zipScheme, new ZipFileSystem(),
+			{ isCaseSensitive: true, isReadonly: true }),
 
 		// Create web views
 		vscode.window.registerWebviewViewProvider('understandAi', variables.aiViewProvider),

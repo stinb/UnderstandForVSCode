@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
 
 import { variables } from '../other/variables';
-import { changeFileStatus } from './statusBar';
+import { changeFileStatus, refreshMainStatusForEditor } from './statusBar';
 import { fileStatusOf } from './fileDecorations';
 import { focusedUniqueName } from './sync';
+import { zipScheme } from './zipFileSystem';
 
 
 export const contexts = {
@@ -86,8 +87,10 @@ export async function setContext(name: string, enabled: boolean)
 async function sendSelection()
 {
 	const editor = vscode.window.activeTextEditor;
+	const scheme = editor?.document.uri.scheme;
+	refreshMainStatusForEditor();
 
-	if (!editor || !editor.selections.length || editor.document.uri.scheme !== 'file') {
+	if (!editor || !editor.selections.length || (scheme !== 'file' && scheme !== zipScheme)) {
 		setContext(contexts.file, false);
 		changeFileStatus(undefined);
 		const uniqueName = focusedUniqueName();
@@ -103,6 +106,14 @@ async function sendSelection()
 		character: position.character,
 		preserve: preserveView,
 	});
+
+	// A file inside a zip is read-only and never analyzed on its own, so the
+	// file commands and the file status don't apply to it
+	if (scheme === zipScheme) {
+		setContext(contexts.file, false);
+		changeFileStatus(undefined);
+		return;
+	}
 
 	await updateFileStatus(editor.document.uri, setContext);
 }

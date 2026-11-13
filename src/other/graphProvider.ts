@@ -14,6 +14,7 @@ import {
 } from '../types/graph';
 import { pathToSave } from './popup';
 import { openNewAnnotationForm } from '../commands/annotateLine';
+import { uriOfPath } from './zipFileSystem';
 
 
 /** A graph's root as the server names it in uniqueName: an entity's unique
@@ -427,7 +428,7 @@ export const graphNotifications: { [method: string]: (params: any) => unknown } 
 	apiCommand: showApiCommand,
 	// The GUI's visit (Alt+click, a click with Peek off, double-click in a
 	// plugin graph), in a normal tab that takes the focus; lines are 1-based
-	visit: (params: GraphKey & GraphLocation) => vscode.window.showTextDocument(vscode.Uri.file(params.path), {
+	visit: (params: GraphKey & GraphLocation) => vscode.window.showTextDocument(uriOfPath(params.path), {
 		selection: new vscode.Range(Math.max(0, params.line - 1), Math.max(0, params.column - 1),
 			Math.max(0, params.line - 1), Math.max(0, params.column - 1)),
 		preview: false,
@@ -768,7 +769,7 @@ class Graph
 				break;
 			case 'clickedLocation': {
 				// The place opens in a normal tab, which takes the focus
-				vscode.window.showTextDocument(vscode.Uri.file(message.path), {
+				vscode.window.showTextDocument(uriOfPath(message.path), {
 					selection: new vscode.Range(message.line, message.column, message.line, message.column),
 					preview: false,
 					viewColumn: codeColumn(this.panel.viewColumn),
