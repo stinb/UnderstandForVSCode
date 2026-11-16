@@ -1,5 +1,5 @@
 name: Publish
-run-name: Publish 8.0.${{ inputs.build }}
+run-name: Publish ${{ inputs.version }}
 
 # Jenkins starts this from Understand_Release » accept with the build it
 # accepted. The .vsix is the one that build packaged and smoke tested, so
@@ -10,6 +10,9 @@ on:
     inputs:
       build:
         description: Understand build number, e.g. 1267
+        required: true
+      version:
+        description: Extension version, which is the Understand version and build, e.g. 8.1.1268
         required: true
       commit:
         description: Commit of this repo the .vsix was packaged from
@@ -24,12 +27,13 @@ jobs:
     env:
       BUILD: ${{ inputs.build }}
       COMMIT: ${{ inputs.commit }}
+      VERSION: ${{ inputs.version }}
     steps:
       - name: Check the inputs
         run: |
           [[ "$BUILD" =~ ^[0-9]+$ ]] || { echo "build must be a number: $BUILD"; exit 1; }
           [[ "$COMMIT" =~ ^[0-9a-f]{40}$ ]] || { echo "commit must be a full SHA: $COMMIT"; exit 1; }
-          echo "VERSION=8.0.$BUILD" >> "$GITHUB_ENV"
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.$BUILD$ ]] || { echo "version must end in the build number: $VERSION"; exit 1; }
 
       - uses: actions/setup-node@v4
         with:
