@@ -110,7 +110,10 @@ function handleUnderstandLicenseLost(params: { message?: string })
 // notification this extension uses. Raise it when the extension starts using
 // one that older builds lack; a newer extension reaches users on older builds
 // through auto-update, and there they fail silently (#55).
-const minimumUnderstandBuild = 1269;
+// The Japanese 8.0 release is build 1267, carries understand/zipContent, and
+// gets this extension from the Marketplace too, so keep 1267 working until
+// Japanese 8.1 ships (stinb/und-issues#738).
+const minimumUnderstandBuild = 1267;
 
 
 /** Warn once per start when the server is older than this extension needs. */
