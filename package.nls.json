@@ -141,6 +141,8 @@
 	"config.understand.metricsView.enabled.description": "Show content of the Metrics view",
 	"config.understand.project.path.description": "Absolute path of the Understand project (PROJECT_NAME.und folder, most likely should be configured in Workspace/Folder Settings)",
 	"config.understand.project.pathFindingMethod.description": "Either allow the language server to find the Understand project automatically, or manually set it once",
+	"config.understand.inlayHints.types.description": "Show the type after a declared name when the source doesn't write it, such as a C++ auto variable",
+	"config.understand.inlayHints.parameterNames.description": "Show the parameter name before each argument of a call",
 	"config.understand.referencesView.enabled.description": "Show content of the References view",
 	"config.understand.referencesView.organization.description": "How the references are grouped",
 	"config.understand.referencesView.organization.enum.0": "Grouped by files (entity > files > references)",

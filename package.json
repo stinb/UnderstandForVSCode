@@ -742,6 +742,16 @@
 						],
 						"description": "%config.understand.project.pathFindingMethod.description%"
 					},
+					"understand.inlayHints.types": {
+						"type": "boolean",
+						"default": true,
+						"description": "%config.understand.inlayHints.types.description%"
+					},
+					"understand.inlayHints.parameterNames": {
+						"type": "boolean",
+						"default": true,
+						"description": "%config.understand.inlayHints.parameterNames.description%"
+					},
 					"understand.referencesView.enabled": {
 						"type": "boolean",
 						"default": true,

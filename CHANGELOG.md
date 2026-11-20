@@ -1,6 +1,7 @@
 # Change Log
 
 # [Unreleased]
+- Add: inlay hints: the type after a declared name when the source leaves it out, such as a C++ `auto` variable, and the parameter name before each argument of a call; the settings `understand.inlayHints.types` and `understand.inlayHints.parameterNames` turn each off, and VS Code's own Editor › Inlay Hints setting applies as well. Needs the Understand build that answers them (#41)
 
 # [1.3.1] - 2026 Nov 11
 - Add: the extension shows its views, commands, messages and settings in VS Code's display language; Japanese and Simplified Chinese are partly translated, the rest stays in English, and AI overviews follow it when the installed Understand has that language (#58)
